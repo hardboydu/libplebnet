@@ -259,6 +259,13 @@ struct lock_class lock_class_rm = {
 };
 
 void
+rm_init(struct rmlock *rm, const char *name)
+{
+
+	rw_init((struct rwlock *)rm, name);
+}
+
+void
 rm_init_flags(struct rmlock *rm, const char *name, int opts)
 {
 

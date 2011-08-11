@@ -5,8 +5,11 @@ LIB=	plebnet
 PN_KERN_COMMON_OBJS +=		\
 	kern_environment.o	\
 	kern_fail.o		\
+	kern_khelp.o		\
+	kern_hhook.o		\
 	kern_mbuf.o		\
 	kern_mtxpool.o		\
+	kern_osd.o		\
 	kern_sysctl.o		\
 	md5c.o			\
 	subr_eventhandler.o	\
@@ -79,8 +82,7 @@ PN_LIBKERN_COMMON_OBJS =	\
 	strlcpy.o
 
 PN_OTHER_COMMON_OBJS =		\
-	harvest.o		\
-	uma_core.o
+	harvest.o		
 
 PN_SYS_COMMON_OBJS = 		\
 	pn_compat.o		\
@@ -101,7 +103,8 @@ PN_SYS_COMMON_OBJS = 		\
 	pn_sys_generic.o	\
 	pn_uipc_syscalls.o	\
 	pn_veth.o		\
-	pn_server_syscalls.o
+	pn_server_syscalls.o	\
+	pn_uma_core.o
 
 
 PN_MFILES = 			\

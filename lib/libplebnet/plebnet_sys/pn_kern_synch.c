@@ -195,3 +195,8 @@ wakeup_one(void *chan)
 	pthread_mutex_unlock(&synch_lock);
 }
 
+void
+kern_yield(int prio)
+{
+	pthread_yield();
+}
