@@ -94,7 +94,7 @@ pn_socket(int domain, int type, int protocol)
 	struct thread *td = curthread;
 
 	fdp = td->td_proc->p_fd;
-	error = falloc(td, &fp, &fd);
+	error = falloc(td, &fp, &fd, 0);
 	if (error)
 		return (-error);
 	/* An extra reference on `fp' has been held for us by falloc(). */

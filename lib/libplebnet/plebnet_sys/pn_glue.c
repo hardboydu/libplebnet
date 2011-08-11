@@ -86,7 +86,7 @@ time_t time_second = 1;
 time_t time_uptime = 1;
 
 /* This is used in modules that need to work in both SMP and UP. */
-cpumask_t all_cpus;
+cpuset_t all_cpus;
 
 int mp_ncpus;
 /* export this for libkvm consumers. */

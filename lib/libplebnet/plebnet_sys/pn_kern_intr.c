@@ -150,22 +150,18 @@ intr_priority(enum intr_type flags)
 	    INTR_TYPE_CAM | INTR_TYPE_MISC | INTR_TYPE_CLK | INTR_TYPE_AV);
 	switch (flags) {
 	case INTR_TYPE_TTY:
-		pri = PI_TTYLOW;
+		pri = PI_TTY;
 		break;
 	case INTR_TYPE_BIO:
-		/*
-		 * XXX We need to refine this.  BSD/OS distinguishes
-		 * between tape and disk priorities.
-		 */
 		pri = PI_DISK;
 		break;
 	case INTR_TYPE_NET:
 		pri = PI_NET;
 		break;
 	case INTR_TYPE_CAM:
-		pri = PI_DISK;          /* XXX or PI_CAM? */
+		pri = PI_DISK;          
 		break;
-	case INTR_TYPE_AV:		/* Audio/video */
+	case INTR_TYPE_AV:		
 		pri = PI_AV;
 		break;
 	case INTR_TYPE_CLK:

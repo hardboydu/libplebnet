@@ -1223,7 +1223,8 @@ fdavail(struct thread *td, int n)
  * release the FILEDESC lock.
  */
 int
-falloc(struct thread *td, struct file **resultfp, int *resultfd)
+falloc(struct thread *td, struct file **resultfp, int *resultfd, 
+       int flags)
 {
 	struct proc *p = td->td_proc;
 	struct file *fp;

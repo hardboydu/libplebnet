@@ -135,7 +135,11 @@ PN_OPT_FILES = 			\
 	opt_route.h		\
 	opt_sctp.h		\
 	opt_tcpdebug.h		\
-	opt_zero.h
+	opt_zero.h		\
+	opt_capsicum.h		\
+	opt_msgbuf.h		\
+	opt_ofed.h		\
+	opt_pcbgroup.h
 
 # Search for kernel source tree in standard places.
 .for _dir in ${.CURDIR}/../.. ${.CURDIR}/../../sys ${.CURDIR}/../../.. /sys /usr/src/sys
