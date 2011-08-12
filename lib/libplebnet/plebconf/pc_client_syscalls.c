@@ -137,7 +137,7 @@ struct ioctl_call {
 static int
 ioctl_internal(int d, unsigned long request, uintptr_t argp)
 {	
-	int size, iovcnt, err, retval;
+	int size, iovcnt, retval;
 	struct iovec iov[4];
 	struct ioctl_call ic;
 	struct ifreq *ifr = NULL;
@@ -326,6 +326,8 @@ ioctl_internal(int d, unsigned long request, uintptr_t argp)
 		break;
 		/* do nothing */
 	}
+	
+	return (0);
 }
 
 int
@@ -338,6 +340,7 @@ ioctl(int d, unsigned long request, ...)
 
 	argp = va_arg(ap, uintptr_t);
 	va_end(ap);
-	ioctl_internal(d, request, argp);
+
+	return (ioctl_internal(d, request, argp));
 }
 
