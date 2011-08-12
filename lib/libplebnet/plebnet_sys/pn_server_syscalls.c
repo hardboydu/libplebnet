@@ -65,6 +65,10 @@ static int dispatch_table_size = SYS_MAXSYSCALL;
 
 typedef int (*dispatch_func)(struct thread *, int, int);
 
+static int dispatch_socket(struct thread *td, int fd, int size);
+static int dispatch_ioctl(struct thread *td, int fd, int size);
+
+
 dispatch_func dispatch_table[SYS_MAXSYSCALL];
 
 
@@ -84,6 +88,8 @@ target_bind(void)
 		   sizeof(addr)))
 		exit(1);
 
+	dispatch_table[SYS_socket] = dispatch_socket;
+	dispatch_table[SYS_ioctl] = dispatch_ioctl;
 	_listen(target_fd, 10);
 }
 
@@ -152,7 +158,7 @@ start_server_syscalls(void)
 	pthread_create(&server, NULL, syscall_server, NULL);
 }
 
-int
+static int
 dispatch_socket(struct thread *td, int fd, int size)
 {
 	int i, err, osize, iovcnt;
@@ -182,7 +188,7 @@ dispatch_socket(struct thread *td, int fd, int size)
 }
 
 
-int
+static int
 dispatch_ioctl(struct thread *td, int fd, int size)
 {
 	int err, rc, iovcnt;

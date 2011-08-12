@@ -54,6 +54,17 @@
 
 static int target_fd; 
 
+int _socket(int domain, int type, int protocol);
+int _connect(int s, const struct sockaddr *name, socklen_t namelen);
+void target_connect(void) __attribute__((constructor));
+
+static void 
+client_fini(void)
+{
+	printf("closing target fd");
+	close(target_fd);
+}
+
 void 
 target_connect(void)
 {
@@ -65,18 +76,23 @@ target_connect(void)
 		return;
 
 	pidstr = getenv("TARGET_PID");
-	if (pidstr == NULL)
-		exit(1);
+	if (pidstr == NULL || strlen(pidstr) == 0) {
+		printf("failed to find target pid set, proxied calls will not work");
+		return;
+	}
 
-	target_fd = socket(PF_LOCAL, SOCK_STREAM, 0);
+	target_fd = _socket(PF_LOCAL, SOCK_STREAM, 0);
+
+	atexit(client_fini);
 
 	addr.sun_family = PF_LOCAL;
 	strcpy(buffer, "/tmp/");
 	strcat(buffer, pidstr);
 	strcpy(addr.sun_path, buffer);
-	if(connect(target_fd, (struct sockaddr *)&addr,
-		SUN_LEN(&addr)))
-		exit(1);
+	if(_connect(target_fd, (struct sockaddr *)&addr,
+		SUN_LEN(&addr))) {
+		printf("failed to connect to target pid set, proxied calls will not work");
+	}
 }
 
 int
@@ -100,7 +116,7 @@ socket(int domain, int type, int protocol)
 	struct iovec iov[5];
 	int size, code, i, err, fd;
 
-	size = 4*sizeof(int);
+	size = 3*sizeof(int);
 	code = SYS_socket;
 
 	iov[0].iov_base = &size;
@@ -114,7 +130,7 @@ socket(int domain, int type, int protocol)
 	
 	writev(target_fd, iov, 5);
 	
-	if ((err = handle_return_msg(fd, &size)) != 0) {
+	if ((err = handle_return_msg(target_fd, &size)) != 0) {
 		errno = err;
 		return (-1);
 	}
