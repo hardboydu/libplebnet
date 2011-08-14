@@ -14,6 +14,7 @@ CFLAGS+=	-I/usr/include
 CFLAGS+=	-I../include
 
 CFLAGS+=	-nostdinc
+CFLAGS+=	-g
 NO_WERROR=	1
 WARNS=2
 CSTD="c99"

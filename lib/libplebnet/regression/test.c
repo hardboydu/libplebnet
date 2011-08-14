@@ -42,7 +42,7 @@ main(void)
 	pn_init();
 
 	
-	sleep(60);
+	sleep(3000);
 
 	fd = pn_socket(PF_INET, SOCK_DGRAM, 0);
 	printf("fd=%d\n", fd);
