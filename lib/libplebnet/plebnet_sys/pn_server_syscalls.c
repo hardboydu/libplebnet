@@ -172,7 +172,8 @@ dispatch_socket(struct thread *td, int fd, int size)
 		err = EINVAL;
 	else if (read(fd, &scm, sizeof(scm)) < 0) {
 		err = errno;
-	} else if ((err = kern_socket(td, &scm)) == 0) {
+	} else if ((err = socket(scm.scm_domain, scm.scm_type, 
+				 scm.scm_protocol)) == 0) {
 		osize = sizeof(int);
 		iovcnt = 3;
 		iov[2].iov_base = &td->td_retval[0];

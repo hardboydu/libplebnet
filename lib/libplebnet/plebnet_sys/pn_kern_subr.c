@@ -217,11 +217,4 @@ copyinuio(struct iovec *iovp, u_int iovcnt, struct uio **uiop)
 	return (0);
 }
 
-int 
-kern_socket(struct thread *td, struct socket_args *uap)
-{
-	return socket(td, uap);
-
-}
-
 
