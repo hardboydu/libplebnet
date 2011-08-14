@@ -1,5 +1,39 @@
 /*-
- * Copyright (c) 2010 Kip Macy
+ * Copyright (c) 1982, 1986, 1989, 1990, 1993
+ *	The Regents of the University of California.  All rights reserved.
+ *
+ * sendfile(2) and related extensions:
+ * Copyright (c) 1998, David Greenman. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ *	@(#)uipc_syscalls.c	8.4 (Berkeley) 2/21/94
+ */
+
+/*-
+ * Copyright (c) 2010-2011 Kip Macy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,8 +83,6 @@
 #include <sys/sysctl.h>
 #include <sys/uio.h>
 
-static int
-pn_kern_bind(int fd, struct sockaddr *sa);
 static int sendit(struct thread *td, int s, struct msghdr *mp, int flags);
 
 
@@ -85,7 +117,7 @@ getsock(struct filedesc *fdp, int fd, struct file **fpp, u_int *fflagp)
 }
 
 int
-pn_socket(int domain, int type, int protocol)
+kern_socket(struct thread *td, int domain, int type, int protocol)
 {
 	struct filedesc *fdp;
 	struct socket *so;
@@ -96,90 +128,64 @@ pn_socket(int domain, int type, int protocol)
 	fdp = td->td_proc->p_fd;
 	error = falloc(td, &fp, &fd, 0);
 	if (error)
-		return (-error);
+		return (error);
 	/* An extra reference on `fp' has been held for us by falloc(). */
 	error = socreate(domain, &so, type, protocol,
 	    td->td_ucred, td);
 	if (error) {
 		fdclose(fdp, fp, fd, td);
-		error = -error;
 	} else {
 		finit(fp, FREAD | FWRITE, DTYPE_SOCKET, so, &socketops);
-		error = fd;
+		td->td_retval[0] = fd;
 	}
 	fdrop(fp, td);
 	return (error);
 }
 
 int
-pn_bind(uap)
-	struct bind_args /* {
-		int	s;
-		caddr_t	name;
-		int	namelen;
-	} */ *uap;
-{
-	struct sockaddr *sa;
-	int error;
-
-	if ((error = getsockaddr(&sa, uap->name, uap->namelen)) != 0)
-		return (error);
-
-	error = pn_kern_bind(uap->s, sa);
-	free(sa, M_SONAME);
-	return (error);
-}
-
-static int
-pn_kern_bind(fd, sa)
-	int fd;
-	struct sockaddr *sa;
+kern_bind(struct thread *td, int fd, struct sockaddr *sa)
 {
 	struct socket *so;
 	struct file *fp;
 	int error;
-	struct thread *td = curthread;
 
+	AUDIT_ARG_FD(fd);
 	error = getsock(td->td_proc->p_fd, fd, &fp, NULL);
 	if (error)
 		return (error);
 	so = fp->f_data;
-	error = sobind(so, sa, td);
+#ifdef KTRACE
+	if (KTRPOINT(td, KTR_STRUCT))
+		ktrsockaddr(sa);
+#endif
+#ifdef MAC
+	error = mac_socket_check_bind(td->td_ucred, so, sa);
+	if (error == 0)
+#endif
+		error = sobind(so, sa, td);
 	fdrop(fp, td);
 	return (error);
 }
 
 int
-pn_listen(uap)
-	struct listen_args /* {
-		int	s;
-		int	backlog;
-	} */ *uap;
+kern_listen(struct thread *td, int s, int backlog)
 {
-	return (0);
-}
+	struct socket *so;
+	struct file *fp;
+	int error;
 
-int
-pn_accept(uap)
-	struct accept_args /* {
-		int	s;
-		struct sockaddr	* __restrict name;
-		socklen_t	* __restrict anamelen;
-	} */ *uap;
-{
-	return (0);
-}
-
-int
-pn_connect(uap)
-	struct connect_args /* {
-		int	s;
-		caddr_t	name;
-		int	namelen;
-	} */ *uap;
-{
-	
-	return (0);
+	AUDIT_ARG_FD(s);
+	error = getsock(td->td_proc->p_fd, s, &fp, NULL);
+	if (error == 0) {
+		so = fp->f_data;
+#ifdef MAC
+		error = mac_socket_check_listen(td->td_ucred, so);
+		if (error == 0)
+#endif
+			error = solisten(so, backlog, td);
+		fdrop(fp, td);
+	}
+	return(error);
 }
 
 static int
@@ -321,6 +327,24 @@ bad:
 	return (error);
 }
 
+/* ARGSUSED */
+int
+kern_shutdown(struct thread *td, int s, int how)
+{
+	struct socket *so;
+	struct file *fp;
+	int error;
+
+	AUDIT_ARG_FD(s);
+	error = getsock(td->td_proc->p_fd, uap->s, &fp, NULL);
+	if (error == 0) {
+		so = fp->f_data;
+		error = soshutdown(so, uap->how);
+		fdrop(fp, td);
+	}
+	return (error);
+}
+
 int
 sockargs(mp, buf, buflen, type)
 	struct mbuf **mp;
@@ -390,15 +414,3 @@ getsockaddr(namp, uaddr, len)
 	return (error);
 }
 
-int
-pn_sendmsg(int s, struct msghdr *msg, int flags)
-{
-	int error;
-	struct thread *td = curthread;
-
-#ifdef COMPAT_OLDSOCK
-	msg.msg_flags = 0;
-#endif
-	error = sendit(td, s, msg, flags);
-	return (error);
-}
