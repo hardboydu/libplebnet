@@ -50,7 +50,9 @@ struct pcpu *pcpup;
 
 extern int pn_veth_attach(void);
 
-int
+static int pn_init(void) __attribute__((constructor));
+
+static int
 pn_init(void)
 {
 	struct thread *td;

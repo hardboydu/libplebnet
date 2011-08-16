@@ -37,15 +37,11 @@ main(void)
         iov[msg.msg_iovlen++].iov_len = strlen(name); 
         iov[msg.msg_iovlen].iov_base = neteol; 
         iov[msg.msg_iovlen++].iov_len = 2; 
-
-
-	pn_init();
-
 	
-	sleep(3000);
 
 	fd = socket(PF_INET, SOCK_DGRAM, 0);
 	printf("fd=%d\n", fd);
+	sleep(3000);
 	error = sendmsg(fd, &msg, 0);
 	printf("sendmsg returned %d\n", error);
 	return (0);
