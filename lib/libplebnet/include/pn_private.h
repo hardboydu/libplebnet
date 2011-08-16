@@ -34,6 +34,8 @@ int             pn_mutex_lock(pthread_mutex_t *);
 int             pn_mutex_unlock(pthread_mutex_t *);
 extern void	*pn_malloc(int);
 void		pn_fdused_range(struct filedesc *fdp, int max);
+int             pn_user_fdisused(int fd);
+int             pn_kernel_fdisused(int fd);
 void            start_server_syscalls(void);
 
 #endif /* _PLEBNET_PN_PRIVATE_H_ */

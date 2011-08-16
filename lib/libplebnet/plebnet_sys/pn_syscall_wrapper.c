@@ -35,6 +35,8 @@
 #include <fcntl.h>
 #include <poll.h>
 
+#include <pn_private.h>
+
 
 int _socket(int domain, int type, int protocol);
 int _ioctl(int fd, unsigned long request, ...);
@@ -90,7 +92,6 @@ kern_fail:
 	return (-1);
 }
 
-
 /*
  * XXX may need to eventually support ioctls that take 4 arguments
  */
@@ -105,9 +106,8 @@ ioctl(int fd, unsigned long request, ...)
 
 	argp = va_arg(ap, uintptr_t);
 	va_end(ap);	
-	if (/* fd is ours */) {
-		rc = kern_ioctl(curthread, fd, request, argp);
-		if (rc)
+	if (pn_user_fdisused(fd)) {
+		if ((rc = kern_ioctl(curthread, fd, request, argp)))
 			goto kern_fail;
 	} else
 		rc = _ioctl(fd, request, argp);
@@ -123,7 +123,7 @@ close(int fd)
 {
 	int rc;
 
-	if (/* XXX fd is ours */) 
+	if (pn_user_fdisused(fd)) 
 		if ((rc = kern_close(curthread, fd))) 
 			goto kern_fail;
 	else
@@ -148,6 +148,11 @@ open(const char *path, int flags, ...)
 		rc = _open(path, flags, mode);
 	} else
 		rc = _open(path, flags);
+
+	if (rc >= 0)
+		; /* track kernel descriptor */
+
+	return (rc);
 }
 
 int
@@ -165,6 +170,9 @@ openat(int fd, const char *path, int flags, ...)
 	} else
 		rc = _openat(fd, path, flags);
 
+	if (rc >= 0)
+		; /* track kernel descriptor */
+
 	return (rc);
 }
 
@@ -180,8 +188,7 @@ read(int d, void *buf, size_t nbytes)
 		goto kern_fail;
 	}
 
-
-	if (/* XXX fd is ours */) {
+	if (pn_user_fdisused(fd)) {
 		aiov.iov_base = buf;
 		aiov.iov_len = nbytes;
 		auio.uio_iov = &aiov;
@@ -206,7 +213,7 @@ readv(int fd, const struct iovec *iov, int iovcnt)
 	struct uio auio;
 	int rc, len, i;
 
-	if (/* XXX fd is ours */) {
+	if (pn_user_fdisused(fd)) {
 		len = 0;
 		for (i = 0; i < iovcnt)
 			len += iov[i].iov_len;
@@ -239,7 +246,7 @@ write(int fd, const void *buf, size_t nbytes)
 		goto kern_fail;
 	}
 
-	if (/* fd is ours */) {
+	if (pn_user_fdisused(fd)) {
 		aiov.iov_base = (void *)(uintptr_t)buf;
 		aiov.iov_len = nbytes;
 		auio.uio_iov = &aiov;
@@ -264,7 +271,7 @@ writev(int fd, const struct iovec *iov, int iovcnt)
 	struct uio auio;
 	int i, rc, len;
 
-	if (/* fd is ours */) {
+	if (pn_user_fdisused(fd)) {
 		len = 0;
 		for (i = 0; i < iovcnt; i++)
 			len += iov[i].iov_len;
@@ -300,7 +307,7 @@ sendto(int s, const void *buf, size_t len, int flags,
 	struct iovec aiov;
 	int rc;
 
-	if (/* descriptor is ours */) {
+	if (pn_user_fdisused(s)) {
 		msg.msg_name = to;
 		msg.msg_namelen = tolen;
 		msg.msg_iov = &aiov;
@@ -326,7 +333,7 @@ sendmsg(int s, const struct msghdr *msg, int flags)
 {
 	int rc;
 
-	if (/* descriptor is ours */) {
+	if (pn_user_fdisused(s)) {
 		if ((rc = sendit(curthread, s, msg, flags)))
 			goto kern_fail;
 	} else 
@@ -354,7 +361,7 @@ recvfrom(int s, void * restrict buf, size_t len, int flags,
 	struct iovec aiov;
 	int rc;
 
-	if (/* descriptor is ours */) {
+	if (pn_user_fdisused(s)) {
 		if (fromlen != NULL)
 			msg.msg_namelen = *fromlen;
 		else
@@ -384,7 +391,7 @@ recvmsg(int s, struct msghdr *msg, int flags)
 {
 	int rc, oldflags;
 
-	if (/* descriptor is ours */) {
+	if (pn_user_fdisused(s)) {
 		oldflags = msg->msg_flags;
 		msg->msg_flags = flags;
 
@@ -460,9 +467,8 @@ fcntl(int fd, int cmd, ...)
 	argp = va_arg(ap, uintptr_t);
 	va_end(ap);	
 
-	if (/* fd is ours */) {
-		rc = kern_fcntl(curthread, fd, cmd, argp);
-		if (rc)
+	if (pn_user_fdisused(fd)) {
+		if ((rc = kern_fcntl(curthread, fd, cmd, argp)))
 			goto kern_fail;
 		rc = curthread->td_retval[0];
 	} else {
@@ -486,7 +492,7 @@ dup(int oldd)
 {
 	int rc;
 
-	if (/* fd is ours */) {
+	if (pn_user_fdisused(fd)) {
 		if ((rc = do_dup(curthread, 0, (int)oldd, 0, curthread->td_retval)))
 			goto kern_fail;
 		rc = curthread->td_retval[0];
@@ -504,7 +510,7 @@ dup2(int oldd, int newd)
 {
 	int rc;
 
-	if (/* fd is ours */) {
+	if (pn_user_fdisused(fd)) {
 		if ((rc = do_dup(curthread, DUP_FIXED, oldd, newd, curthread->td_retval)))
 			goto kern_fail;
 	        rc = curthread->td_retval[0];
@@ -549,14 +555,13 @@ poll(struct pollfd fds[], nfds_t nfds, int timeout)
 	rc = kernfd = userfd = 0;
 	for (i = 0; i < nfds; i++) {
 		kernfd |= pn_kernfd_isset(fds[i].fd);
-		userfd |= pn_userfd_isset(fds[i].fd);
+		userfd |= pn_user_fdisused(fds[i].fd);
 	}
 
 	if (kernfd && !userfd)
 		rc = _poll(fds, nfds, timeout);
 	else if (!kernfd && userfd) {
-		rc = kern_poll(curthread, fds, nfds, timeout);
-		if (rc)
+		if ((rc = kern_poll(curthread, fds, nfds, timeout)))
 			goto kern_fail;
 		rc = curthread->td_retval[0];
 	} else if (kernfd && userfd) {
@@ -574,9 +579,8 @@ accept(int s, struct sockaddr * restrict addr,
 {
 	int rc;
 
-	if (/* s is one of ours */) {
-		rc = kern_accept(curthread, s, addr, addrlen);
-		if (rc)
+	if (pn_user_fdisused(s)) {
+		if ((rc = kern_accept(curthread, s, addr, addrlen)))
 			goto kern_fail;
 		rc = curthread->td_retval[0];
 	} else {
@@ -596,10 +600,9 @@ listen(int s, int backlog)
 {
 	int rc;
 
-	if (/* s is one of ours */) {
+	if (pn_user_fdisused(s)) {
 		if ((rc = kern_listen(curthread, s, backlog)))
 			goto kern_fail;
-
 	} else
 		rc = _listen(s, backlog);
 
@@ -615,7 +618,7 @@ bind(int s, const struct sockaddr *addr, socklen_t addrlen)
 	struct sockaddr *sa;
 	int erro;
 
-	if (/* s is one of ours */) {
+	if (pn_user_fdisused(s)) {
 		if ((rc = getsockaddr(&sa, addr, addrlen)) != 0)
 			goto kern_fail;
 		rc = kern_bind(curthread, s, sa);
@@ -637,7 +640,7 @@ connect(int s, const struct sockaddr *name, socklen_t namelen)
 	struct sockaddr *sa;
 	int rc;
 
-	if (/* s is one of ours */) {
+	if (pn_user_fdisused(s)) {
 		if ((rc = getsockaddr(&sa, name, namelen)) != 0)
 			goto kern_fail;
 		rc = kern_connect(curthread, s, sa);
@@ -661,7 +664,7 @@ getpeername(int s, struct sockaddr * restrict name,
 {
 	int rc;
 
-	if (/* s is ours */) {
+	if (pn_user_fdisused(s)) {
 		if ((rc = kern_getpeername(curthread, s, name, namelen)))
 			goto kern_fail;
 	} else
@@ -680,7 +683,7 @@ getsockname(int s, struct sockaddr * restrict name,
 	struct sockaddr *sa;
 	int rc;
 
-	if (/* s is ours */) {
+	if (pn_user_fdisused(s)) {
 		if ((rc = kern_getsockname(curthread, s, &sa, namelen)))
 			goto kern_fail;
 		bcopy(sa, name, *namelen);
@@ -700,7 +703,7 @@ shutdown(int s, int how)
 {
 	int rc;
 
-	if (/* s is ours */) {
+	if (pn_user_fdisused(s)) {
 		if ((rc = kern_shutdown(curthread, s, how)))
 			goto kern_fail;
 	} else

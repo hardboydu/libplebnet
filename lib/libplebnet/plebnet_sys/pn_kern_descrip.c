@@ -246,6 +246,26 @@ fdused(struct filedesc *fdp, int fd)
 		fdp->fd_freefile = fd_first_free(fdp, fd, fdp->fd_nfiles);
 }
 
+int
+pn_user_fdisused(int fd) 
+{
+
+	return (fd < fdp->fd_nfiles && 
+	    fdisused(curthread->td_proc->p_fd, fd) &&
+	    curthread->td_proc->p_fd[fd] != NULL);
+}
+
+int
+pn_kernel_fdisused(int fd) 
+{
+	/* XXX really need a separate per proc bitmask to
+	 * track kernel allocated descriptors 
+	 */
+	return (fd < fdp->fd_nfiles && 
+	    fdisused(curthread->td_proc->p_fd, fd) &&
+	    curthread->td_proc->p_fd[fd] == NULL);
+}
+
 /*
  * block out a range of descriptors to avoid overlap with
  * the kernel's descriptor space
