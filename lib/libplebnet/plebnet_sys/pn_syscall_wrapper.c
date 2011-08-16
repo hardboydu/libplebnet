@@ -90,10 +90,29 @@ kern_fail:
 	return (-1);
 }
 
+
+/*
+ * XXX may need to eventually support ioctls that take 4 arguments
+ */
 int
 ioctl(int fd, unsigned long request, ...)
 {
-	
+	int rc;
+	va_list ap;
+	uintptr_t argp;
+
+	va_start(ap, request);
+
+	argp = va_arg(ap, uintptr_t);
+	va_end(ap);	
+	if (/* fd is ours */) {
+		rc = kern_ioctl(curthread, fd, request, argp);
+		if (rc)
+			goto kern_fail;
+	} else
+		rc = _ioctl(fd, request, argp);
+
+	return (rc);
 kern_fail:
 	errno = rc;
 	return (-1);
@@ -106,7 +125,7 @@ close(int fd)
 
 	if (/* XXX fd is ours */) 
 		if ((rc = kern_close(curthread, fd))) 
-			goto kern_fail;			
+			goto kern_fail;
 	else
 		rc = _close(fd);
 	return (rc);
@@ -118,19 +137,35 @@ kern_fail:
 int
 open(const char *path, int flags, ...)
 {
+	int rc;
+	va_list ap;
+	mode_t mode;
 
-kern_fail:
-	errno = rc;
-	return (-1);
+	if (flags & O_CREAT) {
+		va_start(ap, flags);
+		mode = va_arg(ap, mode_t);
+		va_end(ap);
+		rc = _open(path, flags, mode);
+	} else
+		rc = _open(path, flags);
 }
 
 int
 openat(int fd, const char *path, int flags, ...)
 {
+	int rc;
+	va_list ap;
+	mode_t mode;
 
-kern_fail:
-	errno = rc;
-	return (-1);
+	if (flags & O_CREAT) {
+		va_start(ap, flags);
+		mode = va_arg(ap, mode_t);
+		va_end(ap);
+		rc = _openat(fd, path, flags, mode);
+	} else
+		rc = _openat(fd, path, flags);
+
+	return (rc);
 }
 
 ssize_t
@@ -213,7 +248,6 @@ write(int fd, const void *buf, size_t nbytes)
 		auio.uio_segflg = UIO_SYSSPACE;
 		if ((rc = kern_writev(curthread, fd, &auio)))
 			goto kern_fail;
-		
 		rc = curthread->td_retval[0];
 	} else
 		rc = _write(fd, buf, nbytes);
@@ -373,23 +407,75 @@ select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
     struct timeval *timeout)
 
 {
-	
-	/* :(  :(   :( */
-	/*
-	  need to check for the presence of kernel descriptors
-	  if it is entirely user or entirely kernel there is no work to be done
-	  but if we have both user and kernel it isn't entirely clear how 
-	  to proceed without using some form of asynchronous notifications for 
-	  kernel descriptors	  
-	*/
-	
+	int rc, kernfd, userfd;
+
+	rc = kernfd = userfd = 0;
+	if (readfds != NULL)
+		userfd = pleb_userfd_isset(nfds, readfds);
+	if (writefds != NULL)
+		userfd |= pleb_userfd_isset(nfds, writefds);
+	if (exceptfds != NULL)
+		userfd |= pleb_userfd_isset(nfds, exceptfds);
+
+	if (readfds != NULL)
+		kernfd = pleb_kernfd_isset(nfds, readfds);
+	if (writefds != NULL)
+		kernfd |= pleb_kernfd_isset(nfds, writefds);
+	if (exceptfds != NULL)
+		kernfd |= pleb_kernfd_isset(nfds, exceptfds);
+
+	if (!userfd && kernfd)
+		return _select(nfds, readfds, writefds, exceptfds, timeout);
+	else if (userfd && !kernfd) {
+		rc = kern_select(curthread, nfds, readfds, writefds, exceptfds, timeout);
+		if (rc)
+			goto kern_fail;
+		rc = curthread->td_retval[0];
+	} else if (userfd && kernfd) {
+
+		/* :(  :(   :( */
+		/* XXX need to create two separate fd sets 
+		 * one that is entirely user and one that
+		 * is entirely kernel
+		 */
+
+	}
+
+	return (rc);
+kern_fail:
+	errno = rc;
+	return (-1);
 
 }
 
 int
 fcntl(int fd, int cmd, ...)
 {
+	int rc;
+	va_list ap;
+	uintptr_t argp;
 
+	va_start(ap, request);
+
+	argp = va_arg(ap, uintptr_t);
+	va_end(ap);	
+
+	if (/* fd is ours */) {
+		rc = kern_fcntl(curthread, fd, cmd, argp);
+		if (rc)
+			goto kern_fail;
+		rc = curthread->td_retval[0];
+	} else {
+		rc = _fcntl(fd, cmd, argp);
+		if (rc < 0)
+			return (rc);
+	switch (cmd){
+	case F_DUPFD:
+	case F_DUP2FD:
+		/* track rc as it is another fd */
+		break;
+	}
+	return (rc);
 kern_fail:
 	errno = rc;
 	return (-1);
@@ -458,7 +544,28 @@ socketpair(int domain, int type, int protocol, int *sv)
 int
 poll(struct pollfd fds[], nfds_t nfds, int timeout)
 {
-	/* :(   :(   :(  */
+	int i, rc, kernfd, userfd;
+	
+	rc = kernfd = userfd = 0;
+	for (i = 0; i < nfds; i++) {
+		kernfd |= pn_kernfd_isset(fds[i].fd);
+		userfd |= pn_userfd_isset(fds[i].fd);
+	}
+
+	if (kernfd && !userfd)
+		rc = _poll(fds, nfds, timeout);
+	else if (!kernfd && userfd) {
+		rc = kern_poll(curthread, fds, nfds, timeout);
+		if (rc)
+			goto kern_fail;
+		rc = curthread->td_retval[0];
+	} else if (kernfd && userfd) {
+
+	}
+	return (rc);
+kern_fail:
+	errno = rc;
+	return (-1);
 }
 
 int
@@ -468,8 +575,10 @@ accept(int s, struct sockaddr * restrict addr,
 	int rc;
 
 	if (/* s is one of ours */) {
-
-
+		rc = kern_accept(curthread, s, addr, addrlen);
+		if (rc)
+			goto kern_fail;
+		rc = curthread->td_retval[0];
 	} else {
 		rc = _accept(s, addr, addrlen);
 		if (rc > 0) 
@@ -477,6 +586,9 @@ accept(int s, struct sockaddr * restrict addr,
 	}
 
 	return (rc);
+kern_fail:
+	errno = rc;
+	return (-1);
 }
 
 int
