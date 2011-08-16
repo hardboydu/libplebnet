@@ -101,8 +101,11 @@ static uma_zone_t file_zone;
 #define DUP_FIXED	0x1	/* Force fixed allocation */
 #define DUP_FCNTL	0x2	/* fcntl()-style errors */
 
-static int do_dup(struct thread *td, int flags, int old, int new,
+int do_dup(struct thread *td, int flags, int old, int new,
     register_t *retval);
+
+int sys_fcntl(struct thread *td, int fd, int cmd, intptr_t arg);
+
 static int	fd_first_free(struct filedesc *, int, int);
 static int	fd_last_used(struct filedesc *, int, int);
 static void	fdgrowtable(struct filedesc *, int);
@@ -249,21 +252,23 @@ fdused(struct filedesc *fdp, int fd)
 int
 pn_user_fdisused(int fd) 
 {
+	struct thread *td = curthread;
 
-	return (fd < fdp->fd_nfiles && 
-	    fdisused(curthread->td_proc->p_fd, fd) &&
-	    curthread->td_proc->p_fd[fd] != NULL);
+	return (fd < td->td_proc->p_fd->fd_nfiles && 
+	    fdisused(td->td_proc->p_fd, fd) &&
+	    td->td_proc->p_fd->fd_ofiles[fd] != NULL);
 }
 
 int
 pn_kernel_fdisused(int fd) 
 {
+	struct thread *td = curthread;
 	/* XXX really need a separate per proc bitmask to
 	 * track kernel allocated descriptors 
 	 */
-	return (fd < fdp->fd_nfiles && 
-	    fdisused(curthread->td_proc->p_fd, fd) &&
-	    curthread->td_proc->p_fd[fd] == NULL);
+	return (fd < td->td_proc->p_fd->fd_nfiles && 
+	    fdisused(td->td_proc->p_fd, fd) &&
+	    td->td_proc->p_fd->fd_ofiles[fd] == NULL);
 }
 
 /*
@@ -320,73 +325,23 @@ getdtablesize(struct thread *td, struct getdtablesize_args *uap)
 	return (0);
 }
 
-/*
- * Duplicate a file descriptor to a particular value.
- *
- * Note: keep in mind that a potential race condition exists when closing
- * descriptors from a shared descriptor table (via rfork).
- */
-#ifndef _SYS_SYSPROTO_H_
-struct dup2_args {
-	u_int	from;
-	u_int	to;
-};
-#endif
 /* ARGSUSED */
 int
-dup2(struct thread *td, struct dup2_args *uap)
-{
-
-	return (do_dup(td, DUP_FIXED, (int)uap->from, (int)uap->to,
-		    td->td_retval));
-}
-
-/*
- * Duplicate a file descriptor.
- */
-#ifndef _SYS_SYSPROTO_H_
-struct dup_args {
-	u_int	fd;
-};
-#endif
-/* ARGSUSED */
-int
-dup(struct thread *td, struct dup_args *uap)
-{
-
-	return (do_dup(td, 0, (int)uap->fd, 0, td->td_retval));
-}
-
-/*
- * The file control system call.
- */
-#ifndef _SYS_SYSPROTO_H_
-struct fcntl_args {
-	int	fd;
-	int	cmd;
-	long	arg;
-};
-#endif
-/* ARGSUSED */
-int
-fcntl(struct thread *td, struct fcntl_args *uap)
+sys_fcntl(struct thread *td, int fd, int cmd, intptr_t arg)
 {
 	struct flock fl;
 	struct oflock ofl;
-	intptr_t arg;
 	int error;
-	int cmd;
 
 	error = 0;
-	cmd = uap->cmd;
-	switch (uap->cmd) {
+	switch (cmd) {
 	case F_OGETLK:
 	case F_OSETLK:
 	case F_OSETLKW:
 		/*
 		 * Convert old flock structure to new.
 		 */
-		error = copyin((void *)(intptr_t)uap->arg, &ofl, sizeof(ofl));
+		error = copyin((void *)(intptr_t)arg, &ofl, sizeof(ofl));
 		fl.l_start = ofl.l_start;
 		fl.l_len = ofl.l_len;
 		fl.l_pid = ofl.l_pid;
@@ -394,7 +349,7 @@ fcntl(struct thread *td, struct fcntl_args *uap)
 		fl.l_whence = ofl.l_whence;
 		fl.l_sysid = 0;
 
-		switch (uap->cmd) {
+		switch (cmd) {
 		case F_OGETLK:
 		    cmd = F_GETLK;
 		    break;
@@ -411,27 +366,27 @@ fcntl(struct thread *td, struct fcntl_args *uap)
         case F_SETLK:
         case F_SETLKW:
 	case F_SETLK_REMOTE:
-                error = copyin((void *)(intptr_t)uap->arg, &fl, sizeof(fl));
+                error = copyin((void *)(intptr_t)arg, &fl, sizeof(fl));
                 arg = (intptr_t)&fl;
                 break;
 	default:
-		arg = uap->arg;
+		arg = arg;
 		break;
 	}
 	if (error)
 		return (error);
-	error = kern_fcntl(td, uap->fd, cmd, arg);
+	error = kern_fcntl(td, fd, cmd, arg);
 	if (error)
 		return (error);
-	if (uap->cmd == F_OGETLK) {
+	if (cmd == F_OGETLK) {
 		ofl.l_start = fl.l_start;
 		ofl.l_len = fl.l_len;
 		ofl.l_pid = fl.l_pid;
 		ofl.l_type = fl.l_type;
 		ofl.l_whence = fl.l_whence;
-		error = copyout(&ofl, (void *)(intptr_t)uap->arg, sizeof(ofl));
-	} else if (uap->cmd == F_GETLK) {
-		error = copyout(&fl, (void *)(intptr_t)uap->arg, sizeof(fl));
+		error = copyout(&ofl, (void *)(intptr_t)arg, sizeof(ofl));
+	} else if (cmd == F_GETLK) {
+		error = copyout(&fl, (void *)(intptr_t)arg, sizeof(fl));
 	}
 	return (error);
 }
@@ -620,7 +575,7 @@ kern_fcntl(struct thread *td, int fd, int cmd, intptr_t arg)
 /*
  * Common code for dup, dup2, fcntl(F_DUPFD) and fcntl(F_DUP2FD).
  */
-static int
+int
 do_dup(struct thread *td, int flags, int old, int new,
     register_t *retval)
 {
@@ -896,24 +851,6 @@ fgetown(sigiop)
 	pgid = (*sigiop != NULL) ? (*sigiop)->sio_pgid : 0;
 	SIGIO_UNLOCK();
 	return (pgid);
-}
-
-/*
- * Close a file descriptor.
- */
-#ifndef _SYS_SYSPROTO_H_
-struct close_args {
-	int     fd;
-};
-#endif
-/* ARGSUSED */
-int
-close(td, uap)
-	struct thread *td;
-	struct close_args *uap;
-{
-
-	return (kern_close(td, uap->fd));
 }
 
 int

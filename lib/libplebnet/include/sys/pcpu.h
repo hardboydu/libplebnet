@@ -31,5 +31,7 @@
 #undef	curcpu
 
 #define	curcpu	0
-
+#ifndef curthread
+#define curthread __curthread
+#endif
 #endif	/* _PLEBNET_SYS_PCPU_H_ */

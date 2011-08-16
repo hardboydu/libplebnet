@@ -36,7 +36,7 @@
 
 #include <signal.h>
 #include <unistd.h>
-
+#include <string.h>
 
 #include <pthread.h>
 struct malloc_type;
@@ -46,6 +46,9 @@ extern struct	thread thread0;
 extern struct	proc	proc0;
 #define	M_ZERO		0x0100		/* bzero the allocation */
 
+int
+_pthread_create(pthread_t *thread, const pthread_attr_t *attr,
+	       void *(*start_routine)(void *), void *arg);
 
 vm_offset_t kmem_malloc(void * map, int bytes, int wait);
 void kmem_free(void *map, vm_offset_t addr, vm_size_t size);
@@ -167,7 +170,7 @@ kproc_kthread_add(void (*start_routine)(void *), void *arg,
 	psa->psa_td = *td;
 	
 	pthread_attr_init(&attr); 
-	error = pthread_create(&thread, &attr, pthread_start_routine, psa);
+	error = _pthread_create(&thread, &attr, pthread_start_routine, psa);
 
 	return (error);
 }

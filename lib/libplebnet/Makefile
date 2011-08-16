@@ -98,13 +98,14 @@ PN_SYS_COMMON_OBJS = 		\
 	pn_kern_timeout.o	\
 	pn_lock.o		\
 	pn_private.o		\
+	pn_server_syscalls.o	\
 	pn_subr_prf.o		\
 	pn_subr_taskqueue.o	\
 	pn_sys_generic.o	\
+	pn_syscall_wrapper.o	\
 	pn_uipc_syscalls.o	\
-	pn_veth.o		\
-	pn_server_syscalls.o	\
-	pn_uma_core.o
+	pn_uma_core.o		\
+	pn_veth.o
 
 
 PN_MFILES = 			\

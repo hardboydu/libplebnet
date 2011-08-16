@@ -24,19 +24,43 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#undef _KERNEL
 #include <sys/types.h>
 #include <sys/select.h>
 #include <sys/socket.h>
+
+#define _KERNEL
 #include <sys/uio.h>
+#undef _KERNEL
+
 
 #include <sys/ioctl.h>
+#include <sys/errno.h>
+#include <sys/proc.h>
+#include <sys/syscallsubr.h>
 
 #include <unistd.h>
 #include <fcntl.h>
 #include <poll.h>
+#include <stdarg.h>
+
+#include <sys/param.h>
+#define _KERNEL
+#include <sys/malloc.h>
+#include <sys/socketvar.h>
+#undef _KERNEL
+#include <sys/kernel.h>
+#include <sys/refcount.h>
+
 
 #include <pn_private.h>
+#include <pn_kern_subr.h>
 
+#include <string.h>
+
+#include <sys/pcpu.h> /* curthread */
+
+static __inline int imin(int a, int b) { return (a < b ? a : b); }
 
 int _socket(int domain, int type, int protocol);
 int _ioctl(int fd, unsigned long request, ...);
@@ -71,6 +95,37 @@ int _getpeername(int s, struct sockaddr * restrict name,
 int _getsockname(int s, struct sockaddr * restrict name,
     socklen_t * restrict namelen);
 int _shutdown(int s, int how);
+int _pthread_create(pthread_t *thread, const pthread_attr_t *attr,
+    void *(*start_routine)(void *), void *arg);
+
+static int
+pleb_userfd_isset(int nfds, fd_set *set)
+{
+	int i, words, found;
+
+	words = imin(_howmany(FD_SETSIZE, _NFDBITS),
+	    _howmany(nfds, _NFDBITS));
+	found = 0;
+	while (words--) {
+		if (set->__fds_bits[words] == 0)
+			continue;
+		for (i = 0; i < _NFDBITS; i++)
+			if ((set->__fds_bits[words] &
+			    (1<<i)) &&
+			    pn_user_fdisused(words*_NFDBITS + i)) {
+				found = 1;
+				goto done;
+			}
+	}
+done:
+	return (found);
+}
+
+static int
+pleb_kernfd_isset(int nfds, fd_set *set)
+{
+	return (0); /* XXX FIXME */
+}
 
 int
 socket(int domain, int type, int protocol)
@@ -83,7 +138,7 @@ socket(int domain, int type, int protocol)
 	} else {
 		if ((rc = kern_socket(curthread, domain, type, protocol)))
 			goto kern_fail;
-		rc = td->td_retval[0];
+		rc = curthread->td_retval[0];
 	}
 
 	return (rc);
@@ -100,11 +155,11 @@ ioctl(int fd, unsigned long request, ...)
 {
 	int rc;
 	va_list ap;
-	uintptr_t argp;
+	caddr_t argp;
 
 	va_start(ap, request);
 
-	argp = va_arg(ap, uintptr_t);
+	argp = va_arg(ap, caddr_t);
 	va_end(ap);	
 	if (pn_user_fdisused(fd)) {
 		if ((rc = kern_ioctl(curthread, fd, request, argp)))
@@ -123,10 +178,10 @@ close(int fd)
 {
 	int rc;
 
-	if (pn_user_fdisused(fd)) 
+	if (pn_user_fdisused(fd)) {
 		if ((rc = kern_close(curthread, fd))) 
 			goto kern_fail;
-	else
+	} else
 		rc = _close(fd);
 	return (rc);
 kern_fail:
@@ -139,11 +194,11 @@ open(const char *path, int flags, ...)
 {
 	int rc;
 	va_list ap;
-	mode_t mode;
+	int mode;
 
 	if (flags & O_CREAT) {
 		va_start(ap, flags);
-		mode = va_arg(ap, mode_t);
+		mode = va_arg(ap, int);
 		va_end(ap);
 		rc = _open(path, flags, mode);
 	} else
@@ -160,11 +215,11 @@ openat(int fd, const char *path, int flags, ...)
 {
 	int rc;
 	va_list ap;
-	mode_t mode;
+	int mode;
 
 	if (flags & O_CREAT) {
 		va_start(ap, flags);
-		mode = va_arg(ap, mode_t);
+		mode = va_arg(ap, int);
 		va_end(ap);
 		rc = _openat(fd, path, flags, mode);
 	} else
@@ -177,7 +232,7 @@ openat(int fd, const char *path, int flags, ...)
 }
 
 ssize_t
-read(int d, void *buf, size_t nbytes)
+read(int fd, void *buf, size_t nbytes)
 {	
 	struct uio auio;
 	struct iovec aiov;
@@ -199,7 +254,7 @@ read(int d, void *buf, size_t nbytes)
 			goto kern_fail;
 		rc = curthread->td_retval[0];
 	} else
-		rc = _read(d, buf, nbytes);
+		rc = _read(fd, buf, nbytes);
 
 	return (rc);
 kern_fail:
@@ -208,21 +263,21 @@ kern_fail:
 }
 
 ssize_t
-readv(int fd, const struct iovec *iov, int iovcnt)
+readv(int fd, struct iovec *iov, int iovcnt)
 {
 	struct uio auio;
 	int rc, len, i;
 
 	if (pn_user_fdisused(fd)) {
 		len = 0;
-		for (i = 0; i < iovcnt)
+		for (i = 0; i < iovcnt; i++)
 			len += iov[i].iov_len;
-		auio.uio_iov = &aiov;
+		auio.uio_iov = iov;
 		auio.uio_iovcnt = iovcnt;
 		auio.uio_resid = len;
 		auio.uio_segflg = UIO_SYSSPACE;
 
-		if ((rc = kern_readv(curthread, fd, auio)))
+		if ((rc = kern_readv(curthread, fd, &auio)))
 			goto kern_fail;
 		rc = curthread->td_retval[0];
 	} else
@@ -266,7 +321,7 @@ kern_fail:
 }
 
 ssize_t
-writev(int fd, const struct iovec *iov, int iovcnt)
+writev(int fd, struct iovec *iov, int iovcnt)
 {
 	struct uio auio;
 	int i, rc, len;
@@ -279,7 +334,7 @@ writev(int fd, const struct iovec *iov, int iovcnt)
 		auio.uio_iovcnt = iovcnt;
 		auio.uio_resid = len;
 		auio.uio_segflg = UIO_SYSSPACE;
-		if ((rc = kern_writev(curthread, fd, auio)))
+		if ((rc = kern_writev(curthread, fd, &auio)))
 			goto kern_fail;
 		rc = curthread->td_retval[0];
 	} else {
@@ -308,19 +363,19 @@ sendto(int s, const void *buf, size_t len, int flags,
 	int rc;
 
 	if (pn_user_fdisused(s)) {
-		msg.msg_name = to;
+		msg.msg_name = __DECONST(struct sockaddr *, to);
 		msg.msg_namelen = tolen;
 		msg.msg_iov = &aiov;
 		msg.msg_iovlen = 1;
 		msg.msg_control = 0;
-		aiov.iov_base = buf;
+		aiov.iov_base = __DECONST(void *, to);
 		aiov.iov_len = len;
 		if ((rc = sendit(curthread, s, &msg, flags)))
 			goto kern_fail;
 
 		rc = curthread->td_retval[0];
 	} else 
-		rc = _sendto(s, msg, len, flags, to, tolen);
+		rc = _sendto(s, buf, len, flags, to, tolen);
 
 	return (rc);
 kern_fail:
@@ -334,7 +389,7 @@ sendmsg(int s, const struct msghdr *msg, int flags)
 	int rc;
 
 	if (pn_user_fdisused(s)) {
-		if ((rc = sendit(curthread, s, msg, flags)))
+		if ((rc = sendit(curthread, s, __DECONST(struct msghdr *, msg), flags)))
 			goto kern_fail;
 	} else 
 		rc = _sendmsg(s, msg, flags);
@@ -374,9 +429,11 @@ recvfrom(int s, void * restrict buf, size_t len, int flags,
 		aiov.iov_len = len;
 		msg.msg_control = 0;
 		msg.msg_flags = flags;
-		if ((rc = recvit(curthread, s, &msg, fromlen)))
+		if ((rc = kern_recvit(curthread, s, &msg, UIO_SYSSPACE, NULL)))
 			goto kern_fail;
 		rc = curthread->td_retval[0];
+		if (fromlen != NULL)
+			*fromlen = msg.msg_namelen;
 	} else 
 		rc = _recvfrom(s, buf, len, flags, from, fromlen);
 
@@ -395,8 +452,8 @@ recvmsg(int s, struct msghdr *msg, int flags)
 		oldflags = msg->msg_flags;
 		msg->msg_flags = flags;
 
-		if ((rc = recvit(curthread, s, msg, NULL))) {
-			msg->flags = oldflags;
+		if ((rc = kern_recvit(curthread, s, msg, UIO_SYSSPACE, NULL))) {
+			msg->msg_flags = oldflags;
 			goto kern_fail;
 		}
 		rc = curthread->td_retval[0];
@@ -434,7 +491,7 @@ select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
 	if (!userfd && kernfd)
 		return _select(nfds, readfds, writefds, exceptfds, timeout);
 	else if (userfd && !kernfd) {
-		rc = kern_select(curthread, nfds, readfds, writefds, exceptfds, timeout);
+		rc = kern_select(curthread, nfds, readfds, writefds, exceptfds, timeout, 1024/* XXX abi_nfdbits */);
 		if (rc)
 			goto kern_fail;
 		rc = curthread->td_retval[0];
@@ -462,7 +519,7 @@ fcntl(int fd, int cmd, ...)
 	va_list ap;
 	uintptr_t argp;
 
-	va_start(ap, request);
+	va_start(ap, cmd);
 
 	argp = va_arg(ap, uintptr_t);
 	va_end(ap);	
@@ -475,11 +532,12 @@ fcntl(int fd, int cmd, ...)
 		rc = _fcntl(fd, cmd, argp);
 		if (rc < 0)
 			return (rc);
-	switch (cmd){
-	case F_DUPFD:
-	case F_DUP2FD:
-		/* track rc as it is another fd */
-		break;
+		switch (cmd){
+		case F_DUPFD:
+		case F_DUP2FD:
+			/* track rc as it is another fd */
+			break;
+		}
 	}
 	return (rc);
 kern_fail:
@@ -492,7 +550,7 @@ dup(int oldd)
 {
 	int rc;
 
-	if (pn_user_fdisused(fd)) {
+	if (pn_user_fdisused(oldd)) {
 		if ((rc = do_dup(curthread, 0, (int)oldd, 0, curthread->td_retval)))
 			goto kern_fail;
 		rc = curthread->td_retval[0];
@@ -510,7 +568,7 @@ dup2(int oldd, int newd)
 {
 	int rc;
 
-	if (pn_user_fdisused(fd)) {
+	if (pn_user_fdisused(oldd)) {
 		if ((rc = do_dup(curthread, DUP_FIXED, oldd, newd, curthread->td_retval)))
 			goto kern_fail;
 	        rc = curthread->td_retval[0];
@@ -545,6 +603,8 @@ socketpair(int domain, int type, int protocol, int *sv)
 
 	if (rc == 0)
 		; /* track allocated descriptors */
+
+	return (rc);
 }
 
 int
@@ -554,7 +614,7 @@ poll(struct pollfd fds[], nfds_t nfds, int timeout)
 	
 	rc = kernfd = userfd = 0;
 	for (i = 0; i < nfds; i++) {
-		kernfd |= pn_kernfd_isset(fds[i].fd);
+		kernfd |= pn_kernel_fdisused(fds[i].fd);
 		userfd |= pn_user_fdisused(fds[i].fd);
 	}
 
@@ -578,11 +638,18 @@ accept(int s, struct sockaddr * restrict addr,
     socklen_t * restrict addrlen)
 {
 	int rc;
+	struct file *fp;
+	struct sockaddr *name;
 
 	if (pn_user_fdisused(s)) {
-		if ((rc = kern_accept(curthread, s, addr, addrlen)))
+		if (name == NULL && (rc = kern_accept(curthread, s, NULL, NULL, NULL)))
+			goto kern_fail;
+		if (name != NULL && (rc = kern_accept(curthread, s, &name, addrlen, &fp)))
 			goto kern_fail;
 		rc = curthread->td_retval[0];
+		bcopy(name, addr, *addrlen);
+		fdrop(fp, curthread);
+		free(name, M_SONAME);
 	} else {
 		rc = _accept(s, addr, addrlen);
 		if (rc > 0) 
@@ -616,14 +683,10 @@ int
 bind(int s, const struct sockaddr *addr, socklen_t addrlen)
 {
 	struct sockaddr *sa;
-	int erro;
+	int rc;
 
 	if (pn_user_fdisused(s)) {
-		if ((rc = getsockaddr(&sa, addr, addrlen)) != 0)
-			goto kern_fail;
-		rc = kern_bind(curthread, s, sa);
-		free(sa, M_SONAME);
-		if (rc) 
+		if ((rc = kern_bind(curthread, s, sa)))
 			goto kern_fail;
 	} else		
 		rc = _bind(s, addr, addrlen);
@@ -641,17 +704,11 @@ connect(int s, const struct sockaddr *name, socklen_t namelen)
 	int rc;
 
 	if (pn_user_fdisused(s)) {
-		if ((rc = getsockaddr(&sa, name, namelen)) != 0)
+		if ((rc = kern_connect(curthread, s, sa)))
 			goto kern_fail;
-		rc = kern_connect(curthread, s, sa);
-		free(sa, M_SONAME);
-		if (rc)
-			goto kern_fail;
-
 		rc = curthread->td_retval[0];
-	} else {
+	} else
 		rc = _connect(s, name, namelen);
-	}
 	return (rc);
 kern_fail:
 	errno = rc;
@@ -663,10 +720,13 @@ getpeername(int s, struct sockaddr * restrict name,
     socklen_t * restrict namelen)
 {
 	int rc;
+	struct sockaddr *nametmp;
 
 	if (pn_user_fdisused(s)) {
-		if ((rc = kern_getpeername(curthread, s, name, namelen)))
+		if ((rc = kern_getpeername(curthread, s, &nametmp, namelen)))
 			goto kern_fail;
+		bcopy(nametmp, name, *namelen);
+		free(nametmp, M_SONAME);
 	} else
 		rc = _getpeername(s, name, namelen);
 
@@ -713,4 +773,47 @@ shutdown(int s, int how)
 kern_fail:
 	errno = rc;
 	return (-1);
+}
+
+extern struct	proc	proc0;
+
+struct pthread_start_args 
+{
+	struct thread *psa_td;
+	void *(*psa_start_routine)(void *);
+	void *psa_arg;
+};
+
+static void *
+pthread_start_routine(void *arg)
+{
+	struct pthread_start_args *psa = arg;
+	void *retval;
+
+	pcurthread = psa->psa_td;
+	pcurthread->td_proc = &proc0;
+	retval = psa->psa_start_routine(psa->psa_arg);
+	free(psa, M_DEVBUF);
+
+	return (retval);
+}
+
+int
+pthread_create(pthread_t *thread, const pthread_attr_t *attr,
+    void *(*start_routine)(void *), void *arg)
+{
+	
+	int error;
+	struct pthread_start_args *psa;
+	struct thread *td;
+
+	td = malloc(sizeof(struct thread), M_DEVBUF, M_ZERO);
+	psa = malloc(sizeof(struct pthread_start_args), M_DEVBUF, M_ZERO);
+	psa->psa_start_routine = start_routine;
+	psa->psa_arg = arg;
+	psa->psa_td = td;
+	
+	error = _pthread_create(thread, attr, pthread_start_routine, psa);
+
+	return (error);	
 }

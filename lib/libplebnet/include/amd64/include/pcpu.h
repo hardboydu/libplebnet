@@ -28,6 +28,7 @@
 #define _PLEBNET_MACHINE_PCPU_H_
 
 #include_next <machine/pcpu.h>
+
 #undef	__curthread
 #undef PCPU_GET
 #undef PCPU_ADD
@@ -53,4 +54,7 @@ __curthread_pleb(void)
 
 #define __curthread __curthread_pleb
 
+#ifndef curthread
+#define curthread __curthread_pleb()
+#endif
 #endif	/* _PLEBNET_MACHINE_PCPU_H_ */
