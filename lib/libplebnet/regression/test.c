@@ -44,9 +44,9 @@ main(void)
 	
 	sleep(3000);
 
-	fd = pn_socket(PF_INET, SOCK_DGRAM, 0);
+	fd = socket(PF_INET, SOCK_DGRAM, 0);
 	printf("fd=%d\n", fd);
-	error = pn_sendmsg(fd, &msg, 0);
+	error = sendmsg(fd, &msg, 0);
 	printf("sendmsg returned %d\n", error);
 	return (0);
 }
