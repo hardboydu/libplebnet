@@ -161,22 +161,22 @@ start_server_syscalls(void)
 static int
 dispatch_socket(struct thread *td, int fd, int size)
 {
-	int i, err, osize, iovcnt;
+	int i, err, rc, osize, iovcnt;
 	struct socket_call_msg scm;
 	struct iovec iov[3];
 
-	osize = 0;
+	err = osize = 0;
 	iovcnt = 2;
 
 	if (size != sizeof(scm))
 		err = EINVAL;
 	else if (read(fd, &scm, sizeof(scm)) < 0) {
 		err = errno;
-	} else if ((err = socket(scm.scm_domain, scm.scm_type, 
-				 scm.scm_protocol)) == 0) {
+	} else if ((rc = socket(scm.scm_domain, scm.scm_type, 
+				 scm.scm_protocol)) > 0) {
 		osize = sizeof(int);
 		iovcnt = 3;
-		iov[2].iov_base = &td->td_retval[0];
+		iov[2].iov_base = &rc;
 	}
 
 	iov[0].iov_base = &osize;

@@ -91,7 +91,7 @@ target_connect(void)
 	strcpy(addr.sun_path, buffer);
 	if(_connect(target_fd, (struct sockaddr *)&addr,
 		SUN_LEN(&addr))) {
-		printf("failed to connect to target pid set, proxied calls will not work");
+		printf("failed to connect to target pid %s, proxied calls will not work", pidstr);
 	}
 }
 
@@ -135,8 +135,8 @@ socket(int domain, int type, int protocol)
 		return (-1);
 	}
 
-	if ((err = read(target_fd, &fd, sizeof(int))) != 0) {
-		errno = err;
+	if ((err = read(target_fd, &fd, sizeof(int))) != sizeof(int)) {
+		errno = EINTR;
 		return (-1);
 	}
 
