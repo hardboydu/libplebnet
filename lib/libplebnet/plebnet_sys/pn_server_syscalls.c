@@ -27,6 +27,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+
 #include <sys/un.h>
 #include <sys/errno.h>
 #include <sys/syscall.h>
@@ -53,13 +54,15 @@
 #include <ifmsg.h>
 #include <pn_kern_subr.h>
 #include <pthread.h>
-
+#include <sys/pcpu.h> /* curthread */
+#include <pn_private.h>
 
 static int target_fd;
 struct thread;
-int _socket(int domain, int type, int protocol);
-int _bind(int s, const struct sockaddr *addr, socklen_t addrlen);
-int _listen(int s, int backlog);
+struct	filedesc *fdinit(struct filedesc *fdp);
+struct ucred	*crget(void);
+struct ucred	*crhold(struct ucred *cr);
+extern struct proc proc0;
 
 static int dispatch_table_size = SYS_MAXSYSCALL;
 
@@ -67,7 +70,7 @@ typedef int (*dispatch_func)(struct thread *, int, int);
 
 static int dispatch_socket(struct thread *td, int fd, int size);
 static int dispatch_ioctl(struct thread *td, int fd, int size);
-
+static struct proc server_proc;
 
 dispatch_func dispatch_table[SYS_MAXSYSCALL];
 
@@ -80,17 +83,17 @@ target_bind(void)
 
 	sprintf(buffer, "/tmp/%d", getpid());
 
-	target_fd = _socket(PF_LOCAL, SOCK_STREAM, 0);
+	target_fd = socket(PF_LOCAL, SOCK_STREAM, 0);
 
 	addr.sun_family = PF_LOCAL;
 	strcpy(addr.sun_path, buffer);
-	if(_bind(target_fd, (struct sockaddr *)&addr,
+	if(bind(target_fd, (struct sockaddr *)&addr,
 		   sizeof(addr)))
 		exit(1);
 
 	dispatch_table[SYS_socket] = dispatch_socket;
 	dispatch_table[SYS_ioctl] = dispatch_ioctl;
-	_listen(target_fd, 10);
+	listen(target_fd, 10);
 }
 
 int
@@ -141,6 +144,14 @@ syscall_server(void *arg)
 	target_bind();
 
 	td = &tds;
+	td->td_proc = &server_proc;
+	/* Create the file descriptor table. */
+	server_proc.p_ucred = proc0.p_ucred;
+	server_proc.p_limit = proc0.p_limit;
+	server_proc.p_sysent = proc0.p_sysent;
+	td->td_ucred = crhold(server_proc.p_ucred);
+	td->td_proc->p_fd = fdinit(NULL);
+	td->td_proc->p_fdtol = NULL;
 	len = sizeof(addr);
 	while (1) {
 		fd = accept(target_fd, (struct sockaddr *)&addr, &len);
@@ -164,6 +175,7 @@ dispatch_socket(struct thread *td, int fd, int size)
 	int i, err, rc, osize, iovcnt;
 	struct socket_call_msg scm;
 	struct iovec iov[3];
+	struct thread *orig;
 
 	err = osize = 0;
 	iovcnt = 2;
@@ -172,13 +184,19 @@ dispatch_socket(struct thread *td, int fd, int size)
 		err = EINVAL;
 	else if (read(fd, &scm, sizeof(scm)) < 0) {
 		err = errno;
-	} else if ((rc = socket(scm.scm_domain, scm.scm_type, 
-				 scm.scm_protocol)) > 0) {
-		osize = sizeof(int);
-		iovcnt = 3;
-		iov[2].iov_base = &rc;
+	} else {
+		orig = pcurthread;
+		pcurthread = td;
+		if (scm.scm_domain == PF_LOCAL)
+			scm.scm_domain = PF_INET;
+		if ((rc = socket(scm.scm_domain, scm.scm_type, 
+			    scm.scm_protocol)) >= 0) {
+			osize = sizeof(int);
+			iovcnt = 3;
+			iov[2].iov_base = &rc;
+		}
+		pcurthread = orig;
 	}
-
 	iov[0].iov_base = &osize;
 	iov[1].iov_base = &err;
 
@@ -293,6 +311,8 @@ dispatch_ioctl(struct thread *td, int fd, int size)
 				malloc(ifmr->ifm_count*sizeof(int));
 		break;
 	default:
+		printf("unsupported ioctl! %lx\n", request);
+		return (EINVAL);
 		/* XXX unsupported ioctl */
 		break;
 	}

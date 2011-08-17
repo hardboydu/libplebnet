@@ -113,22 +113,25 @@ handle_return_msg(int fd, int *size)
 int
 socket(int domain, int type, int protocol)
 {
-	struct iovec iov[5];
-	int size, code, i, err, fd;
-
-	size = 3*sizeof(int);
-	code = SYS_socket;
-
-	iov[0].iov_base = &size;
-	iov[1].iov_base = &code;
-	iov[2].iov_base = &domain;
-	iov[3].iov_base = &type;
-	iov[4].iov_base = &protocol;
-
-	for (i = 0; i < 5; i++)
-		iov[i].iov_len = sizeof(int);
 	
-	writev(target_fd, iov, 5);
+	struct iovec iov[2];
+	struct call_msg cm;
+	struct socket_call_msg scm;
+	int size, err, fd;
+	
+
+	cm.cm_size = sizeof(struct socket_call_msg);
+	cm.cm_id = SYS_socket;
+	scm.scm_domain = domain;
+	scm.scm_type = type;
+	scm.scm_protocol = protocol;
+	
+	iov[0].iov_base = &cm;
+	iov[0].iov_len = sizeof(struct call_msg);
+	iov[1].iov_base = &scm;
+	iov[1].iov_len = sizeof(struct socket_call_msg);
+	
+	writev(target_fd, iov, 2);
 	
 	if ((err = handle_return_msg(target_fd, &size)) != 0) {
 		errno = err;
@@ -143,31 +146,24 @@ socket(int domain, int type, int protocol)
 	return (fd);
 }
 
-
-struct ioctl_call {
-	int ic_id;
-	unsigned long ic_request;
-};
-
-
 static int
-ioctl_internal(int d, unsigned long request, uintptr_t argp)
+ioctl_internal(int fd, unsigned long request, uintptr_t argp)
 {	
 	int size, iovcnt, retval;
 	struct iovec iov[4];
-	struct ioctl_call ic;
 	struct ifreq *ifr = NULL;
 	struct ifconf *ifc = NULL;
 	struct ifmediareq *ifmr = NULL;
 	struct if_clonereq *ifcr = NULL;
 	void *datap = NULL;
+	struct call_msg cm;
+	struct ifreq_call_msg ifr_cm;
+	struct ifconf_call_msg ifc_cm;
 
-	ic.ic_id = SYS_ioctl;
-	ic.ic_request = request;
-	iov[1].iov_base = &ic;
-	iov[1].iov_len = sizeof(ic);
-	size = sizeof(request);
-
+	iov[0].iov_base = &cm;
+	iov[0].iov_len = sizeof(cm);
+	cm.cm_id = SYS_ioctl;
+	cm.cm_size = 0;
 	switch (request) {
 		/* ifreq */
 	case SIOCSIFADDR:
@@ -202,53 +198,53 @@ ioctl_internal(int d, unsigned long request, uintptr_t argp)
 	case SIOCGIFPDSTADDR:
 	case SIOCDIFPHYADDR:
 	case SIOCIFCREATE:
-		ifr = (struct ifreq *)argp;
-
-		iov[2].iov_base = ifr;
-		iov[2].iov_len = sizeof(struct ifreq);
-		size += sizeof(struct ifreq);
-
-		iovcnt = 3;
+		ifr_cm.icm_fd = fd;
+		ifr_cm.icm_request = request;
+		ifr_cm.icm_ifr = *(struct ifreq *)argp;
+		iov[1].iov_base = &ifr_cm;
+		cm.cm_size = iov[1].iov_len = sizeof(ifr_cm);
+		iovcnt = 2;
 
 		break;
 /* deep copy needed */
 	case SIOCSIFDESCR:
-		ifr = (struct ifreq *)argp;
+		ifr_cm.icm_fd = fd;
+		ifr_cm.icm_request = request;
+		ifr_cm.icm_ifr = *(struct ifreq *)argp;
+		iov[1].iov_base = &ifr_cm;
+		cm.cm_size = iov[1].iov_len = sizeof(ifr_cm);
 
-		datap = ifr->ifr_buffer.buffer;
+		datap = ifr_cm.icm_ifr.ifr_buffer.buffer;
 
-		iov[2].iov_base = ifr;
-		iov[2].iov_len = sizeof(struct ifreq);
-		size += sizeof(struct ifreq);
+		iov[2].iov_base = ifr_cm.icm_ifr.ifr_buffer.buffer;
+		iov[2].iov_len = ifr_cm.icm_ifr.ifr_buffer.length;
+		cm.cm_size += ifr_cm.icm_ifr.ifr_buffer.length;
 
-		iov[3].iov_base = ifr->ifr_buffer.buffer;
-		iov[3].iov_len = ifr->ifr_buffer.length;
-		size += ifr->ifr_buffer.length;
-
-		iovcnt = 4;
+		iovcnt = 3;
 		break;
 	case SIOCSIFNAME:
-		ifr = (struct ifreq *)argp;
+		ifr_cm.icm_fd = fd;
+		ifr_cm.icm_request = request;
+		ifr_cm.icm_ifr = *(struct ifreq *)argp;
+		iov[1].iov_base = &ifr_cm;
+		cm.cm_size = iov[1].iov_len = sizeof(ifr_cm);
 
-		datap = ifr->ifr_data;
+		datap = ifr_cm.icm_ifr.ifr_data;
 
-		iov[2].iov_base = ifr;
-		iov[2].iov_len = sizeof(struct ifreq);
-		size += sizeof(struct ifreq);
+		iov[2].iov_base = datap;
+		iov[2].iov_len = IFNAMSIZ;
+		cm.cm_size += IFNAMSIZ;
 
-		iov[3].iov_base = ifr->ifr_data;
-		iov[3].iov_len = IFNAMSIZ;
-		size += IFNAMSIZ;
-
-		iovcnt = 4;
+		iovcnt = 3;
 		break;
 	case SIOCGIFCONF:
 		ifc = (struct ifconf *)argp;
-		
-		iov[2].iov_base = (void *) &ifc->ifc_len;
-		iov[2].iov_len = sizeof(int);
-		size += sizeof(int);
-
+		ifc_cm.icm_fd = fd;
+		ifc_cm.icm_request = request;
+		ifc_cm.icm_ifc_len = ifc->ifc_len;
+		iov[1].iov_base = &ifc_cm;
+		cm.cm_size = iov[1].iov_len = sizeof(ifc_cm);
+		iovcnt = 2;
 		break;
 	case SIOCIFGCLONERS:
 		ifcr = (struct if_clonereq *)argp;
@@ -277,9 +273,6 @@ ioctl_internal(int d, unsigned long request, uintptr_t argp)
 		printf("unknown or unsupported ioctl");
 		return (ENOTSUP);
 	}
-	iov[0].iov_base = &size;
-	iov[0].iov_len = sizeof(size);
-
 
 	retval = writev(target_fd, iov, iovcnt);
 
