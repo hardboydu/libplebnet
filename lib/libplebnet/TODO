@@ -1,0 +1,13 @@
+
+- initializing individual proc struct per pid for RPC functions
+- UMA zone hashing
+- sysctl interface to process
+- routing socket to stack
+- callout emulation
+- tracking kernel file descriptors
+- aio functions
+- handling fork
+
+- enabling compilation of v6 and SCTP
+- libnetstat for providing netstat interface to stack
+
