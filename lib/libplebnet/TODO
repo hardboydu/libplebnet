@@ -1,4 +1,5 @@
 
+- {get, set}sockopt
 - initializing individual proc struct per pid for RPC functions
 - UMA zone hashing
 - sysctl interface to process
