@@ -72,6 +72,7 @@ pn_veth_attach(void)
 	}
 
 	ioctl(fd, SIOCGIFADDR, &sc->addr);
+	sc->fd = fd;
 	return (pnv_setup_interface(sc));
 }
 
@@ -113,11 +114,14 @@ pnv_decap(void *arg)
 	int size;
 
 	while (1) {
+#ifdef notyet 
 		m = m_getjcl(M_WAITOK, MT_DATA,
 		    M_PKTHDR, MCLBYTES);
+#endif
+		m = m_gethdr(M_WAITOK, MT_DATA);
 		data = mtod(m, caddr_t);
 
-		size = read(sc->fd, data, MCLBYTES);
+		size = read(sc->fd, data, 100);
 		m->m_pkthdr.len = m->m_len = size;
 		m->m_pkthdr.rcvif = ifp;
 		ifp->if_input(ifp, m);
