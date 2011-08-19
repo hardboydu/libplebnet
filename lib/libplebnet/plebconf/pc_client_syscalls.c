@@ -159,6 +159,8 @@ ioctl_internal(int fd, unsigned long request, uintptr_t argp)
 	struct call_msg cm;
 	struct ifreq_call_msg ifr_cm;
 	struct ifconf_call_msg ifc_cm;
+	struct ifclonereq_call_msg ifcr_cm;
+	struct ifmediareq_call_msg ifmr_cm;
 
 	iov[0].iov_base = &cm;
 	iov[0].iov_len = sizeof(cm);
@@ -234,7 +236,6 @@ ioctl_internal(int fd, unsigned long request, uintptr_t argp)
 		iov[2].iov_base = datap;
 		iov[2].iov_len = IFNAMSIZ;
 		cm.cm_size += IFNAMSIZ;
-
 		iovcnt = 3;
 		break;
 	case SIOCGIFCONF:
@@ -248,21 +249,21 @@ ioctl_internal(int fd, unsigned long request, uintptr_t argp)
 		break;
 	case SIOCIFGCLONERS:
 		ifcr = (struct if_clonereq *)argp;
-		
-		iov[2].iov_base = (void *) &ifcr->ifcr_total;
-		iov[2].iov_len = sizeof(int);
-		size += sizeof(int);
-
-		iovcnt = 3;
+		ifcr_cm.icm_fd = fd;
+		ifcr_cm.icm_request = request;
+		ifcr_cm.icm_ifcr_count = ifcr->ifcr_count;
+		iov[1].iov_base = &ifcr_cm;
+		cm.cm_size = iov[1].iov_len = sizeof(ifcr_cm);
+		iovcnt = 2;
 		break;
 	case SIOCGIFMEDIA:
 		ifmr = (struct ifmediareq *)argp;
-		
-		iov[2].iov_base = ifmr;
-		iov[2].iov_len = sizeof(struct ifmediareq);
-		size += sizeof(struct ifreq);
-		
-		iovcnt = 3;
+		bcopy(ifmr, &ifmr_cm.icm_ifmr, sizeof(ifmr_cm));
+		ifmr_cm.icm_fd = fd;
+		ifmr_cm.icm_request = request;
+		iov[1].iov_base = &ifmr_cm;
+		cm.cm_size = iov[1].iov_len = sizeof(ifmr_cm);
+		iovcnt = 2;
 		break;
 	case SIOCIFCREATE2:
 		/* ifr_data is a sub-system specific opaque blob
@@ -270,16 +271,14 @@ ioctl_internal(int fd, unsigned long request, uintptr_t argp)
 		 * ... punting for now
 		 */
 	default:
-		printf("unknown or unsupported ioctl");
-		return (ENOTSUP);
+		printf("unknown or unsupported ioctl: %lx\n", request);
+		return (EINVAL);
 	}
 
 	retval = writev(target_fd, iov, iovcnt);
 
-	retval = handle_return_msg(target_fd, &size);
-	
-	/* XXX check err  */
-
+	if ((retval = handle_return_msg(target_fd, &size)))
+		return (retval);
 
 	switch (request) {
 	case SIOCGIFCONF:
