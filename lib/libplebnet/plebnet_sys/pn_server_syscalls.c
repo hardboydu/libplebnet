@@ -206,13 +206,50 @@ dispatch_socket(struct thread *td, int fd, int size)
 	return writev(fd, iov, iovcnt);
 }
 
+static int
+recv_client_msg(int fd, void **msgp, int size)
+{
+	int rc, err = 0;
+	struct return_msg rm;
+
+	if (*msgp == NULL && (*msgp = malloc(size)) == NULL)
+		err = ENOMEM;
+	else if ((rc = read(fd, *msgp, size)) < 0)
+		err = errno;
+	else if (rc < size) 
+		err = EINVAL;
+
+	if (err && msgp != NULL && *msgp != NULL)
+		free(*msgp);
+	if (err) {
+		rm.rm_size = 0;
+		rm.rm_errno = err;
+		/*
+		 * There is no point to overwriting an existing
+		 * error if the write fails.
+		 */
+		write(fd, &rm, sizeof(struct return_msg));
+	}
+	return (err);
+}
+
+static int
+send_return_msg(int fd, int error, int size) 
+{
+	struct return_msg rm;
+
+	rm.rm_size = size;
+	rm.rm_errno = error;
+	if (write(fd, &rm, sizeof(rm)) < 0)
+		return (errno);
+	return (0);
+}
 
 static int
 dispatch_ioctl(struct thread *td, int fd, int size)
 {
 	int err, rc, iovcnt;
 	void *argp, *datap = NULL, *msgp = NULL;
-	struct return_msg rm;
 	struct ioctl_call_msg *ioctl_cm;
 	struct ifreq_call_msg *ifreq_cm;
 	struct ifmediareq *ifmr;
@@ -222,23 +259,8 @@ dispatch_ioctl(struct thread *td, int fd, int size)
 	unsigned long request;
 	struct iovec iov[4];
 
-	err = 0;
-
-	if ((msgp = malloc(size)) == NULL)
-		err = ENOMEM;
-	else if ((rc = read(fd, msgp, size)) < 0)
-		err = errno;
-	else if (rc < size) 
-		err = EINVAL;
-
-	if (err) {
-		if (argp != NULL)
-			free(msgp);
-		rm.rm_size = 0;
-		rm.rm_errno = err;
-		return write(fd, &rm, sizeof(struct return_msg));
-		
-	}
+	if ((err = recv_client_msg(fd, &msgp, size)))
+		return (err);
 
 	ioctl_cm = msgp;
 	request = ioctl_cm->icm_request;
@@ -312,21 +334,21 @@ dispatch_ioctl(struct thread *td, int fd, int size)
 		break;
 	default:
 		printf("unsupported ioctl! %lx\n", request);
-		return (EINVAL);
+		err = EINVAL;
+		free(msgp);
+		if (datap != NULL)
+			free(datap);
+		return (send_return_msg(fd, err, 0));
 		/* XXX unsupported ioctl */
 		break;
 	}
 	err = kern_ioctl(td, ioctl_cm->icm_fd, request, argp);
 	size = 0;
-	iov[0].iov_base = &size;
-	iov[0].iov_len = sizeof(int);
-	iov[1].iov_base = &err;
-	iov[1].iov_len = sizeof(int);
 	if (err != 0) {
 		free(msgp);
 		if (datap != NULL)
 			free(datap);
-		return writev(fd, iov, 2);
+		return (send_return_msg(fd, err, 0));
 	}
 
 	switch (request) {
