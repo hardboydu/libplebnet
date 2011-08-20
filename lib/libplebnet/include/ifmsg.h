@@ -34,8 +34,7 @@ struct ifreq_call_msg {
 struct ifreq_return_msg {
 	struct ifreq irm_ifr;
 	char icm_ifr_data[0];
-};
-
+}__attribute__((packed));
 
 struct ifconf_call_msg {
 	int icm_fd;
@@ -46,7 +45,7 @@ struct ifconf_call_msg {
 struct ifconf_return_msg {
 	int irm_ifc_len;
 	char irm_ifconf_data[0];
-};
+}__attribute__((packed));
 
 struct ifgroup_call_msg {
 	int icm_fd;
@@ -58,7 +57,7 @@ struct ifgroup_call_msg {
 struct ifgroup_return_msg {
 	struct ifgroupreq irm_ifgrq;
 	char irm_ifgrq_data[0];
-};
+}__attribute__((packed));
 
 struct ifclonereq_call_msg {
 	int icm_fd;
@@ -69,7 +68,7 @@ struct ifclonereq_call_msg {
 struct ifclonereq_return_msg {
 	int irm_total;
 	char irm_buffer[0];
-};
+}__attribute__((packed));
 
 struct ifmediareq_call_msg {
 	int icm_fd;
@@ -80,7 +79,7 @@ struct ifmediareq_call_msg {
 struct ifmediareq_return_msg {
 	struct ifmediareq icm_ifmr;
 	char icm_ifmr_data[0];
-};
+}__attribute__((packed));
 
 /* other system calls */
 
@@ -93,3 +92,15 @@ struct socket_call_msg {
 struct socket_return_msg {
 	int srm_fd;
 };
+
+struct sysctl_call_msg {
+	int scm_miblen; /* size of mib array in terms of sizeof(int) */
+	size_t scm_oldlen;
+	size_t scm_newlen;
+	char scm_data[0];
+}__attribute__((packed));
+
+struct sysctl_return_msg {
+	size_t srm_oldlen;
+	char srm_data[0];
+}__attribute__((packed));
