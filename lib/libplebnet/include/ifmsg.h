@@ -104,3 +104,14 @@ struct sysctl_return_msg {
 	size_t srm_oldlen;
 	char srm_data[0];
 }__attribute__((packed));
+
+
+struct in6_ndireq_call_msg {
+	int incm_fd;
+	unsigned long incm_request;
+	struct in6_ndireq incm_ndi;
+}__attribute__((packed));
+
+struct in6_ndireq_return_msg {
+	struct in6_ndireq inrm_ndi;
+};

@@ -79,6 +79,8 @@ MALLOC_DEFINE(M_TEMP, "temp", "misc temporary data buffers");
 static MALLOC_DEFINE(M_CRED, "cred", "credentials");
 static MALLOC_DEFINE(M_PLIMIT, "plimit", "plimit structures");
 
+MALLOC_DEFINE(M_IP6OPT, "ip6opt", "IPv6 options");
+MALLOC_DEFINE(M_IP6NDP, "ip6ndp", "IPv6 Neighbor Discovery");
 
 extern void abort(void);
 

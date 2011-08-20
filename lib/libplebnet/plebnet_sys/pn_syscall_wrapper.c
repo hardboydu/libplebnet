@@ -135,8 +135,8 @@ int
 socket(int domain, int type, int protocol)
 {
 	int rc;
-
-	if (domain != PF_INET) {
+	/* XXX want this check to be based on support compiled in */
+	if (domain != PF_INET && domain != PF_INET6) {
 		rc = _socket(domain, type, protocol);
 		/* track value */
 	} else {

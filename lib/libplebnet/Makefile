@@ -42,7 +42,9 @@ PN_NET_COMMON_OBJS +=		\
 	route.o			\
 	rtsock.o		
 
+# v6 requires carp !!
 PN_NETINET_COMMON_OBJS +=	\
+	ip_carp.o		\
 	if_ether.o		\
 	igmp.o			\
 	in.o			\
@@ -75,6 +77,35 @@ PN_NETINET_COMMON_OBJS +=	\
 	udp_usrreq.o		\
 	cc.o			\
 	cc_newreno.o
+
+PN_NETINET6_COMMON_OBJS +=	\
+	in6_proto.o		\
+	dest6.o			\
+	frag6.o			\
+	icmp6.o			\
+	in6.o			\
+	in6_cksum.o		\
+	in6_ifattach.o		\
+	in6_mcast.o		\
+	in6_pcb.o		\
+	in6_pcbgroup.o		\
+	in6_rmx.o		\
+	in6_src.o		\
+	ip6_forward.o		\
+	ip6_id.o		\
+	ip6_input.o		\
+	ip6_mroute.o		\
+	ip6_output.o		\
+	mld6.o			\
+	nd6.o			\
+	nd6_nbr.o		\
+	nd6_rtr.o		\
+	raw_ip6.o		\
+	route6.o		\
+	scope6.o		\
+	send.o			\
+	udp6_usrreq.o
+
 
 PN_LIBKERN_COMMON_OBJS =	\
 	arc4random.o		\
@@ -161,6 +192,7 @@ PREFIX= ${SYSDIR}
 .PATH: ${PREFIX}/kern
 .PATH: ${PREFIX}/net
 .PATH: ${PREFIX}/netinet
+.PATH: ${PREFIX}/netinet6
 .PATH: ${PREFIX}/netinet/cc
 .PATH: ${PREFIX}/vm
 .PATH: ${PREFIX}/libkern
@@ -172,6 +204,7 @@ PN_COMMON_OBJS =			\
 	${PN_LIBKERN_COMMON_OBJS}	\
 	${PN_NET_COMMON_OBJS}		\
 	${PN_NETINET_COMMON_OBJS}	\
+	${PN_NETINET6_COMMON_OBJS}	\
 	${PN_OTHER_COMMON_OBJS}		\
 	${PN_SYS_COMMON_OBJS}	
 
@@ -195,6 +228,7 @@ CFLAGS+=	-DSX_NOINLINE
 CFLAGS+=	-DPLEBNET
 CFLAGS+=	-DMAXUSERS=32
 CFLAGS+=	-DINET=1
+CFLAGS+=	-DINET6=1
 CFLAGS+=	-fformat-extensions
 #CFLAGS+=	-fno-builtin
 CFLAGS+=	-O0

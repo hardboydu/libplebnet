@@ -52,11 +52,17 @@
 #define _WITH_DPRINTF
 #include <stdio.h>
 
+#include <net/if_var.h>
+#include <netinet6/in6_var.h>
+#include <netinet6/nd6.h>
+
 #include <ifmsg.h>
 #include <pn_kern_subr.h>
 #include <pthread.h>
 #include <sys/pcpu.h> /* curthread */
 #include <pn_private.h>
+
+
 
 static int target_fd;
 struct thread;
@@ -400,7 +406,7 @@ dispatch_ioctl(struct thread *td, int fd, int msgsize)
 	case SIOCGIFPDSTADDR:
 	case SIOCDIFPHYADDR:
 	case SIOCIFCREATE:
-		argp = &ioctl_cm->icm_data[0];
+		ifr = argp = &ioctl_cm->icm_data[0];
 		size = sizeof(struct ifreq);
 		break;
 	case SIOCGIFDESCR:
@@ -443,6 +449,10 @@ dispatch_ioctl(struct thread *td, int fd, int msgsize)
 				ifmr->ifm_count*sizeof(int);
 		} else
 			size = sizeof(struct ifmediareq);
+		break;
+	case SIOCGIFINFO_IN6:
+		argp = &ioctl_cm->icm_data[0];
+		size = sizeof(struct in6_ndireq);
 		break;
 	default:
 		printf("unsupported ioctl! %lx\n", request);
@@ -500,6 +510,11 @@ dispatch_ioctl(struct thread *td, int fd, int msgsize)
 			iov[1].iov_len = ifmr->ifm_count*sizeof(int);
 			iovcnt = 2;
 		}
+	case SIOCGIFINFO_IN6:
+		iov[0].iov_base = argp;
+		iov[0].iov_len = sizeof(struct in6_ndireq);
+		iovcnt = 1;
+		break;
 	default:
 		iov[0].iov_base = ifr;
 		iov[0].iov_len = sizeof(struct ifreq);
