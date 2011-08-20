@@ -1519,6 +1519,7 @@ sysctl_root(SYSCTL_HANDLER_ARGS)
 	return (error);
 }
 
+#ifndef PLEBNET
 #ifndef _SYS_SYSPROTO_H_
 struct sysctl_args {
 	int	*name;
@@ -1554,6 +1555,7 @@ __sysctl(struct thread *td, struct sysctl_args *uap)
 	}
 	return (error);
 }
+#endif 
 
 /*
  * This is used from various compatibility syscalls too.  That's why name
