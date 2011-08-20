@@ -46,6 +46,7 @@
 #include <string.h>
 
 #include <sys/uio.h>
+#include <sys/sysctl.h>
 
 
 #define _WITH_DPRINTF
@@ -70,10 +71,19 @@ typedef int (*dispatch_func)(struct thread *, int, int);
 
 static int dispatch_socket(struct thread *td, int fd, int size);
 static int dispatch_ioctl(struct thread *td, int fd, int size);
+static int dispatch_sysctl(struct thread *td, int fd, int size);
 static struct proc server_proc;
 
 dispatch_func dispatch_table[SYS_MAXSYSCALL];
 
+static void
+cleanup(void)
+{
+	char buffer[16];
+
+	sprintf(buffer, "/tmp/%d", getpid());
+	unlink(buffer);
+}
 
 static void 
 target_bind(void)
@@ -87,13 +97,17 @@ target_bind(void)
 
 	addr.sun_family = PF_LOCAL;
 	strcpy(addr.sun_path, buffer);
+	printf("bound to %s\n", buffer);
 	if(bind(target_fd, (struct sockaddr *)&addr,
 		   sizeof(addr)))
 		exit(1);
 
+	atexit(cleanup);
 	dispatch_table[SYS_socket] = dispatch_socket;
 	dispatch_table[SYS_ioctl] = dispatch_ioctl;
+	dispatch_table[SYS___sysctl] = dispatch_sysctl;
 	listen(target_fd, 10);
+	printf("listening\n");
 }
 
 int
@@ -111,24 +125,73 @@ handle_call_msg(int fd, int *size)
 		write(fd, &rm, sizeof(rm));
 		return (-1);
 	}
+	if (cm.cm_id == SYS_close) {
+		close(fd);
+		return (-1);
+	}
 	*size = cm.cm_size;
 
 	return (cm.cm_id);
 }
 
+static int
+recv_client_msg(int fd, void **msgp, int size)
+{
+	int rc, err = 0;
+	struct return_msg rm;
+
+	printf("receiving %d bytes\n", size);
+	if (size == 0) {
+		close(fd);
+		return (EPIPE);
+	}
+	if (*msgp == NULL && (*msgp = malloc(size)) == NULL)
+		err = ENOMEM;
+	else if ((rc = read(fd, *msgp, size)) < 0)
+		err = errno;
+	else if (rc < size) 
+		err = EINVAL;
+
+	if (err && msgp != NULL && *msgp != NULL)
+		free(*msgp);
+	if (err) {
+		rm.rm_size = 0;
+		rm.rm_errno = err;
+		/*
+		 * There is no point to overwriting an existing
+		 * error if the write fails.
+		 */
+		write(fd, &rm, sizeof(struct return_msg));
+	}
+	return (err);
+}
+
+static int
+send_return_msg(int fd, int error, int size) 
+{
+	struct return_msg rm;
+
+	rm.rm_size = size;
+	rm.rm_errno = error;
+	if (write(fd, &rm, sizeof(rm)) < 0)
+		return (errno);
+	return (0);
+}
+
 int
 dispatch(struct thread *td, int fd)
 {
-	int rc, size;
+	int rc, size, funcid;
 
-	rc = handle_call_msg(fd, &size);
+	funcid = handle_call_msg(fd, &size);
 
-	if (rc < 0)
-		return (rc);
+	if (funcid < 0)
+		return (errno);
 
-	rc = dispatch_table[rc](td, fd, size);
+	rc = dispatch_table[funcid](td, fd, size);
 	/* check rc for closed socket */
-
+	if (rc != 0)
+		printf("%p returned %d\n", dispatch_table[funcid], rc);
 	return (rc);
 }
 
@@ -155,7 +218,7 @@ syscall_server(void *arg)
 	len = sizeof(addr);
 	while (1) {
 		fd = accept(target_fd, (struct sockaddr *)&addr, &len);
-		while (dispatch(td, fd) >= 0)
+		while (dispatch(td, fd) == 0)
 			;
 		
 	}
@@ -203,52 +266,90 @@ dispatch_socket(struct thread *td, int fd, int size)
 	for (i = 0; i < 3; i++)
 		iov[i].iov_len = sizeof(int);
 
-	return writev(fd, iov, iovcnt);
+	rc = writev(fd, iov, iovcnt);
+	if (rc < 0)
+		return (errno);
+	return (0);
 }
 
+
 static int
-recv_client_msg(int fd, void **msgp, int size)
+dispatch_sysctl(struct thread *td, int fd, int msgsize)
 {
-	int rc, err = 0;
-	struct return_msg rm;
+	int i, err, rc, iovcnt, size;
+	size_t oldlen;
+	struct sysctl_call_msg *scm;
+	struct iovec iov[3];
+	struct thread *orig;
+	caddr_t datap;
+	void *newp, *oldp;
+	int mib[6];
 
-	if (*msgp == NULL && (*msgp = malloc(size)) == NULL)
-		err = ENOMEM;
-	else if ((rc = read(fd, *msgp, size)) < 0)
-		err = errno;
-	else if (rc < size) 
-		err = EINVAL;
-
-	if (err && msgp != NULL && *msgp != NULL)
-		free(*msgp);
-	if (err) {
-		rm.rm_size = 0;
-		rm.rm_errno = err;
-		/*
-		 * There is no point to overwriting an existing
-		 * error if the write fails.
-		 */
-		write(fd, &rm, sizeof(struct return_msg));
+	size = oldlen = err = 0;
+	iovcnt = 1;
+	oldp = newp = NULL;
+	scm = NULL;
+	if ((err = recv_client_msg(fd, (void **)&scm, msgsize))) {
+		return (err);
+	} else {
+		datap = (caddr_t)&scm->scm_data;
+		oldlen = scm->scm_oldlen;
+		if (scm->scm_miblen <= 6) {
+			bcopy(datap, mib, scm->scm_miblen*sizeof(int));
+			datap += scm->scm_miblen*sizeof(int);
+		}
+		for (i = 0; i < scm->scm_miblen; i++)
+			printf("mib[%d]=%d ", i, mib[i]);
+		printf("oldlen=%zd newlen=%zd\n", scm->scm_oldlen, 
+		    scm->scm_newlen);
+		printf("\n");
+		if (scm->scm_newlen != 0)
+			newp = datap;
+		if (oldlen != 0) {
+			if ((oldp = malloc(oldlen)) == NULL)
+				return (send_return_msg(fd, ENOMEM, 0));
+		}
+		orig = pcurthread;
+		pcurthread = td;
+		if ((rc = sysctl(mib, scm->scm_miblen, oldp, &oldlen, newp, 
+			    scm->scm_newlen)) < 0) {
+		}
+		pcurthread = orig;
 	}
-	return (err);
-}
+	printf("rc=%d oldlen=%zd\n", rc, oldlen);
+	free(scm);
+	if (rc && oldp != NULL)
+		free(oldp);
+	if (rc)
+		rc = errno;
+	else if (oldp == NULL)
+		size = sizeof(oldlen);
+	else 
+		size = oldlen + sizeof(oldlen);
+	rc = send_return_msg(fd, rc, size);
+	if (size == 0 || rc)
+		return (rc);
 
-static int
-send_return_msg(int fd, int error, int size) 
-{
-	struct return_msg rm;
+	iov[0].iov_base = &oldlen;
+	iov[0].iov_len = sizeof(oldlen);
+	if (size > sizeof(oldlen)) {
+		iov[1].iov_base = oldp;
+		iov[1].iov_len = size;
+		iovcnt = 2;
+	}
 
-	rm.rm_size = size;
-	rm.rm_errno = error;
-	if (write(fd, &rm, sizeof(rm)) < 0)
+	rc = writev(fd, iov, iovcnt);
+	if (oldp)
+		free(oldp);
+	if (rc < 0)
 		return (errno);
 	return (0);
 }
 
 static int
-dispatch_ioctl(struct thread *td, int fd, int size)
+dispatch_ioctl(struct thread *td, int fd, int msgsize)
 {
-	int err, rc, iovcnt;
+	int err, rc, iovcnt, size;
 	void *argp, *datap = NULL, *msgp = NULL;
 	struct ioctl_call_msg *ioctl_cm;
 	struct ifreq_call_msg *ifreq_cm;
@@ -259,11 +360,12 @@ dispatch_ioctl(struct thread *td, int fd, int size)
 	unsigned long request;
 	struct iovec iov[4];
 
-	if ((err = recv_client_msg(fd, &msgp, size)))
+	if ((err = recv_client_msg(fd, &msgp, msgsize)))
 		return (err);
 
 	ioctl_cm = msgp;
 	request = ioctl_cm->icm_request;
+	datap = NULL;
 
 	switch (request) {	
 		/* ifreq */
@@ -299,38 +401,48 @@ dispatch_ioctl(struct thread *td, int fd, int size)
 	case SIOCDIFPHYADDR:
 	case SIOCIFCREATE:
 		argp = &ioctl_cm->icm_data[0];
+		size = sizeof(struct ifreq);
 		break;
 	case SIOCGIFDESCR:
 		ifreq_cm = msgp;
 		argp = ifr = &ifreq_cm->icm_ifr;
 		datap = ifr->ifr_buffer.buffer = 
 			malloc(ifr->ifr_buffer.length);
+		size = sizeof(struct ifreq) + ifr->ifr_buffer.length;
 		break;
 	case SIOCSIFDESCR:
 		ifreq_cm = msgp;
 		argp = ifr = &ifreq_cm->icm_ifr;
 		ifr->ifr_buffer.buffer = &ifreq_cm->icm_ifr_data[0];
+		size = sizeof(struct ifreq);
 		break;
 	case SIOCSIFNAME:
 		ifreq_cm = msgp;
 		argp = ifr = &ifreq_cm->icm_ifr;
 		ifr->ifr_data = &ifreq_cm->icm_ifr_data[0];
+		size = sizeof(struct ifreq);
 		break;
 	case SIOCGIFCONF:
 		ifc.ifc_len = *(int *)&ioctl_cm->icm_data[0];
 		datap = ifc.ifc_buf = malloc(ifc.ifc_len);
 		argp = &ifc;
+		size = ifc.ifc_len + sizeof(int);
 		break;
 	case SIOCIFGCLONERS:
 		ifcr.ifcr_count = *(int *)&ioctl_cm->icm_data[0];
 		datap = ifcr.ifcr_buffer = malloc(ifcr.ifcr_count*IFNAMSIZ);
 		argp = &ifcr;
+		size = sizeof(int) + ifcr.ifcr_count*IFNAMSIZ;
 		break;
 	case SIOCGIFMEDIA:
 		argp = ifmr = (struct ifmediareq *)&ioctl_cm->icm_data[0];
-		if (ifmr->ifm_ulist != NULL)
+		if (ifmr->ifm_ulist != NULL) {
 			datap = ifmr->ifm_ulist = 
 				malloc(ifmr->ifm_count*sizeof(int));
+			size = sizeof(struct ifmediareq) +
+				ifmr->ifm_count*sizeof(int);
+		} else
+			size = sizeof(struct ifmediareq);
 		break;
 	default:
 		printf("unsupported ioctl! %lx\n", request);
@@ -343,48 +455,55 @@ dispatch_ioctl(struct thread *td, int fd, int size)
 		break;
 	}
 	err = kern_ioctl(td, ioctl_cm->icm_fd, request, argp);
-	size = 0;
 	if (err != 0) {
+		size = 0;
 		free(msgp);
 		if (datap != NULL)
 			free(datap);
-		return (send_return_msg(fd, err, 0));
 	}
-
+	rc = send_return_msg(fd, err, size);
+	if (err || rc) {
+		free(msgp);
+		if (datap != NULL)
+			free(datap);
+		if (rc)
+			return (rc);
+		return (0);
+	}
 	switch (request) {
 	case SIOCGIFCONF:
-		iov[2].iov_base = (void *)&ifc.ifc_len;
-		iov[2].iov_len = sizeof(int);
-		iov[3].iov_base = ifc.ifc_buf;
-		iov[3].iov_len = ifc.ifc_len;
-		iovcnt = 4;
+		iov[0].iov_base = (void *)&ifc.ifc_len;
+		iov[0].iov_len = sizeof(int);
+		iov[1].iov_base = ifc.ifc_buf;
+		iov[1].iov_len = ifc.ifc_len;
+		iovcnt = 2;
 		break;
 	case SIOCGIFDESCR:
-		iov[2].iov_base = ifr;
-		iov[2].iov_len = sizeof(struct ifreq);
-		iov[3].iov_base = datap;
-		iov[3].iov_len = ifr->ifr_buffer.length;
-		iovcnt = 4;
+		iov[0].iov_base = ifr;
+		iov[0].iov_len = sizeof(struct ifreq);
+		iov[1].iov_base = datap;
+		iov[1].iov_len = ifr->ifr_buffer.length;
+		iovcnt = 2;
 		break;
 	case SIOCIFGCLONERS:
-		iov[2].iov_base = &ifcr.ifcr_total;
-		iov[2].iov_len = sizeof(ifcr.ifcr_total);
-		iov[3].iov_base = datap;
-		iov[3].iov_len = ifcr.ifcr_count*IFNAMSIZ;
+		iov[0].iov_base = &ifcr.ifcr_total;
+		iov[0].iov_len = sizeof(ifcr.ifcr_total);
+		iov[1].iov_base = datap;
+		iov[1].iov_len = ifcr.ifcr_count*IFNAMSIZ;
 		iovcnt = 2;
 	case SIOCGIFMEDIA:
-		iov[2].iov_base = ifmr;
-		iov[2].iov_len = sizeof(struct ifmediareq);
-		iovcnt = 3;
+		iov[0].iov_base = ifmr;
+		iov[0].iov_len = sizeof(struct ifmediareq);
+		iovcnt = 1;
 		if (ifmr->ifm_ulist != NULL) {
-			datap = iov[3].iov_base = ifmr->ifm_ulist;
-			iov[3].iov_len = ifmr->ifm_count*sizeof(int);
-			iovcnt = 4;
+			datap = iov[1].iov_base = ifmr->ifm_ulist;
+			iov[1].iov_len = ifmr->ifm_count*sizeof(int);
+			iovcnt = 2;
 		}
 	default:
-		iov[2].iov_base = ifr;
-		iov[2].iov_len = sizeof(struct ifreq);
-		iovcnt = 3;
+		iov[0].iov_base = ifr;
+		iov[0].iov_len = sizeof(struct ifreq);
+		iovcnt = 1;
 	}
 
 	rc = writev(fd, iov, iovcnt);
@@ -392,8 +511,10 @@ dispatch_ioctl(struct thread *td, int fd, int size)
 	free(msgp);
 	if (datap != NULL)
 		free(datap);
+	if (rc < 0)
+		return (errno);
 
-	return (rc);
+	return (0);
 }
 	
 

@@ -51,6 +51,7 @@
 #undef _KERNEL
 #include <sys/kernel.h>
 #include <sys/refcount.h>
+#include <sys/sysctl.h>
 
 
 #include <pn_private.h>
@@ -97,6 +98,9 @@ int _getsockname(int s, struct sockaddr * restrict name,
 int _shutdown(int s, int how);
 int _pthread_create(pthread_t *thread, const pthread_attr_t *attr,
     void *(*start_routine)(void *), void *arg);
+
+int __sysctl(const int *name, u_int namelen, void *oldp, size_t *oldlenp,
+    const void *newp, size_t newlen);
 
 static int
 pleb_userfd_isset(int nfds, fd_set *set)
@@ -817,3 +821,29 @@ pthread_create(pthread_t *thread, const pthread_attr_t *attr,
 
 	return (error);	
 }
+
+int
+sysctl(const int *name, u_int namelen, void *oldp, size_t *oldlenp,
+         const void *newp, size_t newlen)
+{
+	int rc;
+	size_t retval;
+
+	if (name[0] == CTL_USER)
+		return (user_sysctl(name, namelen, oldp, oldlenp, newp, newlen));
+
+	if (name[0] != CTL_NET)
+		return (__sysctl(name, namelen, oldp, oldlenp, newp, newlen));
+
+	rc = userland_sysctl(curthread, __DECONST(int *, name), namelen, oldp, oldlenp, 
+	    1, __DECONST(void *, newp), newlen, &retval, 0);
+	if (rc)
+		goto kern_fail;
+	if (oldlenp)
+		*oldlenp = retval;
+	return (0);
+kern_fail:
+	errno = rc;
+	return (-1);
+}
+

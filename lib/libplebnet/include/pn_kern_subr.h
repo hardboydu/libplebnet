@@ -80,4 +80,12 @@ _fnoop(void)
 #define	fdrop(fp, td)							\
 	(refcount_release(&(fp)->f_count) ? _fdrop((fp), (td)) : _fnoop())
 
+int kernel_sysctl(struct thread *td, int *name, u_int namelen, void *old,
+		  size_t *oldlenp, void *new, size_t newlen, size_t *retval, int flags);
+
+
+int userland_sysctl(struct thread *td, int *name, u_int namelen, void *old,
+    size_t *oldlenp, int inkernel, void *new, size_t newlen, size_t *retval,
+    int flags);
+
 #endif

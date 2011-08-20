@@ -28,6 +28,5 @@
 #define _PLEBNET_SYS_PARAM_H_
 #include_next <sys/param.h>
 
-#define __sysctl __plebnet_sysctl
 
 #endif	/* _PLEBNET_SYS_PARAM_H_ */

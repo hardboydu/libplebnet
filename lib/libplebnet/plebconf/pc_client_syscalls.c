@@ -41,6 +41,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/sysctl.h>
 
 #include <sys/uio.h>
 
@@ -52,11 +53,41 @@
 #include <sys/ioctl.h>
 #include <stdarg.h>
 
+#include <net/if.h>
+#include <net/if_var.h>
+#include <net/ethernet.h>
+#include <net/if_lagg.h>
+#include <net/if_gre.h>
+#include <net/if_gif.h>
+#include <net80211/ieee80211_ioctl.h>
+
+#include <netinet/in.h>
+#include <netinet/ip_carp.h>
+
+
+#include <net/pfvar.h>
+#include <net/if_pfsync.h>
+
+
+#include <netinet6/in6_var.h>
+#include <netinet6/nd6.h>
+
+
 static int target_fd; 
 
-int _socket(int domain, int type, int protocol);
-int _connect(int s, const struct sockaddr *name, socklen_t namelen);
 void target_connect(void) __attribute__((constructor));
+int __sysctl(const int *name, u_int namelen, void *oldp, size_t *oldlenp,
+    const void *newp, size_t newlen);
+int user_sysctl(const int *name, u_int namelen, void *oldp, size_t *oldlenp,
+    const void *newp, size_t newlen);
+int _socket(int domain, int type, int protocol);
+
+
+#ifdef UNSUPPORTED_IOCTL
+#define IPRINTF printf
+#else
+#define IPRINTF(...)
+#endif
 
 static void 
 client_fini(void)
@@ -79,7 +110,7 @@ target_connect(void)
 	if (pidstr == NULL || strlen(pidstr) == 0) {
 		printf("failed to find target pid set, proxied calls will not work");
 		return;
-	}
+	} 
 
 	target_fd = _socket(PF_LOCAL, SOCK_STREAM, 0);
 
@@ -89,10 +120,18 @@ target_connect(void)
 	strcpy(buffer, "/tmp/");
 	strcat(buffer, pidstr);
 	strcpy(addr.sun_path, buffer);
-	if(_connect(target_fd, (struct sockaddr *)&addr,
+#ifdef DEBUG_CONNECT
+	printf("attempting to connect ...");
+	if(connect(target_fd, (struct sockaddr *)&addr,
 		SUN_LEN(&addr))) {
 		printf("failed to connect to target pid %s, proxied calls will not work", pidstr);
-	}
+	} else 
+		printf("connected to %s", pidstr);
+#else
+	if(connect(target_fd, (struct sockaddr *)&addr,
+		SUN_LEN(&addr))) 
+		printf("failed to connect to target pid %s, proxied calls will not work", pidstr);
+#endif
 }
 
 int
@@ -106,7 +145,6 @@ handle_return_msg(int fd, int *size)
 	iov[1].iov_len = sizeof(int);
 
 	rc = readv(fd, iov, 2);
-	
 	return ((rc < 0) ? errno : (err ? err : 0));
 }
 
@@ -145,6 +183,8 @@ socket(int domain, int type, int protocol)
 
 	return (fd);
 }
+
+
 
 static int
 ioctl_internal(int fd, unsigned long request, uintptr_t argp)
@@ -200,9 +240,10 @@ ioctl_internal(int fd, unsigned long request, uintptr_t argp)
 	case SIOCGIFPDSTADDR:
 	case SIOCDIFPHYADDR:
 	case SIOCIFCREATE:
+		ifr = (struct ifreq *)argp;
 		ifr_cm.icm_fd = fd;
 		ifr_cm.icm_request = request;
-		ifr_cm.icm_ifr = *(struct ifreq *)argp;
+		ifr_cm.icm_ifr = *ifr;
 		iov[1].iov_base = &ifr_cm;
 		cm.cm_size = iov[1].iov_len = sizeof(ifr_cm);
 		iovcnt = 2;
@@ -210,6 +251,7 @@ ioctl_internal(int fd, unsigned long request, uintptr_t argp)
 		break;
 /* deep copy needed */
 	case SIOCSIFDESCR:
+		ifr = (struct ifreq *)argp;
 		ifr_cm.icm_fd = fd;
 		ifr_cm.icm_request = request;
 		ifr_cm.icm_ifr = *(struct ifreq *)argp;
@@ -225,6 +267,7 @@ ioctl_internal(int fd, unsigned long request, uintptr_t argp)
 		iovcnt = 3;
 		break;
 	case SIOCSIFNAME:
+		ifr = (struct ifreq *)argp;
 		ifr_cm.icm_fd = fd;
 		ifr_cm.icm_request = request;
 		ifr_cm.icm_ifr = *(struct ifreq *)argp;
@@ -265,17 +308,74 @@ ioctl_internal(int fd, unsigned long request, uintptr_t argp)
 		cm.cm_size = iov[1].iov_len = sizeof(ifmr_cm);
 		iovcnt = 2;
 		break;
+	case SIOCGETPFSYNC:
+		IPRINTF("SIOCGETPFSYNC unsupported\n");
+		return (EINVAL);
+		break;
+	case SIOCGVH:
+		IPRINTF("SIOCGVH unsupported\n");
+		return (EINVAL);
+		break;
+	case SIOCGDRVSPEC:
+		IPRINTF("SIOCGDRVSPEC unsupported\n");
+		return (EINVAL);
+		break;
+	case SIOCGIFPSRCADDR_IN6:
+	case SIOCGDEFIFACE_IN6:
+	case SIOCGIFAFLAG_IN6:
+	case SIOCGIFALIFETIME_IN6:
+	case SIOCGIFINFO_IN6:
+		IPRINTF("IPv6 unsupported\n");
+		return (ENOSYS);
+		break;
+	case SIOCG80211:
+		IPRINTF("SIOCG80211 unsupported\n");
+		return (EINVAL);
+		break;
+	case SIOCGIFSTATUS:
+		IPRINTF("SIOCGIFSTATUS unsupported\n");
+		return (EINVAL);
+		break;
+	case SIOCGIFFIB:
+		IPRINTF("SIOCGIFFIB unsupported\n");
+		return (EINVAL);
+		break;
+	case SIOCGLAGG:
+		IPRINTF("SIOCLAGG unsupported\n");
+		return (EINVAL);
+		break;
+	case SIOCGLAGGPORT:
+		IPRINTF("SIOCLAGGPORT unsupported\n");
+		return (EINVAL);
+		break;
+	case GREGKEY:
+		IPRINTF("SIOCREGKEY unsupported\n");
+		return (EINVAL);
+		break;
+	case GIFGOPTS:
+		IPRINTF("SIOCGIFGOPTS unsupported\n");
+		return (EINVAL);
+		break;
 	case SIOCIFCREATE2:
 		/* ifr_data is a sub-system specific opaque blob
 		 * so we need sub-system specif hackery 
 		 * ... punting for now
 		 */
-	default:
-		printf("unknown or unsupported ioctl: %lx\n", request);
+		IPRINTF("SIOCIFCREATE2 unsupported\n");
 		return (EINVAL);
-	}
+		break;
+	default:
+		printf("unknown ioctl: %lx\n", request);
+		return (EINVAL);
+	}	
+#ifdef BYTES_SENT
+	if (cm.cm_size != 0) 
+		printf("sending %d bytes\n", cm.cm_size);
+#endif
 
 	retval = writev(target_fd, iov, iovcnt);
+	if (retval != cm.cm_size + sizeof(cm))
+		printf("size mismatch %ld\n", retval - sizeof(cm));
 
 	if ((retval = handle_return_msg(target_fd, &size)))
 		return (retval);
@@ -343,12 +443,91 @@ ioctl(int d, unsigned long request, ...)
 {
 	va_list ap;
 	uintptr_t argp;
+	int err;
 
 	va_start(ap, request);
 
 	argp = va_arg(ap, uintptr_t);
 	va_end(ap);
 
-	return (ioctl_internal(d, request, argp));
+	err = ioctl_internal(d, request, argp);
+	if (err) {
+		errno = err;
+		return (-1);
+	}
+	return (0);
 }
 
+int
+sysctl_internal(const int *name, u_int namelen, void *oldp, size_t *oldlenp,
+         const void *newp, size_t newlen)
+{
+	struct call_msg cm;
+	struct sysctl_call_msg scm;
+	struct iovec iov[4];
+	int iovcnt, size, rc;
+
+	cm.cm_id = SYS___sysctl;
+	cm.cm_size = sizeof(scm) + namelen*sizeof(int) + newlen;
+	scm.scm_miblen = namelen;
+	scm.scm_newlen = newlen;
+	scm.scm_oldlen = 0;
+	if (oldp != NULL && oldlenp != NULL)
+		scm.scm_oldlen = *oldlenp;
+
+	iovcnt = 3;
+	iov[0].iov_base = &cm;
+	iov[0].iov_len = sizeof(cm);
+	iov[1].iov_base = &scm;
+	iov[1].iov_len = sizeof(scm);
+	iov[2].iov_base = __DECONST(int *, name);
+	iov[2].iov_len = namelen*sizeof(int);
+
+#ifdef DEBUG_SYSCTL
+	{
+		int i;
+		for (i = 0; i < namelen; i++)
+			printf("mib[%d]=%d ", i, name[i]);
+	}
+	printf("oldp=%p, oldlenp=%p oldlen=%zd newlen=%zd\n", oldp, oldlenp, 
+	    oldlenp ? *oldlenp : 0, newlen);
+	printf("\n");
+#endif
+	if (newlen > 0 && newp != NULL) {
+		iovcnt = 4;
+		iov[3].iov_base = __DECONST(void *, newp);
+		iov[3].iov_len = newlen;
+	}
+
+
+	writev(target_fd, iov, iovcnt);
+	if ((rc = handle_return_msg(target_fd, &size))) {
+		errno = rc;
+		return (-1);
+	}
+	
+	if (size == 0)
+		return (0);
+
+	iov[0].iov_base = oldlenp;
+	iov[0].iov_len = sizeof(size_t);
+	iov[1].iov_base = oldp;
+	iov[1].iov_len = size - sizeof(size_t);
+	if ((readv(target_fd, iov, 2) < 0))
+		return (-1);		    
+
+	return (0);
+}
+
+int
+sysctl(const int *name, u_int namelen, void *oldp, size_t *oldlenp,
+         const void *newp, size_t newlen)
+{
+	if (name[0] == CTL_USER)
+		return (user_sysctl(name, namelen, oldp, oldlenp, newp, newlen));
+
+	if (name[0] != CTL_NET)
+		return (__sysctl(name, namelen, oldp, oldlenp, newp, newlen));
+
+	return (sysctl_internal(name, namelen, oldp, oldlenp, newp, newlen));
+}

@@ -27,7 +27,7 @@
 #ifndef	_PLEBNET_PN_PRIVATE_H_
 #define _PLEBNET_PN_PRIVATE_H_
 #include <sys/_pthreadtypes.h>
-
+#include <sys/types.h>
 struct filedesc;
 
 int             pn_mutex_lock(pthread_mutex_t *);
@@ -37,5 +37,7 @@ void		pn_fdused_range(struct filedesc *fdp, int max);
 int             pn_user_fdisused(int fd);
 int             pn_kernel_fdisused(int fd);
 void            start_server_syscalls(void);
+int		user_sysctl(const int *name, u_int namelen, void *oldp, size_t *oldlenp,
+			    const void *newp, size_t newlen);
 
 #endif /* _PLEBNET_PN_PRIVATE_H_ */
