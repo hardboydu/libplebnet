@@ -105,6 +105,7 @@ PN_SYS_COMMON_OBJS = 		\
 	pn_syscall_wrapper.o	\
 	pn_uipc_syscalls.o	\
 	pn_uma_core.o		\
+	pn_user_sysctl.o	\
 	pn_veth.o
 
 

@@ -4,7 +4,8 @@ LIB=	plebconf
 
 
 PC_OBJS =		\
-	pc_client_syscalls.o 
+	pc_client_syscalls.o \
+	pc_user_sysctl.o
 
 
 PC_SRCS= ${PC_OBJS:C/.o$/.c/}
