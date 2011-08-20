@@ -190,7 +190,7 @@ int
 _rw_try_wlock(struct rwlock *rw, const char *file, int line)
 {
 
-	return (pthread_rwlock_trywrlock(&rw->rw_lock));
+	return (!pthread_rwlock_trywrlock(&rw->rw_lock));
 }
 
 void
@@ -211,7 +211,7 @@ int
 _rw_try_rlock(struct rwlock *rw, const char *file, int line)
 {
 	
-	return (pthread_rwlock_tryrdlock(&rw->rw_lock));
+	return (!pthread_rwlock_tryrdlock(&rw->rw_lock));
 }
 
 void
