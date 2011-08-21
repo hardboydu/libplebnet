@@ -70,7 +70,7 @@ pn_init(void)
         mi_startup();
 	sx_init(&proctree_lock, "proctree");
 	td = curthread;
-	pn_fdused_range(td->td_proc->p_fd, 512);
+	pn_fdused_range(td->td_proc->p_fd, 16);
 	pn_veth_attach();
 	start_server_syscalls();
 

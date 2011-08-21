@@ -91,6 +91,7 @@ void mi_startup(void);				/* Should be elsewhere */
 
 /* Components of the first process -- never freed. */
 struct	proc proc0;
+struct prison prison0;
 struct	thread thread0 __aligned(16);
 struct	vmspace vmspace0;
 struct	proc *initproc;
@@ -445,9 +446,7 @@ proc0_init(void *dummy __unused)
 	p->p_ucred->cr_ngroups = 1;	/* group 0 */
 	p->p_ucred->cr_uidinfo = uifind(0);
 	p->p_ucred->cr_ruidinfo = uifind(0);
-#if 0
 	p->p_ucred->cr_prison = &prison0;
-#endif
 
 #ifdef AUDIT
 	audit_cred_kproc0(p->p_ucred);

@@ -63,6 +63,7 @@
 #include <pn_private.h>
 
 
+#define BYTES_RECEIVED
 
 static int target_fd;
 struct thread;
@@ -124,15 +125,15 @@ handle_call_msg(int fd, int *size)
 	int err;
 
 	err = read(fd, &cm, sizeof(cm));
+	if (err == 0) {
+		errno = EPIPE;
+		return (-1);
+	}
 	if (cm.cm_id > dispatch_table_size || 
 	    dispatch_table[cm.cm_id] == NULL) {
 		rm.rm_size = 0;
 		rm.rm_errno = ENOSYS;
 		write(fd, &rm, sizeof(rm));
-		return (-1);
-	}
-	if (cm.cm_id == SYS_close) {
-		close(fd);
 		return (-1);
 	}
 	*size = cm.cm_size;
@@ -145,9 +146,11 @@ recv_client_msg(int fd, void **msgp, int size)
 {
 	int rc, err = 0;
 	struct return_msg rm;
-
+#ifdef BYTES_RECEIVED
 	printf("receiving %d bytes\n", size);
+#endif
 	if (size == 0) {
+		printf("closing fd\n");
 		close(fd);
 		return (EPIPE);
 	}
@@ -181,6 +184,7 @@ send_return_msg(int fd, int error, int size)
 	rm.rm_errno = error;
 	if (write(fd, &rm, sizeof(rm)) < 0)
 		return (errno);
+	printf("sending message err=%d size=%d\n", error, size);
 	return (0);
 }
 
@@ -188,13 +192,19 @@ int
 dispatch(struct thread *td, int fd)
 {
 	int rc, size, funcid;
+	struct thread *orig;
 
 	funcid = handle_call_msg(fd, &size);
 
+	if (funcid == 0)
+		return (0);
 	if (funcid < 0)
 		return (errno);
-
+	
+	orig = pcurthread;
+	pcurthread = td;
 	rc = dispatch_table[funcid](td, fd, size);
+	pcurthread = orig;
 	/* check rc for closed socket */
 	if (rc != 0)
 		printf("%p returned %d\n", dispatch_table[funcid], rc);
@@ -221,6 +231,7 @@ syscall_server(void *arg)
 	td->td_ucred = crhold(server_proc.p_ucred);
 	td->td_proc->p_fd = fdinit(NULL);
 	td->td_proc->p_fdtol = NULL;
+	pn_fdused_range(td->td_proc->p_fd, 16);
 	len = sizeof(addr);
 	while (1) {
 		fd = accept(target_fd, (struct sockaddr *)&addr, &len);
@@ -241,40 +252,29 @@ start_server_syscalls(void)
 static int
 dispatch_socket(struct thread *td, int fd, int size)
 {
-	int i, err, rc, osize, iovcnt;
+	int err, rc, osize, newfd;
 	struct socket_call_msg scm;
-	struct iovec iov[3];
-	struct thread *orig;
 
 	err = osize = 0;
-	iovcnt = 2;
 
 	if (size != sizeof(scm))
 		err = EINVAL;
 	else if (read(fd, &scm, sizeof(scm)) < 0) {
 		err = errno;
 	} else {
-		orig = pcurthread;
-		pcurthread = td;
 		if (scm.scm_domain == PF_LOCAL)
 			scm.scm_domain = PF_INET;
-		if ((rc = socket(scm.scm_domain, scm.scm_type, 
+		if ((newfd = socket(scm.scm_domain, scm.scm_type, 
 			    scm.scm_protocol)) >= 0) {
 			osize = sizeof(int);
-			iovcnt = 3;
-			iov[2].iov_base = &rc;
 		}
-		pcurthread = orig;
 	}
-	iov[0].iov_base = &osize;
-	iov[1].iov_base = &err;
+	if ((rc = send_return_msg(fd, err, osize)))
+		return (rc);
 
-	for (i = 0; i < 3; i++)
-		iov[i].iov_len = sizeof(int);
-
-	rc = writev(fd, iov, iovcnt);
-	if (rc < 0)
+	if (osize && (write(fd, &newfd, sizeof(newfd)) < 0))
 		return (errno);
+
 	return (0);
 }
 
@@ -284,7 +284,7 @@ dispatch_sysctl(struct thread *td, int fd, int msgsize)
 {
 	int i, err, rc, iovcnt, size;
 	size_t oldlen;
-	struct sysctl_call_msg *scm;
+	struct sysctl_call_msg *scm = NULL;
 	struct iovec iov[3];
 	struct thread *orig;
 	caddr_t datap;
@@ -322,7 +322,7 @@ dispatch_sysctl(struct thread *td, int fd, int msgsize)
 		}
 		pcurthread = orig;
 	}
-	printf("rc=%d oldlen=%zd\n", rc, oldlen);
+	printf("rc=%d oldlen=%zd ", rc, oldlen);
 	free(scm);
 	if (rc && oldp != NULL)
 		free(oldp);
@@ -332,6 +332,7 @@ dispatch_sysctl(struct thread *td, int fd, int msgsize)
 		size = sizeof(oldlen);
 	else 
 		size = oldlen + sizeof(oldlen);
+	printf(" ...rc=%d, size=%d\n", rc, size);
 	rc = send_return_msg(fd, rc, size);
 	if (size == 0 || rc)
 		return (rc);
@@ -340,7 +341,7 @@ dispatch_sysctl(struct thread *td, int fd, int msgsize)
 	iov[0].iov_len = sizeof(oldlen);
 	if (size > sizeof(oldlen)) {
 		iov[1].iov_base = oldp;
-		iov[1].iov_len = size;
+		iov[1].iov_len = oldlen;
 		iovcnt = 2;
 	}
 
@@ -450,9 +451,19 @@ dispatch_ioctl(struct thread *td, int fd, int msgsize)
 		} else
 			size = sizeof(struct ifmediareq);
 		break;
+	case SIOCGDEFIFACE_IN6:
+	case SIOCSDEFIFACE_IN6:
 	case SIOCGIFINFO_IN6:
 		argp = &ioctl_cm->icm_data[0];
 		size = sizeof(struct in6_ndireq);
+		break;
+	case SIOCGIFALIFETIME_IN6:
+	case SIOCGIFAFLAG_IN6:
+		argp = &ioctl_cm->icm_data[0];
+		size = sizeof(struct in6_ifreq);
+	case SIOCAIFADDR:
+		argp = &ioctl_cm->icm_data[0];
+		size = 0;
 		break;
 	default:
 		printf("unsupported ioctl! %lx\n", request);
@@ -465,14 +476,10 @@ dispatch_ioctl(struct thread *td, int fd, int msgsize)
 		break;
 	}
 	err = kern_ioctl(td, ioctl_cm->icm_fd, request, argp);
-	if (err != 0) {
+	if (err != 0)
 		size = 0;
-		free(msgp);
-		if (datap != NULL)
-			free(datap);
-	}
 	rc = send_return_msg(fd, err, size);
-	if (err || rc) {
+	if (err || rc || size == 0) {
 		free(msgp);
 		if (datap != NULL)
 			free(datap);
@@ -510,9 +517,17 @@ dispatch_ioctl(struct thread *td, int fd, int msgsize)
 			iov[1].iov_len = ifmr->ifm_count*sizeof(int);
 			iovcnt = 2;
 		}
+	case SIOCGDEFIFACE_IN6:
+	case SIOCSDEFIFACE_IN6:
 	case SIOCGIFINFO_IN6:
 		iov[0].iov_base = argp;
 		iov[0].iov_len = sizeof(struct in6_ndireq);
+		iovcnt = 1;
+		break;
+	case SIOCGIFALIFETIME_IN6:
+	case SIOCGIFAFLAG_IN6:
+		iov[0].iov_base = argp;
+		iov[0].iov_len = sizeof(struct in6_ifreq);
 		iovcnt = 1;
 		break;
 	default:
