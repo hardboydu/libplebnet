@@ -79,6 +79,8 @@ typedef int (*dispatch_func)(struct thread *, int, int);
 static int dispatch_socket(struct thread *td, int fd, int size);
 static int dispatch_ioctl(struct thread *td, int fd, int size);
 static int dispatch_sysctl(struct thread *td, int fd, int size);
+static int dispatch_write(struct thread *td, int fd, int size);
+static int dispatch_shutdown(struct thread *td, int fd, int size);
 static struct proc server_proc;
 
 dispatch_func dispatch_table[SYS_MAXSYSCALL];
@@ -112,6 +114,8 @@ target_bind(void)
 	atexit(cleanup);
 	dispatch_table[SYS_socket] = dispatch_socket;
 	dispatch_table[SYS_ioctl] = dispatch_ioctl;
+	dispatch_table[SYS_write] = dispatch_write;
+	dispatch_table[SYS_shutdown] = dispatch_shutdown;
 	dispatch_table[SYS___sysctl] = dispatch_sysctl;
 	listen(target_fd, 10);
 	printf("listening\n");
@@ -231,7 +235,7 @@ syscall_server(void *arg)
 	td->td_ucred = crhold(server_proc.p_ucred);
 	td->td_proc->p_fd = fdinit(NULL);
 	td->td_proc->p_fdtol = NULL;
-	pn_fdused_range(td->td_proc->p_fd, 16);
+	pn_fdused_range(td->td_proc->p_fd, 32);
 	len = sizeof(addr);
 	while (1) {
 		fd = accept(target_fd, (struct sockaddr *)&addr, &len);
@@ -268,11 +272,59 @@ dispatch_socket(struct thread *td, int fd, int size)
 			    scm.scm_protocol)) >= 0) {
 			osize = sizeof(int);
 		}
+		printf("newfd=%d\n", newfd);
 	}
 	if ((rc = send_return_msg(fd, err, osize)))
 		return (rc);
 
 	if (osize && (write(fd, &newfd, sizeof(newfd)) < 0))
+		return (errno);
+
+	return (0);
+}
+
+static int
+dispatch_shutdown(struct thread *td, int fd, int size)
+{
+	int err, rc;
+	struct shutdown_call_msg scm;
+
+	err = 0;
+
+	if (size != sizeof(scm))
+		err = EINVAL;
+	else if (read(fd, &scm, sizeof(scm)) < 0) {
+		err = errno;
+	} else if (shutdown(scm.scm_fd, scm.scm_how) < 0) {
+		err = errno;
+	}
+	if ((rc = send_return_msg(fd, err, 0)))
+		return (rc);
+	return (0);
+}
+
+static int
+dispatch_write(struct thread *td, int fd, int size)
+{
+	int err, rc, osize;
+	size_t bytes_written;
+	struct write_call_msg wcm;
+
+	osize = err = 0;
+	if (read(fd, &wcm, size) < 0) {
+		err = errno;
+	} else {
+		bytes_written = write(wcm.wcm_fd, &wcm.wcm_data[0], 
+		    size - sizeof(wcm.wcm_fd));
+		if (bytes_written < 0)
+			err = errno;
+		else
+			osize = sizeof(bytes_written);
+	}
+	if ((rc = send_return_msg(fd, err, osize)))
+		return (rc);
+
+	if (osize && (write(fd, &bytes_written, sizeof(size_t)) < 0))
 		return (errno);
 
 	return (0);

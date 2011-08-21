@@ -86,6 +86,7 @@ int __sysctl(const int *name, u_int namelen, void *oldp, size_t *oldlenp,
 int user_sysctl(const int *name, u_int namelen, void *oldp, size_t *oldlenp,
     const void *newp, size_t newlen);
 int _socket(int domain, int type, int protocol);
+ssize_t _write(int fd, const void *buf, size_t nbytes);
 
 #define BYTES_SENT
 #define DEBUG_SYSCTL
@@ -204,6 +205,72 @@ socket(int domain, int type, int protocol)
 	return (fd);
 }
 
+int
+shutdown(int fd, int how)
+{
+	struct iovec iov[2];
+	struct call_msg cm;
+	struct shutdown_call_msg scm;
+	int size, err;
+
+	cm.cm_size = sizeof(struct shutdown_call_msg);
+	cm.cm_id = SYS_shutdown;
+	scm.scm_fd = fd;
+	scm.scm_how = how;
+	
+	iov[0].iov_base = &cm;
+	iov[0].iov_len = sizeof(struct call_msg);
+	iov[1].iov_base = &scm;
+	iov[1].iov_len = sizeof(struct shutdown_call_msg);
+	
+	err = writev(target_fd, iov, 2);
+	total_bytes_written += err;
+	if ((err = handle_return_msg(target_fd, &size)) != 0) {
+		errno = err;
+		return (-1);
+	}
+	return (0);
+}
+
+ssize_t
+write(int fd, const void *buf, size_t nbytes)
+{
+	struct iovec iov[2];
+	struct call_msg cm;
+	struct write_call_msg wcm;
+	int size, err;
+	size_t bytes_written;
+
+	/*
+	 * XXX Evil HACK
+	 */
+	if (fd < 4)
+		return (_write(fd, buf, nbytes));
+
+	cm.cm_size = sizeof(struct write_call_msg) + nbytes;
+	cm.cm_id = SYS_write;
+	wcm.wcm_fd = fd;
+	
+	iov[0].iov_base = &cm;
+	iov[0].iov_len = sizeof(struct call_msg);
+	iov[1].iov_base = &wcm;
+	iov[1].iov_len = sizeof(struct write_call_msg);
+	iov[2].iov_base = __DECONST(void *, buf);
+	iov[2].iov_len = nbytes;
+	
+	err = writev(target_fd, iov, 3);
+	total_bytes_written += err;
+	if ((err = handle_return_msg(target_fd, &size)) != 0) {
+		errno = err;
+		return (-1);
+	}
+
+	if ((err = read(target_fd, &bytes_written, sizeof(size_t))) != sizeof(size_t)) {
+		errno = EINTR;
+		return (-1);
+	}
+	return (bytes_written);
+}
 
 
 static int

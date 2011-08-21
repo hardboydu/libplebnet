@@ -115,3 +115,13 @@ struct in6_ndireq_call_msg {
 struct in6_ndireq_return_msg {
 	struct in6_ndireq inrm_ndi;
 };
+
+struct write_call_msg {
+	int wcm_fd;
+	char wcm_data[0];
+}__attribute__((packed));
+
+struct shutdown_call_msg {
+	int scm_fd;
+	int scm_how;
+}__attribute__((packed));
