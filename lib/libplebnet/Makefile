@@ -8,6 +8,7 @@ PN_KERN_COMMON_OBJS +=		\
 	kern_khelp.o		\
 	kern_hhook.o		\
 	kern_mbuf.o		\
+	kern_module.o		\
 	kern_mtxpool.o		\
 	kern_osd.o		\
 	kern_sysctl.o		\
@@ -15,6 +16,7 @@ PN_KERN_COMMON_OBJS +=		\
 	subr_eventhandler.o	\
 	subr_kobj.o		\
 	subr_lock.o		\
+	subr_module.o		\
 	subr_param.o		\
 	subr_pcpu.o		\
 	subr_sbuf.o		\
@@ -124,6 +126,7 @@ PN_SYS_COMMON_OBJS = 		\
 	pn_kern_condvar.o	\
 	pn_kern_descrip.o	\
 	pn_kern_intr.o		\
+	pn_kern_linker.o	\
 	pn_kern_subr.o		\
 	pn_kern_synch.o		\
 	pn_kern_timeout.o	\
@@ -142,7 +145,8 @@ PN_SYS_COMMON_OBJS = 		\
 
 PN_MFILES = 			\
 	bus_if.h 		\
-	device_if.h
+	device_if.h		\
+	linker_if.h
 
 PN_OPT_FILES = 			\
 	opt_atalk.h		\
@@ -152,6 +156,7 @@ PN_OPT_FILES = 			\
 	opt_compat.h		\
 	opt_device_polling.h	\
 	opt_ddb.h		\
+	opt_gdb.h		\
 	opt_inet.h		\
 	opt_inet6.h		\
 	opt_ipfw.h		\
@@ -213,6 +218,8 @@ PN_COMMON_SRCS= ${PN_COMMON_OBJS:C/.o$/.c/}
 SRCS=	${PN_COMMON_SRCS}
 SRCS+=	${PN_MFILES}
 SRCS+=	${PN_OPT_FILES}
+SRCS+=	${GEN_CFILES}
+
 
 CFLAGS+=	-I./include
 CFLAGS+=	-I./include/opt
@@ -301,7 +308,11 @@ ${_src}:
 .endfor
 .endif
 
-MFILES= kern/bus_if.m kern/device_if.m
+MFILES= kern/bus_if.m kern/device_if.m kern/linker_if.m
+CMFILES= kern/linker_if.m
+
+GEN_CFILES= ${CMFILES:T:S/.m$/.c/}
+
 
 .for _srcsrc in ${MFILES}
 .for _ext in c h
