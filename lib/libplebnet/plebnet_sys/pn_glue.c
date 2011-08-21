@@ -52,7 +52,6 @@
 #include <vm/vm_extern.h>
 
 int bootverbose;
-struct prison prison0;
 
 SYSCTL_NODE(_kern, OID_AUTO, features, CTLFLAG_RD, 0, "Kernel Features");
 
@@ -142,6 +141,13 @@ prison_equal_ip4(struct prison *pr1, struct prison *pr2)
 {
 
 	return (1);
+}
+
+int
+prison_check_ip6(struct ucred *cred, struct in6_addr *ia)
+{
+
+	return (0);
 }
 
 /*
