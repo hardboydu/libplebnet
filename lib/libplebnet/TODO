@@ -2,14 +2,14 @@
 - {get, set}sockopt
 - initializing individual proc struct per pid for RPC functions
 - UMA zone hashing
-- sysctl interface to process
-- routing socket to stack
+- handling writes to routing sockets (tracking routing socket descriptors)
 - callout emulation
 - tracking kernel file descriptors
 - aio functions
 - kevent / kqueue
 - handling fork
+- conditional compilation of ipv4 and ipv6
 
-- enabling compilation of v6 and SCTP
+- enabling compilation of SCTP
 - libnetstat for providing netstat interface to stack
 
