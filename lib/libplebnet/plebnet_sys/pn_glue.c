@@ -841,9 +841,3 @@ knlist_init_mtx(struct knlist *knl, struct mtx *lock)
 	
 }
 
-void
-module_register_init(void *arg)
-{
-	printf("skipped module registration");
-}
-
