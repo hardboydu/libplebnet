@@ -114,14 +114,9 @@ pnv_decap(void *arg)
 	int size;
 
 	while (1) {
-#ifdef notyet 
 		m = m_getjcl(M_WAITOK, MT_DATA,
 		    M_PKTHDR, MCLBYTES);
-#endif
-		m = m_gethdr(M_WAITOK, MT_DATA);
-		data = mtod(m, caddr_t);
-
-		size = read(sc->fd, data, 100);
+		size = read(sc->fd, data, MCLBYTES);
 		m->m_pkthdr.len = m->m_len = size;
 		m->m_pkthdr.rcvif = ifp;
 		ifp->if_input(ifp, m);

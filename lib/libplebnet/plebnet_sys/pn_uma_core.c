@@ -1771,6 +1771,11 @@ uma_startup2(void)
 {
 	booted = 1;
 	bucket_enable();
+#ifdef PLEBNET
+	/* XXX fix this magic 64 to something a bit more dynamic & sensible */
+	uma_page_slab_hash = malloc(sizeof(struct uma_page)*64, M_DEVBUF, M_ZERO);
+	uma_page_mask = 64-1;
+#endif
 #ifdef UMA_DEBUG
 	printf("UMA startup2 complete.\n");
 #endif
