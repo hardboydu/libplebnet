@@ -845,6 +845,103 @@ done:
 }
 
 int
+kern_setsockopt(td, s, level, name, val, valseg, valsize)
+	struct thread *td;
+	int s;
+	int level;
+	int name;
+	void *val;
+	enum uio_seg valseg;
+	socklen_t valsize;
+{
+	int error;
+	struct socket *so;
+	struct file *fp;
+	struct sockopt sopt;
+
+	if (val == NULL && valsize != 0)
+		return (EFAULT);
+	if ((int)valsize < 0)
+		return (EINVAL);
+
+	sopt.sopt_dir = SOPT_SET;
+	sopt.sopt_level = level;
+	sopt.sopt_name = name;
+	sopt.sopt_val = val;
+	sopt.sopt_valsize = valsize;
+	switch (valseg) {
+	case UIO_USERSPACE:
+		sopt.sopt_td = td;
+		break;
+	case UIO_SYSSPACE:
+		sopt.sopt_td = NULL;
+		break;
+	default:
+		panic("kern_setsockopt called with bad valseg");
+	}
+
+	AUDIT_ARG_FD(s);
+	error = getsock(td->td_proc->p_fd, s, &fp, NULL);
+	if (error == 0) {
+		so = fp->f_data;
+		error = sosetopt(so, &sopt);
+		fdrop(fp, td);
+	}
+	return(error);
+}
+
+/*
+ * Kernel version of getsockopt.
+ * optval can be a userland or userspace. optlen is always a kernel pointer.
+ */
+int
+kern_getsockopt(td, s, level, name, val, valseg, valsize)
+	struct thread *td;
+	int s;
+	int level;
+	int name;
+	void *val;
+	enum uio_seg valseg;
+	socklen_t *valsize;
+{
+	int error;
+	struct  socket *so;
+	struct file *fp;
+	struct	sockopt sopt;
+
+	if (val == NULL)
+		*valsize = 0;
+	if ((int)*valsize < 0)
+		return (EINVAL);
+
+	sopt.sopt_dir = SOPT_GET;
+	sopt.sopt_level = level;
+	sopt.sopt_name = name;
+	sopt.sopt_val = val;
+	sopt.sopt_valsize = (size_t)*valsize; /* checked non-negative above */
+	switch (valseg) {
+	case UIO_USERSPACE:
+		sopt.sopt_td = td;
+		break;
+	case UIO_SYSSPACE:
+		sopt.sopt_td = NULL;
+		break;
+	default:
+		panic("kern_getsockopt called with bad valseg");
+	}
+
+	AUDIT_ARG_FD(s);
+	error = getsock(td->td_proc->p_fd, s, &fp, NULL);
+	if (error == 0) {
+		so = fp->f_data;
+		error = sogetopt(so, &sopt);
+		*valsize = sopt.sopt_valsize;
+		fdrop(fp, td);
+	}
+	return (error);
+}
+
+int
 kern_getsockname(struct thread *td, int fd, struct sockaddr **sa,
     socklen_t *alen)
 {
