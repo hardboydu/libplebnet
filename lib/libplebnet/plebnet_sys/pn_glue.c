@@ -846,45 +846,6 @@ malloc_uninit(void *data)
 	/* XXX */
 }
 
-#if 0
-void
-knote(struct knlist *list, long hint, int lockflags)
-{
-	
-}
-
-void	
-knlist_add(struct knlist *knl, struct knote *kn, int islocked)
-{
-	/* XXX */
-}
-
-void	
-knlist_remove(struct knlist *knl, struct knote *kn, int islocked)
-{
-
-	/* XXX */
-}
-
-int	
-knlist_empty(struct knlist *knl)
-{
-	/* XXX */
-	return (1);
-}
-
-void
-knlist_destroy(struct knlist *knl)
-{
-	
-}
-
-void
-knlist_init_mtx(struct knlist *knl, struct mtx *lock)
-{
-	
-}
-#endif
 
 void
 DELAY(int delay)
