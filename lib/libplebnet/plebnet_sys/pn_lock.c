@@ -112,8 +112,12 @@ _mtx_unlock_flags(struct mtx *m, int opts, const char *file, int line)
 	pthread_mutex_unlock(&m->mtx_lock);
 }
 
+int
+_mtx_trylock(struct mtx *m, int opts, const char *file, int line)
+{
 
-
+	return (pthread_mutex_trylock(&m->mtx_lock));
+}
 
 void
 assert_rw(struct lock_object *lock, int what)
