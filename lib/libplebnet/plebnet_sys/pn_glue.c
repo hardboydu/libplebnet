@@ -51,6 +51,8 @@
 #include <vm/vm_map.h>
 #include <vm/vm_extern.h>
 
+#include <time.h>
+
 int bootverbose;
 
 SYSCTL_NODE(_kern, OID_AUTO, features, CTLFLAG_RD, 0, "Kernel Features");
@@ -150,6 +152,13 @@ prison_check_ip6(struct ucred *cred, struct in6_addr *ia)
 	return (0);
 }
 
+int
+prison_equal_ip6(struct prison *pr1, struct prison *pr2)
+{
+
+	return (1);
+}
+
 /*
  * See if a prison has the specific flag set.
  */
@@ -177,6 +186,27 @@ prison_local_ip4(struct ucred *cred, struct in_addr *ia)
 
 int
 prison_remote_ip4(struct ucred *cred, struct in_addr *ia)
+{
+
+	return (0);
+}
+
+int
+prison_get_ip6(struct ucred *cred, struct in6_addr *ia)
+{
+
+	return (0);
+}
+
+int
+prison_local_ip6(struct ucred *cred, struct in6_addr *ia, int other)
+{
+
+	return (0);
+}
+
+int
+prison_remote_ip6(struct ucred *cred, struct in6_addr *ia)
 {
 
 	return (0);
@@ -705,6 +735,13 @@ cr_cansee(struct ucred *u1, struct ucred *u2)
 }
 
 int
+cr_canseesocket(struct ucred *cred, struct socket *so)
+{
+
+	return (0);
+}
+
+int
 cr_canseeinpcb(struct ucred *cred, struct inpcb *inp)
 {
 
@@ -847,3 +884,22 @@ knlist_init_mtx(struct knlist *knl, struct mtx *lock)
 	
 }
 
+void
+DELAY(int delay)
+{
+	struct timespec rqt;
+
+	if (delay < 1000)
+		return;
+	
+	rqt.tv_nsec = 1000*((unsigned long)delay);
+	rqt.tv_sec = 0;
+	nanosleep(&rqt, NULL);
+}
+
+void
+microtime(struct timeval *tv)
+{
+	printf("implement me!!!!");
+	abort();
+}

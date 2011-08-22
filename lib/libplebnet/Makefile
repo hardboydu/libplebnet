@@ -114,8 +114,10 @@ PN_LIBKERN_COMMON_OBJS =	\
 	bcd.o			\
 	strlcpy.o
 
+# v6 requires sha1
 PN_OTHER_COMMON_OBJS =		\
-	harvest.o		
+	harvest.o		\
+	sha1.o
 
 PN_SYS_COMMON_OBJS = 		\
 	pn_compat.o		\
@@ -194,6 +196,7 @@ SYSDIR=	${_dir}
 
 
 PREFIX= ${SYSDIR}
+.PATH: ${PREFIX}/crypto
 .PATH: ${PREFIX}/kern
 .PATH: ${PREFIX}/net
 .PATH: ${PREFIX}/netinet
