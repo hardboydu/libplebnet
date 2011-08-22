@@ -308,14 +308,14 @@ dispatch_write(struct thread *td, int fd, int size)
 {
 	int err, rc, osize;
 	size_t bytes_written;
-	struct write_call_msg wcm;
+	struct write_call_msg *wcm = NULL;
 
 	osize = err = 0;
-	if (read(fd, &wcm, size) < 0) {
-		err = errno;
-	} else {
-		bytes_written = write(wcm.wcm_fd, &wcm.wcm_data[0], 
-		    size - sizeof(wcm.wcm_fd));
+	if ((err = recv_client_msg(fd, (void **)&wcm, size)))
+		return (err);
+	else {
+		bytes_written = write(wcm->wcm_fd, &wcm->wcm_data[0], 
+		    size - sizeof(wcm->wcm_fd));
 		if (bytes_written < 0)
 			err = errno;
 		else
