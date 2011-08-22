@@ -15,4 +15,4 @@ fail()	{ log "$*"; exit 1; }
 rawecho() { echo -E "x$*" | sed 's/^x//'; }
 prefix()  { sed "s/^/$me: /"; }
 
-./ifconfig $2 $3 $4 $5 $6
+/sbin/ifconfig $2 $3 $4 $5 $6
