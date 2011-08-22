@@ -64,6 +64,10 @@
 static __inline int imin(int a, int b) { return (a < b ? a : b); }
 
 int _socket(int domain, int type, int protocol);
+int _setsockopt(int s, int level, int optname, const void *optval,
+    socklen_t optlen);
+int _getsockopt(int s, int level, int optname, void * restrict optval,
+    socklen_t * restrict optlen);
 int _ioctl(int fd, unsigned long request, ...);
 int _close(int fd);
 int _open(const char *path, int flags, ...);
@@ -98,7 +102,6 @@ int _getsockname(int s, struct sockaddr * restrict name,
 int _shutdown(int s, int how);
 int _pthread_create(pthread_t *thread, const pthread_attr_t *attr,
     void *(*start_routine)(void *), void *arg);
-
 int __sysctl(const int *name, u_int namelen, void *oldp, size_t *oldlenp,
     const void *newp, size_t newlen);
 
@@ -144,6 +147,46 @@ socket(int domain, int type, int protocol)
 			goto kern_fail;
 		rc = curthread->td_retval[0];
 	}
+
+	return (rc);
+kern_fail:
+	errno = rc;
+	return (-1);
+}
+
+int
+getsockopt(int s, int level, int optname, void * restrict optval,
+    socklen_t * restrict optlen)
+{
+	int rc;
+
+	if (pn_user_fdisused(s)) {
+		if ((rc = kern_getsockopt(curthread, s, level, optname, 
+			    optval, UIO_SYSSPACE, optlen)))
+			goto kern_fail;
+		rc = curthread->td_retval[0];
+	} else 
+		rc = _getsockopt(s, level, optname, optval, optlen);
+
+	return (rc);
+kern_fail:
+	errno = rc;
+	return (-1);
+}
+
+int
+setsockopt(int s, int level, int optname, const void *optval,
+    socklen_t optlen)
+{
+	int rc;
+
+	if (pn_user_fdisused(s)) {
+		if ((rc = kern_setsockopt(curthread, s, level, optname, 
+			    optval, UIO_SYSSPACE, optlen)))
+			goto kern_fail;
+		rc = curthread->td_retval[0];
+	} else 
+		rc = _setsockopt(s, level, optname, optval, optlen);
 
 	return (rc);
 kern_fail:
