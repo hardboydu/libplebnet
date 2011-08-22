@@ -846,6 +846,7 @@ malloc_uninit(void *data)
 	/* XXX */
 }
 
+#if 0
 void
 knote(struct knlist *list, long hint, int lockflags)
 {
@@ -883,6 +884,7 @@ knlist_init_mtx(struct knlist *knl, struct mtx *lock)
 {
 	
 }
+#endif
 
 void
 DELAY(int delay)

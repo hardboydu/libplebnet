@@ -4,6 +4,7 @@ LIB=	plebnet
 
 PN_KERN_COMMON_OBJS +=		\
 	kern_environment.o	\
+	kern_event.o		\
 	kern_fail.o		\
 	kern_khelp.o		\
 	kern_hhook.o		\

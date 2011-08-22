@@ -79,3 +79,27 @@ taskqueue_drain(struct taskqueue *queue, struct task *task)
 	panic("should be unreachable");
 }
 
+int
+taskqueue_start_threads(struct taskqueue **tqp, int count, int pri,
+			const char *name, ...)
+{
+
+	printf("taskqueue_start_threads unimplemented\n");
+	return (0);
+}
+
+void
+taskqueue_thread_enqueue(void *context)
+{
+
+	panic("should be unreachable");
+}
+
+struct taskqueue *
+taskqueue_create(const char *name, int mflags,
+		 taskqueue_enqueue_fn enqueue, void *context)
+{
+
+	printf("taskqueue_create unimplemented\n");
+	return (NULL);
+}
