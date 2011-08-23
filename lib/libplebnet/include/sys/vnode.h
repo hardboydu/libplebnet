@@ -26,5 +26,19 @@
 
 #ifndef	_SYS_VNODE_H_
 #define _SYS_VNODE_H_
+/*
+ * Vnode types.  VNON means no type.
+ */
+enum vtype	{ VNON, VREG, VDIR, VBLK, VCHR, VLNK, VSOCK, VFIFO, VBAD,
+		  VMARKER };
 
+struct vnode {
+	enum vtype v_type;
+};
+
+static void 
+bwillwrite(void) 
+{
+	;
+}
 #endif	/* _SYS_VNODE_H_ */
