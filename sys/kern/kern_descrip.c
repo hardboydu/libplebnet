@@ -109,7 +109,7 @@ static uma_zone_t file_zone;
 #define DUP_FIXED	0x1	/* Force fixed allocation */
 #define DUP_FCNTL	0x2	/* fcntl()-style errors */
 
-static int do_dup(struct thread *td, int flags, int old, int new,
+int do_dup(struct thread *td, int flags, int old, int new,
     register_t *retval);
 static int	fd_first_free(struct filedesc *, int, int);
 static int	fd_last_used(struct filedesc *, int, int);
@@ -763,7 +763,7 @@ readahead_vnlock_fail:
 /*
  * Common code for dup, dup2, fcntl(F_DUPFD) and fcntl(F_DUP2FD).
  */
-static int
+int
 do_dup(struct thread *td, int flags, int old, int new,
     register_t *retval)
 {
@@ -3791,4 +3791,40 @@ fildesc_drvinit(void *unused)
 }
 
 SYSINIT(fildescdev, SI_SUB_DRIVERS, SI_ORDER_MIDDLE, fildesc_drvinit, NULL);
-#endif
+#else
+
+int
+user_fdisused(int fd) 
+{
+	struct thread *td = curthread;
+
+	return (fd < td->td_proc->p_fd->fd_nfiles && 
+	    fdisused(td->td_proc->p_fd, fd) &&
+	    td->td_proc->p_fd->fd_ofiles[fd] != NULL);
+}
+
+int
+kernel_fdisused(int fd) 
+{
+	struct thread *td = curthread;
+	/* XXX really need a separate per proc bitmask to
+	 * track kernel allocated descriptors 
+	 */
+	return (fd < td->td_proc->p_fd->fd_nfiles && 
+	    fdisused(td->td_proc->p_fd, fd) &&
+	    td->td_proc->p_fd->fd_ofiles[fd] == NULL);
+}
+
+/*
+ * block out a range of descriptors to avoid overlap with
+ * the kernel's descriptor space
+ */
+void
+fdused_range(struct filedesc *fdp, int max)
+{
+	int i;
+
+	for (i = 0; i < max; i++)
+		fdused(fdp, i);
+}
+#endif /* PLEBNET */
