@@ -38,18 +38,9 @@
 #include <sys/resourcevar.h>
 #include <sys/sched.h>
 #include <sys/sysctl.h>
-#include <sys/socket.h>
 #include <sys/uio.h>
 
 #include <pthread.h>
-
-struct socket_args  {
-	int	domain;
-	int	type;
-	int	protocol;
-};
-
-int socket(struct thread *td, struct socket_args *uap);
 
 /*
  * General routine to allocate a hash table with control of memory flags.
