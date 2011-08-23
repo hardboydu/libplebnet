@@ -26,13 +26,17 @@
 
 #undef _KERNEL
 #define _WANT_UCRED
+#include <sys/param.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <sys/refcount.h>
 #include <sys/ucred.h>
+#include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/proc.h>
+#include <sys/stdint.h>
+#include <sys/uio.h>
 
 #include <signal.h>
 #include <unistd.h>
@@ -42,9 +46,25 @@
 struct malloc_type;
 __thread struct thread *pcurthread;
 
+LIST_HEAD(proclist, proc);
+TAILQ_HEAD(prisonlist, prison);
+
+struct cdev;
+struct vnode *rootvnode;
 extern struct	thread thread0;
 extern struct	proc	proc0;
+struct proclist allproc;
+struct sx allproc_lock;
+struct	sx allprison_lock;
+struct	prisonlist allprison;
+int async_io_version;
+
 #define	M_ZERO		0x0100		/* bzero the allocation */
+
+int vttoif_tab[10] = {
+	0, S_IFREG, S_IFDIR, S_IFBLK, S_IFCHR, S_IFLNK,
+	S_IFSOCK, S_IFIFO, S_IFMT, S_IFMT
+};
 
 int
 _pthread_create(pthread_t *thread, const pthread_attr_t *attr,
@@ -180,4 +200,54 @@ tdsignal(struct thread *td, int sig)
 {
 
 	kill(getpid(), sig);
+}
+
+dev_t
+tty_udev(struct tty *tp)
+{
+
+	return (NODEV);
+}
+
+struct pgrp *
+pgfind(pid_t pgid)
+{
+
+	return (NULL);
+}
+
+int
+p_candebug(struct thread *td, struct proc *p)
+{
+	
+	return (0);
+}
+
+const char *
+devtoname(struct cdev *dev)
+{
+
+	return (NULL);
+}
+
+uint64_t
+racct_get_limit(struct proc *p, int resource)
+{
+
+	return (UINT64_MAX);
+}
+
+
+int	
+kern_open(struct thread *td, char *path, enum uio_seg pathseg,
+	    int flags, int mode)
+{
+	
+	return (-1);
+}
+
+void
+devfs_fpdrop(struct file *fp)
+{
+	;
 }

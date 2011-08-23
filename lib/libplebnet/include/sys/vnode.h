@@ -32,13 +32,99 @@
 enum vtype	{ VNON, VREG, VDIR, VBLK, VCHR, VLNK, VSOCK, VFIFO, VBAD,
 		  VMARKER };
 
+struct nstat;
 struct vnode {
 	enum vtype v_type;
+	struct	mount *v_mount;			/* u ptr to vfs we are in */
+	u_long	v_vflag;			/* v vnode flags */
 };
 
-static void 
+static __inline void 
 bwillwrite(void) 
 {
 	;
 }
+#define VOP_ADVLOCK(a, b, c, d, e) (0)
+#define VOP_UNLOCK(a, b)
+static __inline int
+vn_lock(struct vnode *vp, int flags)
+{
+
+	return (0);
+}
+
+static __inline int
+vrefcnt(struct vnode *vp)
+{
+	return (0);
+}
+
+#define	VREF(vp)	vref(vp)
+static __inline void
+vref(struct vnode *vp)
+{
+	;
+}
+
+static __inline void
+vrele(struct vnode *vp)
+{
+	;
+}
+
+extern struct vnode *rootvnode;
+extern	int async_io_version;		/* 0 or POSIX version of AIO i'face */
+
+static __inline int
+vn_fullpath(struct thread *td, struct vnode *vp, char **retbuf,
+         char **freebuf)
+{
+	return (0);
+}
+
+static __inline void	
+cvtnstat(struct stat *sb, struct nstat *nsb)
+{
+	;
+}
+
+
+struct vattr {
+	enum vtype	va_type;	/* vnode type (for create) */
+	u_short		va_mode;	/* files access mode and type */
+	dev_t		va_fsid;	/* filesystem id */
+	dev_t		va_rdev;	/* device the special file represents */
+	u_quad_t	va_size;	/* file size in bytes */
+	long		va_fileid;	/* file id */
+};
+
+#define	VNOVAL	(-1)
+
+/*
+ * Convert between vnode types and inode formats (since POSIX.1
+ * defines mode word of stat structure in terms of inode formats).
+ */
+extern enum vtype	iftovt_tab[];
+extern int		vttoif_tab[];
+#define	IFTOVT(mode)	(iftovt_tab[((mode) & S_IFMT) >> 12])
+#define	VTTOIF(indx)	(vttoif_tab[(int)(indx)])
+#define	MAKEIMODE(indx, mode)	(int)(VTTOIF(indx) | (mode))
+
+#define	VV_PROCDEP	0x0100	/* vnode is process dependent */
+
+static __inline int
+VOP_PATHCONF(struct vnode *vp, int name, register_t *retval)
+{
+
+	return (0);
+}
+
+static __inline int
+VOP_GETATTR(struct vnode *vp, struct vattr *vap, struct ucred *cred)
+{
+
+	return (0);
+}
+
+
 #endif	/* _SYS_VNODE_H_ */

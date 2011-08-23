@@ -235,7 +235,7 @@ syscall_server(void *arg)
 	td->td_ucred = crhold(server_proc.p_ucred);
 	td->td_proc->p_fd = fdinit(NULL);
 	td->td_proc->p_fdtol = NULL;
-	pn_fdused_range(td->td_proc->p_fd, 32);
+	fdused_range(td->td_proc->p_fd, 32);
 	len = sizeof(addr);
 	while (1) {
 		fd = accept(target_fd, (struct sockaddr *)&addr, &len);

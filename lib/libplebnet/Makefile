@@ -3,6 +3,7 @@
 LIB=	plebnet
 
 PN_KERN_COMMON_OBJS +=		\
+	kern_descrip.o		\
 	kern_environment.o	\
 	kern_event.o		\
 	kern_fail.o		\
@@ -21,6 +22,7 @@ PN_KERN_COMMON_OBJS +=		\
 	subr_param.o		\
 	subr_pcpu.o		\
 	subr_sbuf.o		\
+	sys_capability.o	\
 	sys_generic.o		\
 	sys_socket.o		\
 	uipc_accf.o		\
@@ -129,7 +131,6 @@ PN_SYS_COMMON_OBJS = 		\
 	pn_init.o		\
 	pn_init_main.o		\
 	pn_kern_condvar.o	\
-	pn_kern_descrip.o	\
 	pn_kern_intr.o		\
 	pn_kern_linker.o	\
 	pn_kern_subr.o		\

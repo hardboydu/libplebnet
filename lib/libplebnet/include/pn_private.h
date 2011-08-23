@@ -33,9 +33,9 @@ struct filedesc;
 int             pn_mutex_lock(pthread_mutex_t *);
 int             pn_mutex_unlock(pthread_mutex_t *);
 extern void	*pn_malloc(int);
-void		pn_fdused_range(struct filedesc *fdp, int max);
-int             pn_user_fdisused(int fd);
-int             pn_kernel_fdisused(int fd);
+void		fdused_range(struct filedesc *fdp, int max);
+int             user_fdisused(int fd);
+int             kernel_fdisused(int fd);
 void            start_server_syscalls(void);
 int		user_sysctl(const int *name, u_int namelen, void *oldp, size_t *oldlenp,
 			    const void *newp, size_t newlen);

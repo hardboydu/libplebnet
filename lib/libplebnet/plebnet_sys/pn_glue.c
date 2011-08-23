@@ -76,6 +76,8 @@ SYSCTL_NODE(, CTL_DEBUG,  debug,  CTLFLAG_RW, 0,
 SYSCTL_NODE(, OID_AUTO, security, CTLFLAG_RW, 0, 
      	"Security");
 
+SYSCTL_NODE(_kern, KERN_PROC, proc, CTLFLAG_RD,  0, "Process table");
+
 MALLOC_DEFINE(M_DEVBUF, "devbuf", "device driver memory");
 MALLOC_DEFINE(M_TEMP, "temp", "misc temporary data buffers");
 static MALLOC_DEFINE(M_CRED, "cred", "credentials");
