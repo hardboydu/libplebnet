@@ -26,7 +26,6 @@
 
 #include <sys/cdefs.h>
 #include <sys/param.h>
-#include <stdlib.h>
 #include <sys/pcpu.h>
 #include <sys/proc.h>
 #include <sys/lock.h>
@@ -34,6 +33,9 @@
 #include <string.h>
 
 #include <pn_private.h>
+
+#include <vm/uma.h>
+#include <vm/uma_int.h>
 
 extern void mi_startup(void);
 extern void uma_startup(void *, int);
@@ -59,14 +61,16 @@ pn_init(void)
 
         /* vm_init bits */
         ncallout = 64;
-        pcpup = malloc(sizeof(struct pcpu));
-	bzero(pcpup, sizeof(struct pcpu));
+        pcpup = malloc(sizeof(struct pcpu), M_DEVBUF, M_ZERO);
         pcpu_init(pcpup, 0, sizeof(struct pcpu));
-        kern_timeout_callwheel_alloc(malloc(512*1024));
+        kern_timeout_callwheel_alloc(malloc(512*1024, M_DEVBUF, M_ZERO));
         kern_timeout_callwheel_init();
 	pn_init_thread0();
-        uma_startup(malloc(40*4096), 40);
+        uma_startup(malloc(40*4096, M_DEVBUF, M_ZERO), 40);
 	uma_startup2();
+	/* XXX fix this magic 64 to something a bit more dynamic & sensible */
+	uma_page_slab_hash = malloc(sizeof(struct uma_page)*64, M_DEVBUF, M_ZERO);
+	uma_page_mask = 64-1;
         mi_startup();
 	sx_init(&proctree_lock, "proctree");
 	td = curthread;

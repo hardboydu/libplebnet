@@ -120,7 +120,8 @@ PN_LIBKERN_COMMON_OBJS =	\
 PN_OTHER_COMMON_OBJS =		\
 	harvest.o		\
 	sha1.o			\
-	in_cksum.o
+	in_cksum.o		\
+	uma_core.o
 
 PN_SYS_COMMON_OBJS = 		\
 	pn_compat.o		\
@@ -140,7 +141,6 @@ PN_SYS_COMMON_OBJS = 		\
 	pn_subr_prf.o		\
 	pn_subr_taskqueue.o	\
 	pn_syscall_wrapper.o	\
-	pn_uma_core.o		\
 	pn_user_sysctl.o	\
 	pn_veth.o
 
