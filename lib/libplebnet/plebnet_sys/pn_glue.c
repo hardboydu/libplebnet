@@ -43,6 +43,7 @@
 #include <sys/priv.h>
 #include <sys/time.h>
 #include <sys/ucred.h>
+#include <sys/uio.h>
 
 #include <vm/vm.h>
 #include <vm/vm_param.h>
@@ -538,6 +539,23 @@ copyinstr(const void *uaddr, void *kaddr, size_t len, size_t *done)
 	return (0);
 }
 
+int
+copyiniov(struct iovec *iovp, u_int iovcnt, struct iovec **iov, int error)
+{
+	u_int iovlen;
+
+	*iov = NULL;
+	if (iovcnt > UIO_MAXIOV)
+		return (error);
+	iovlen = iovcnt * sizeof (struct iovec);
+	*iov = malloc(iovlen, M_IOV, M_WAITOK);
+	error = copyin(iovp, *iov, iovlen);
+	if (error) {
+		free(*iov, M_IOV);
+		*iov = NULL;
+	}
+	return (error);
+}
 
 int
 subyte(void *base, int byte)
@@ -546,8 +564,6 @@ subyte(void *base, int byte)
 	*(char *)base = (uint8_t)byte;
 	return (0);
 }
-
-
 
 /*
  * Change the total socket buffer size a user has used.
