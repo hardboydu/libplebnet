@@ -9,7 +9,7 @@ MIASM =  \
 	sys_read.o \
 	sys_write.o \
 	open.o \
-	close.o \
+	sys_close.o \
 	wait4.o \
 	link.o \
 	unlink.o \
@@ -39,7 +39,7 @@ MIASM =  \
 	sync.o \
 	kill.o \
 	getppid.o \
-	dup.o \
+	sys_dup.o \
 	pipe.o \
 	getegid.o \
 	profil.o \
@@ -74,8 +74,8 @@ MIASM =  \
 	swapon.o \
 	getitimer.o \
 	getdtablesize.o \
-	dup2.o \
-	fcntl.o \
+	sys_dup2.o \
+	sys_fcntl.o \
 	sys_select.o \
 	fsync.o \
 	setpriority.o \
@@ -374,7 +374,7 @@ MIASM =  \
 	jail_get.o \
 	jail_set.o \
 	jail_remove.o \
-	closefrom.o \
+	sys_closefrom.o \
 	__semctl.o \
 	msgctl.o \
 	shmctl.o \

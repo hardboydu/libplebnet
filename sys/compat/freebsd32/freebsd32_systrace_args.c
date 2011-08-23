@@ -58,9 +58,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 3;
 		break;
 	}
-	/* close */
+	/* sys_close */
 	case 6: {
-		struct close_args *p = params;
+		struct sys_close_args *p = params;
 		iarg[0] = p->fd; /* int */
 		*n_args = 1;
 		break;
@@ -286,9 +286,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 0;
 		break;
 	}
-	/* dup */
+	/* sys_dup */
 	case 41: {
-		struct dup_args *p = params;
+		struct sys_dup_args *p = params;
 		uarg[0] = p->fd; /* u_int */
 		*n_args = 1;
 		break;
@@ -549,17 +549,17 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 0;
 		break;
 	}
-	/* dup2 */
+	/* sys_dup2 */
 	case 90: {
-		struct dup2_args *p = params;
+		struct sys_dup2_args *p = params;
 		uarg[0] = p->from; /* u_int */
 		uarg[1] = p->to; /* u_int */
 		*n_args = 2;
 		break;
 	}
-	/* fcntl */
+	/* sys_fcntl */
 	case 92: {
-		struct fcntl_args *p = params;
+		struct sys_fcntl_args *p = params;
 		iarg[0] = p->fd; /* int */
 		iarg[1] = p->cmd; /* int */
 		iarg[2] = p->arg; /* long */
@@ -2875,9 +2875,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 1;
 		break;
 	}
-	/* closefrom */
+	/* sys_closefrom */
 	case 509: {
-		struct closefrom_args *p = params;
+		struct sys_closefrom_args *p = params;
 		iarg[0] = p->lowfd; /* int */
 		*n_args = 1;
 		break;
@@ -3111,7 +3111,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* close */
+	/* sys_close */
 	case 6:
 		switch(ndx) {
 		case 0:
@@ -3471,7 +3471,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 	/* getppid */
 	case 39:
 		break;
-	/* dup */
+	/* sys_dup */
 	case 41:
 		switch(ndx) {
 		case 0:
@@ -3869,7 +3869,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 	/* getdtablesize */
 	case 89:
 		break;
-	/* dup2 */
+	/* sys_dup2 */
 	case 90:
 		switch(ndx) {
 		case 0:
@@ -3882,7 +3882,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* fcntl */
+	/* sys_fcntl */
 	case 92:
 		switch(ndx) {
 		case 0:
@@ -7815,7 +7815,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* closefrom */
+	/* sys_closefrom */
 	case 509:
 		switch(ndx) {
 		case 0:

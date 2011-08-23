@@ -12,7 +12,7 @@
 #define	FREEBSD32_SYS_sys_read	3
 #define	FREEBSD32_SYS_sys_write	4
 #define	FREEBSD32_SYS_open	5
-#define	FREEBSD32_SYS_close	6
+#define	FREEBSD32_SYS_sys_close	6
 #define	FREEBSD32_SYS_freebsd32_wait4	7
 				/* 8 is obsolete old creat */
 #define	FREEBSD32_SYS_link	9
@@ -47,7 +47,7 @@
 				/* 38 is old freebsd32_stat */
 #define	FREEBSD32_SYS_getppid	39
 				/* 40 is old freebsd32_lstat */
-#define	FREEBSD32_SYS_dup	41
+#define	FREEBSD32_SYS_sys_dup	41
 #define	FREEBSD32_SYS_pipe	42
 #define	FREEBSD32_SYS_getegid	43
 #define	FREEBSD32_SYS_profil	44
@@ -96,8 +96,8 @@
 				/* 87 is obsolete ogethostname */
 				/* 88 is obsolete osethostname */
 #define	FREEBSD32_SYS_getdtablesize	89
-#define	FREEBSD32_SYS_dup2	90
-#define	FREEBSD32_SYS_fcntl	92
+#define	FREEBSD32_SYS_sys_dup2	90
+#define	FREEBSD32_SYS_sys_fcntl	92
 #define	FREEBSD32_SYS_freebsd32_select	93
 #define	FREEBSD32_SYS_fsync	95
 #define	FREEBSD32_SYS_setpriority	96
@@ -406,7 +406,7 @@
 #define	FREEBSD32_SYS_freebsd32_jail_get	506
 #define	FREEBSD32_SYS_freebsd32_jail_set	507
 #define	FREEBSD32_SYS_jail_remove	508
-#define	FREEBSD32_SYS_closefrom	509
+#define	FREEBSD32_SYS_sys_closefrom	509
 #define	FREEBSD32_SYS_freebsd32_semctl	510
 #define	FREEBSD32_SYS_freebsd32_msgctl	511
 #define	FREEBSD32_SYS_freebsd32_shmctl	512

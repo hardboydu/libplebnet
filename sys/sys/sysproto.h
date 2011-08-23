@@ -56,7 +56,7 @@ struct open_args {
 	char flags_l_[PADL_(int)]; int flags; char flags_r_[PADR_(int)];
 	char mode_l_[PADL_(int)]; int mode; char mode_r_[PADR_(int)];
 };
-struct close_args {
+struct sys_close_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 };
 struct wait_args {
@@ -178,7 +178,7 @@ struct kill_args {
 struct getppid_args {
 	register_t dummy;
 };
-struct dup_args {
+struct sys_dup_args {
 	char fd_l_[PADL_(u_int)]; u_int fd; char fd_r_[PADR_(u_int)];
 };
 struct pipe_args {
@@ -322,11 +322,11 @@ struct getitimer_args {
 struct getdtablesize_args {
 	register_t dummy;
 };
-struct dup2_args {
+struct sys_dup2_args {
 	char from_l_[PADL_(u_int)]; u_int from; char from_r_[PADR_(u_int)];
 	char to_l_[PADL_(u_int)]; u_int to; char to_r_[PADR_(u_int)];
 };
-struct fcntl_args {
+struct sys_fcntl_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char cmd_l_[PADL_(int)]; int cmd; char cmd_r_[PADR_(int)];
 	char arg_l_[PADL_(long)]; long arg; char arg_r_[PADR_(long)];
@@ -1634,7 +1634,7 @@ struct jail_set_args {
 struct jail_remove_args {
 	char jid_l_[PADL_(int)]; int jid; char jid_r_[PADR_(int)];
 };
-struct closefrom_args {
+struct sys_closefrom_args {
 	char lowfd_l_[PADL_(int)]; int lowfd; char lowfd_r_[PADR_(int)];
 };
 struct __semctl_args {
@@ -1727,7 +1727,7 @@ int	fork(struct thread *, struct fork_args *);
 int	sys_read(struct thread *, struct sys_read_args *);
 int	sys_write(struct thread *, struct sys_write_args *);
 int	open(struct thread *, struct open_args *);
-int	close(struct thread *, struct close_args *);
+int	sys_close(struct thread *, struct sys_close_args *);
 int	wait4(struct thread *, struct wait_args *);
 int	link(struct thread *, struct link_args *);
 int	unlink(struct thread *, struct unlink_args *);
@@ -1756,7 +1756,7 @@ int	fchflags(struct thread *, struct fchflags_args *);
 int	sync(struct thread *, struct sync_args *);
 int	kill(struct thread *, struct kill_args *);
 int	getppid(struct thread *, struct getppid_args *);
-int	dup(struct thread *, struct dup_args *);
+int	sys_dup(struct thread *, struct sys_dup_args *);
 int	pipe(struct thread *, struct pipe_args *);
 int	getegid(struct thread *, struct getegid_args *);
 int	profil(struct thread *, struct profil_args *);
@@ -1791,8 +1791,8 @@ int	setitimer(struct thread *, struct setitimer_args *);
 int	swapon(struct thread *, struct swapon_args *);
 int	getitimer(struct thread *, struct getitimer_args *);
 int	getdtablesize(struct thread *, struct getdtablesize_args *);
-int	dup2(struct thread *, struct dup2_args *);
-int	fcntl(struct thread *, struct fcntl_args *);
+int	sys_dup2(struct thread *, struct sys_dup2_args *);
+int	sys_fcntl(struct thread *, struct sys_fcntl_args *);
 int	sys_select(struct thread *, struct sys_select_args *);
 int	fsync(struct thread *, struct fsync_args *);
 int	setpriority(struct thread *, struct setpriority_args *);
@@ -2076,7 +2076,7 @@ int	gssd_syscall(struct thread *, struct gssd_syscall_args *);
 int	jail_get(struct thread *, struct jail_get_args *);
 int	jail_set(struct thread *, struct jail_set_args *);
 int	jail_remove(struct thread *, struct jail_remove_args *);
-int	closefrom(struct thread *, struct closefrom_args *);
+int	sys_closefrom(struct thread *, struct sys_closefrom_args *);
 int	__semctl(struct thread *, struct __semctl_args *);
 int	msgctl(struct thread *, struct msgctl_args *);
 int	shmctl(struct thread *, struct shmctl_args *);
@@ -2364,7 +2364,7 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_sys_read	AUE_NULL
 #define	SYS_AUE_sys_write	AUE_NULL
 #define	SYS_AUE_open	AUE_OPEN_RWTC
-#define	SYS_AUE_close	AUE_CLOSE
+#define	SYS_AUE_sys_close	AUE_CLOSE
 #define	SYS_AUE_wait4	AUE_WAIT4
 #define	SYS_AUE_ocreat	AUE_CREAT
 #define	SYS_AUE_link	AUE_LINK
@@ -2398,7 +2398,7 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_ostat	AUE_STAT
 #define	SYS_AUE_getppid	AUE_GETPPID
 #define	SYS_AUE_olstat	AUE_LSTAT
-#define	SYS_AUE_dup	AUE_DUP
+#define	SYS_AUE_sys_dup	AUE_DUP
 #define	SYS_AUE_pipe	AUE_PIPE
 #define	SYS_AUE_getegid	AUE_GETEGID
 #define	SYS_AUE_profil	AUE_PROFILE
@@ -2443,8 +2443,8 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_ogethostname	AUE_SYSCTL
 #define	SYS_AUE_osethostname	AUE_SYSCTL
 #define	SYS_AUE_getdtablesize	AUE_GETDTABLESIZE
-#define	SYS_AUE_dup2	AUE_DUP2
-#define	SYS_AUE_fcntl	AUE_FCNTL
+#define	SYS_AUE_sys_dup2	AUE_DUP2
+#define	SYS_AUE_sys_fcntl	AUE_FCNTL
 #define	SYS_AUE_sys_select	AUE_SELECT
 #define	SYS_AUE_fsync	AUE_FSYNC
 #define	SYS_AUE_setpriority	AUE_SETPRIORITY
@@ -2763,7 +2763,7 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_jail_get	AUE_NULL
 #define	SYS_AUE_jail_set	AUE_NULL
 #define	SYS_AUE_jail_remove	AUE_NULL
-#define	SYS_AUE_closefrom	AUE_CLOSEFROM
+#define	SYS_AUE_sys_closefrom	AUE_CLOSEFROM
 #define	SYS_AUE___semctl	AUE_SEMCTL
 #define	SYS_AUE_msgctl	AUE_MSGCTL
 #define	SYS_AUE_shmctl	AUE_SHMCTL

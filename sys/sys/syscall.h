@@ -12,7 +12,7 @@
 #define	SYS_sys_read	3
 #define	SYS_sys_write	4
 #define	SYS_open	5
-#define	SYS_close	6
+#define	SYS_sys_close	6
 #define	SYS_wait4	7
 				/* 8 is old creat */
 #define	SYS_link	9
@@ -47,7 +47,7 @@
 				/* 38 is old stat */
 #define	SYS_getppid	39
 				/* 40 is old lstat */
-#define	SYS_dup	41
+#define	SYS_sys_dup	41
 #define	SYS_pipe	42
 #define	SYS_getegid	43
 #define	SYS_profil	44
@@ -96,8 +96,8 @@
 				/* 87 is old gethostname */
 				/* 88 is old sethostname */
 #define	SYS_getdtablesize	89
-#define	SYS_dup2	90
-#define	SYS_fcntl	92
+#define	SYS_sys_dup2	90
+#define	SYS_sys_fcntl	92
 #define	SYS_sys_select	93
 #define	SYS_fsync	95
 #define	SYS_setpriority	96
@@ -425,7 +425,7 @@
 #define	SYS_jail_get	506
 #define	SYS_jail_set	507
 #define	SYS_jail_remove	508
-#define	SYS_closefrom	509
+#define	SYS_sys_closefrom	509
 #define	SYS___semctl	510
 #define	SYS_msgctl	511
 #define	SYS_shmctl	512

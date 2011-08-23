@@ -69,7 +69,7 @@
 ; XXX should be		{ int open(const char *path, int flags, ...); }
 ; but we're not ready for `const' or varargs.
 ; XXX man page says `mode_t mode'.
-6	AUE_CLOSE	STD	{ int close(int fd); }
+6	AUE_CLOSE	STD	{ int sys_close(int fd); }
 7	AUE_WAIT4	STD	{ int wait4(int pid, int *status, \
 				    int options, struct rusage *rusage); } \
 				    wait4 wait_args int
@@ -123,7 +123,7 @@
 38	AUE_STAT	COMPAT	{ int stat(char *path, struct ostat *ub); }
 39	AUE_GETPPID	STD	{ pid_t getppid(void); }
 40	AUE_LSTAT	COMPAT	{ int lstat(char *path, struct ostat *ub); }
-41	AUE_DUP		STD	{ int dup(u_int fd); }
+41	AUE_DUP		STD	{ int sys_dup(u_int fd); }
 42	AUE_PIPE	STD	{ int pipe(void); }
 43	AUE_GETEGID	STD	{ gid_t getegid(void); }
 44	AUE_PROFILE	STD	{ int profil(caddr_t samples, size_t size, \
@@ -202,9 +202,9 @@
 				    u_int len); } sethostname \
 				    sethostname_args int
 89	AUE_GETDTABLESIZE	STD	{ int getdtablesize(void); }
-90	AUE_DUP2	STD	{ int dup2(u_int from, u_int to); }
+90	AUE_DUP2	STD	{ int sys_dup2(u_int from, u_int to); }
 91	AUE_NULL	UNIMPL	getdopt
-92	AUE_FCNTL	STD	{ int fcntl(int fd, int cmd, long arg); }
+92	AUE_FCNTL	STD	{ int sys_fcntl(int fd, int cmd, long arg); }
 ; XXX should be	{ int fcntl(int fd, int cmd, ...); }
 ; but we're not ready for varargs.
 93	AUE_SELECT	STD	{ int sys_select(int nd, fd_set *in, fd_set *ou, \
@@ -906,7 +906,7 @@
 507	AUE_NULL	STD	{ int jail_set(struct iovec *iovp, \
 				    unsigned int iovcnt, int flags); }
 508	AUE_NULL	STD	{ int jail_remove(int jid); }
-509	AUE_CLOSEFROM	STD	{ int closefrom(int lowfd); }
+509	AUE_CLOSEFROM	STD	{ int sys_closefrom(int lowfd); }
 510	AUE_SEMCTL	NOSTD	{ int __semctl(int semid, int semnum, \
 				    int cmd, union semun *arg); }
 511	AUE_MSGCTL	NOSTD	{ int msgctl(int msqid, int cmd, \

@@ -310,14 +310,14 @@ getdtablesize(struct thread *td, struct getdtablesize_args *uap)
  * descriptors from a shared descriptor table (via rfork).
  */
 #ifndef _SYS_SYSPROTO_H_
-struct dup2_args {
+struct sys_dup2_args {
 	u_int	from;
 	u_int	to;
 };
 #endif
 /* ARGSUSED */
 int
-dup2(struct thread *td, struct dup2_args *uap)
+sys_dup2(struct thread *td, struct sys_dup2_args *uap)
 {
 
 	return (do_dup(td, DUP_FIXED, (int)uap->from, (int)uap->to,
@@ -328,13 +328,13 @@ dup2(struct thread *td, struct dup2_args *uap)
  * Duplicate a file descriptor.
  */
 #ifndef _SYS_SYSPROTO_H_
-struct dup_args {
+struct sys_dup_args {
 	u_int	fd;
 };
 #endif
 /* ARGSUSED */
 int
-dup(struct thread *td, struct dup_args *uap)
+sys_dup(struct thread *td, struct sys_dup_args *uap)
 {
 
 	return (do_dup(td, 0, (int)uap->fd, 0, td->td_retval));
@@ -344,7 +344,7 @@ dup(struct thread *td, struct dup_args *uap)
  * The file control system call.
  */
 #ifndef _SYS_SYSPROTO_H_
-struct fcntl_args {
+struct sys_fcntl_args {
 	int	fd;
 	int	cmd;
 	long	arg;
@@ -352,7 +352,7 @@ struct fcntl_args {
 #endif
 /* ARGSUSED */
 int
-fcntl(struct thread *td, struct fcntl_args *uap)
+sys_fcntl(struct thread *td, struct sys_fcntl_args *uap)
 {
 	struct flock fl;
 	struct oflock ofl;
@@ -1140,15 +1140,15 @@ fgetown(sigiop)
  * Close a file descriptor.
  */
 #ifndef _SYS_SYSPROTO_H_
-struct close_args {
+struct sys_close_args {
 	int     fd;
 };
 #endif
 /* ARGSUSED */
 int
-close(td, uap)
+sys_close(td, uap)
 	struct thread *td;
-	struct close_args *uap;
+	struct sys_close_args *uap;
 {
 
 	return (kern_close(td, uap->fd));
@@ -1223,13 +1223,13 @@ kern_close(td, fd)
  * Close open file descriptors.
  */
 #ifndef _SYS_SYSPROTO_H_
-struct closefrom_args {
+struct sys_closefrom_args {
 	int	lowfd;
 };
 #endif
 /* ARGSUSED */
 int
-closefrom(struct thread *td, struct closefrom_args *uap)
+sys_closefrom(struct thread *td, struct sys_closefrom_args *uap)
 {
 	struct filedesc *fdp;
 	int fd;
@@ -3737,6 +3737,7 @@ struct fileops badfileops = {
 };
 
 
+#ifndef PLEBNET
 /*-------------------------------------------------------------------*/
 
 /*
@@ -3790,3 +3791,4 @@ fildesc_drvinit(void *unused)
 }
 
 SYSINIT(fildescdev, SI_SUB_DRIVERS, SI_ORDER_MIDDLE, fildesc_drvinit, NULL);
+#endif
