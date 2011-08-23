@@ -128,16 +128,16 @@ static uma_zone_t selfd_zone;
 static struct mtx_pool *mtxpool_select;
 
 #ifndef _SYS_SYSPROTO_H_
-struct read_args {
+struct sys_read_args {
 	int	fd;
 	void	*buf;
 	size_t	nbyte;
 };
 #endif
 int
-read(td, uap)
+sys_read(td, uap)
 	struct thread *td;
-	struct read_args *uap;
+	struct sys_read_args *uap;
 {
 	struct uio auio;
 	struct iovec aiov;
@@ -159,7 +159,7 @@ read(td, uap)
  * Positioned read system call
  */
 #ifndef _SYS_SYSPROTO_H_
-struct pread_args {
+struct sys_pread_args {
 	int	fd;
 	void	*buf;
 	size_t	nbyte;
@@ -168,9 +168,9 @@ struct pread_args {
 };
 #endif
 int
-pread(td, uap)
+sys_pread(td, uap)
 	struct thread *td;
-	struct pread_args *uap;
+	struct sys_pread_args *uap;
 {
 	struct uio auio;
 	struct iovec aiov;
@@ -193,27 +193,27 @@ freebsd6_pread(td, uap)
 	struct thread *td;
 	struct freebsd6_pread_args *uap;
 {
-	struct pread_args oargs;
+	struct sys_pread_args oargs;
 
 	oargs.fd = uap->fd;
 	oargs.buf = uap->buf;
 	oargs.nbyte = uap->nbyte;
 	oargs.offset = uap->offset;
-	return (pread(td, &oargs));
+	return (sys_pread(td, &oargs));
 }
 
 /*
  * Scatter read system call.
  */
 #ifndef _SYS_SYSPROTO_H_
-struct readv_args {
+struct sys_readv_args {
 	int	fd;
 	struct	iovec *iovp;
 	u_int	iovcnt;
 };
 #endif
 int
-readv(struct thread *td, struct readv_args *uap)
+sys_readv(struct thread *td, struct sys_readv_args *uap)
 {
 	struct uio *auio;
 	int error;
@@ -244,7 +244,7 @@ kern_readv(struct thread *td, int fd, struct uio *auio)
  * Scatter positioned read system call.
  */
 #ifndef _SYS_SYSPROTO_H_
-struct preadv_args {
+struct sys_preadv_args {
 	int	fd;
 	struct	iovec *iovp;
 	u_int	iovcnt;
@@ -252,7 +252,7 @@ struct preadv_args {
 };
 #endif
 int
-preadv(struct thread *td, struct preadv_args *uap)
+sys_preadv(struct thread *td, struct sys_preadv_args *uap)
 {
 	struct uio *auio;
 	int error;
@@ -337,16 +337,16 @@ dofileread(td, fd, fp, auio, offset, flags)
 }
 
 #ifndef _SYS_SYSPROTO_H_
-struct write_args {
+struct sys_write_args {
 	int	fd;
 	const void *buf;
 	size_t	nbyte;
 };
 #endif
 int
-write(td, uap)
+sys_write(td, uap)
 	struct thread *td;
-	struct write_args *uap;
+	struct sys_write_args *uap;
 {
 	struct uio auio;
 	struct iovec aiov;
@@ -368,7 +368,7 @@ write(td, uap)
  * Positioned write system call.
  */
 #ifndef _SYS_SYSPROTO_H_
-struct pwrite_args {
+struct sys_pwrite_args {
 	int	fd;
 	const void *buf;
 	size_t	nbyte;
@@ -377,9 +377,9 @@ struct pwrite_args {
 };
 #endif
 int
-pwrite(td, uap)
+sys_pwrite(td, uap)
 	struct thread *td;
-	struct pwrite_args *uap;
+	struct sys_pwrite_args *uap;
 {
 	struct uio auio;
 	struct iovec aiov;
@@ -402,27 +402,27 @@ freebsd6_pwrite(td, uap)
 	struct thread *td;
 	struct freebsd6_pwrite_args *uap;
 {
-	struct pwrite_args oargs;
+	struct sys_pwrite_args oargs;
 
 	oargs.fd = uap->fd;
 	oargs.buf = uap->buf;
 	oargs.nbyte = uap->nbyte;
 	oargs.offset = uap->offset;
-	return (pwrite(td, &oargs));
+	return (sys_pwrite(td, &oargs));
 }
 
 /*
  * Gather write system call.
  */
 #ifndef _SYS_SYSPROTO_H_
-struct writev_args {
+struct sys_writev_args {
 	int	fd;
 	struct	iovec *iovp;
 	u_int	iovcnt;
 };
 #endif
 int
-writev(struct thread *td, struct writev_args *uap)
+sys_writev(struct thread *td, struct sys_writev_args *uap)
 {
 	struct uio *auio;
 	int error;
@@ -453,7 +453,7 @@ kern_writev(struct thread *td, int fd, struct uio *auio)
  * Gather positioned write system call.
  */
 #ifndef _SYS_SYSPROTO_H_
-struct pwritev_args {
+struct sys_pwritev_args {
 	int	fd;
 	struct	iovec *iovp;
 	u_int	iovcnt;
@@ -461,7 +461,7 @@ struct pwritev_args {
 };
 #endif
 int
-pwritev(struct thread *td, struct pwritev_args *uap)
+sys_pwritev(struct thread *td, struct sys_pwritev_args *uap)
 {
 	struct uio *auio;
 	int error;
@@ -613,7 +613,7 @@ oftruncate(td, uap)
 #endif /* COMPAT_43 */
 
 #ifndef _SYS_SYSPROTO_H_
-struct ioctl_args {
+struct sys_ioctl_args {
 	int	fd;
 	u_long	com;
 	caddr_t	data;
@@ -621,7 +621,7 @@ struct ioctl_args {
 #endif
 /* ARGSUSED */
 int
-ioctl(struct thread *td, struct ioctl_args *uap)
+sys_ioctl(struct thread *td, struct sys_ioctl_args *uap)
 {
 	u_long com;
 	int arg, error;
@@ -753,7 +753,7 @@ poll_no_poll(int events)
 }
 
 int
-pselect(struct thread *td, struct pselect_args *uap)
+sys_pselect(struct thread *td, struct sys_pselect_args *uap)
 {
 	struct timespec ts;
 	struct timeval tv, *tvp;
@@ -785,6 +785,7 @@ kern_pselect(struct thread *td, int nd, fd_set *in, fd_set *ou, fd_set *ex,
 {
 	int error;
 
+#ifndef PLEBNET
 	if (uset != NULL) {
 		error = kern_sigprocmask(td, SIG_SETMASK, uset,
 		    &td->td_oldsigmask, 0);
@@ -800,6 +801,7 @@ kern_pselect(struct thread *td, int nd, fd_set *in, fd_set *ou, fd_set *ex,
 		td->td_flags |= TDF_ASTPENDING;
 		thread_unlock(td);
 	}
+#endif
 	error = kern_select(td, nd, in, ou, ex, tvp, abi_nfdbits);
 	return (error);
 }
@@ -995,9 +997,9 @@ done:
  * return this as a set bit in any set.
  */
 static int select_flags[3] = {
-    POLLRDNORM | POLLHUP | POLLERR,
-    POLLWRNORM | POLLHUP | POLLERR,
-    POLLRDBAND | POLLERR
+	POLLRDNORM | POLLHUP | POLLERR,
+	POLLWRNORM | POLLHUP | POLLERR,
+	POLLRDBAND | POLLERR
 };
 
 /*
@@ -1134,25 +1136,31 @@ selscan(td, ibits, obits, nfd)
 }
 
 #ifndef _SYS_SYSPROTO_H_
-struct poll_args {
+struct sys_poll_args {
 	struct pollfd *fds;
 	u_int	nfds;
 	int	timeout;
 };
 #endif
+
 int
-poll(td, uap)
+sys_poll(td, uap)
 	struct thread *td;
-	struct poll_args *uap;
+	struct sys_poll_args *uap;
+{
+
+	return (kern_poll(td, uap->fds, uap->nfds, uap->timeout));
+}
+
+int
+kern_poll(struct thread *td, struct pollfd *fds, u_int nfds, int timeout)
 {
 	struct pollfd *bits;
 	struct pollfd smallbits[32];
 	struct timeval atv, rtv, ttv;
 	int error = 0, timo;
-	u_int nfds;
 	size_t ni;
 
-	nfds = uap->nfds;
 	if (nfds > maxfilesperproc && nfds > FD_SETSIZE) 
 		return (EINVAL);
 	ni = nfds * sizeof(struct pollfd);
@@ -1160,12 +1168,12 @@ poll(td, uap)
 		bits = malloc(ni, M_TEMP, M_WAITOK);
 	else
 		bits = smallbits;
-	error = copyin(uap->fds, bits, ni);
+	error = copyin(fds, bits, ni);
 	if (error)
 		goto done;
-	if (uap->timeout != INFTIM) {
-		atv.tv_sec = uap->timeout / 1000;
-		atv.tv_usec = (uap->timeout % 1000) * 1000;
+	if (timeout != INFTIM) {
+		atv.tv_sec = timeout / 1000;
+		atv.tv_usec = (timeout % 1000) * 1000;
 		if (itimerfix(&atv)) {
 			error = EINVAL;
 			goto done;
@@ -1208,7 +1216,7 @@ done:
 	if (error == EWOULDBLOCK)
 		error = 0;
 	if (error == 0) {
-		error = pollout(td, bits, uap->fds, nfds);
+		error = pollout(td, bits, fds, nfds);
 		if (error)
 			goto out;
 	}
@@ -1352,7 +1360,7 @@ openbsd_poll(td, uap)
 	register struct thread *td;
 	register struct openbsd_poll_args *uap;
 {
-	return (poll(td, (struct poll_args *)uap));
+	return (sys_poll(td, (struct sys_poll_args *)uap));
 }
 
 /*

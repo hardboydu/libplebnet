@@ -9,8 +9,8 @@
 #define	SYS_syscall	0
 #define	SYS_exit	1
 #define	SYS_fork	2
-#define	SYS_read	3
-#define	SYS_write	4
+#define	SYS_sys_read	3
+#define	SYS_sys_write	4
 #define	SYS_open	5
 #define	SYS_close	6
 #define	SYS_wait4	7
@@ -60,7 +60,7 @@
 #define	SYS_acct	51
 				/* 52 is old sigpending */
 #define	SYS_sigaltstack	53
-#define	SYS_ioctl	54
+#define	SYS_sys_ioctl	54
 #define	SYS_reboot	55
 #define	SYS_revoke	56
 #define	SYS_symlink	57
@@ -123,8 +123,8 @@
 #define	SYS_gettimeofday	116
 #define	SYS_getrusage	117
 #define	SYS_sys_getsockopt	118
-#define	SYS_readv	120
-#define	SYS_writev	121
+#define	SYS_sys_readv	120
+#define	SYS_sys_writev	121
 #define	SYS_settimeofday	122
 #define	SYS_fchown	123
 #define	SYS_fchmod	124
@@ -195,7 +195,7 @@
 #define	SYS_undelete	205
 #define	SYS_futimes	206
 #define	SYS_getpgid	207
-#define	SYS_poll	209
+#define	SYS_sys_poll	209
 #define	SYS_freebsd7___semctl	220
 #define	SYS_semget	221
 #define	SYS_semop	222
@@ -233,8 +233,8 @@
 #define	SYS_nstat	278
 #define	SYS_nfstat	279
 #define	SYS_nlstat	280
-#define	SYS_preadv	289
-#define	SYS_pwritev	290
+#define	SYS_sys_preadv	289
+#define	SYS_sys_pwritev	290
 #define	SYS_freebsd4_fhstatfs	297
 #define	SYS_fhopen	298
 #define	SYS_fhstat	299
@@ -391,8 +391,8 @@
 #define	SYS_sctp_generic_sendmsg	472
 #define	SYS_sctp_generic_sendmsg_iov	473
 #define	SYS_sctp_generic_recvmsg	474
-#define	SYS_pread	475
-#define	SYS_pwrite	476
+#define	SYS_sys_pread	475
+#define	SYS_sys_pwrite	476
 #define	SYS_mmap	477
 #define	SYS_lseek	478
 #define	SYS_truncate	479
@@ -434,7 +434,7 @@
 #define	SYS_cap_getrights	515
 #define	SYS_cap_enter	516
 #define	SYS_cap_getmode	517
-#define	SYS_pselect	522
+#define	SYS_sys_pselect	522
 #define	SYS_getloginclass	523
 #define	SYS_setloginclass	524
 #define	SYS_rctl_get_racct	525

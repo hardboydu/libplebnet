@@ -66,9 +66,9 @@
 1	AUE_EXIT	NOPROTO	{ void sys_exit(int rval); } exit \
 				    sys_exit_args void
 2	AUE_FORK	NOPROTO	{ int fork(void); }
-3	AUE_READ	NOPROTO	{ ssize_t read(int fd, void *buf, \
+3	AUE_READ	NOPROTO	{ ssize_t sys_read(int fd, void *buf, \
 				    size_t nbyte); }
-4	AUE_WRITE	NOPROTO	{ ssize_t write(int fd, const void *buf, \
+4	AUE_WRITE	NOPROTO	{ ssize_t sys_write(int fd, const void *buf, \
 				    size_t nbyte); }
 5	AUE_OPEN_RWTC	NOPROTO	{ int open(char *path, int flags, \
 				    int mode); }
@@ -387,7 +387,7 @@
 				    struct timeval32 *tptr); }
 207	AUE_GETPGID	NOPROTO	{ int getpgid(pid_t pid); }
 208	AUE_NULL	UNIMPL	newreboot (NetBSD)
-209	AUE_POLL	NOPROTO	{ int poll(struct pollfd *fds, u_int nfds, \
+209	AUE_POLL	NOPROTO	{ int sys_poll(struct pollfd *fds, u_int nfds, \
 				    int timeout); }
 
 ;

@@ -420,7 +420,7 @@ freebsd32_mmap_partial(struct thread *td, vm_offset_t start, vm_offset_t end,
 	}
 
 	if (fd != -1) {
-		struct pread_args r;
+		struct sys_pread_args r;
 		r.fd = fd;
 		r.buf = (void *) start;
 		r.nbyte = end - start;
@@ -483,7 +483,7 @@ freebsd32_mmap(struct thread *td, struct freebsd32_mmap_args *uap)
 			 * sure the region exists.
 			 */
 			vm_map_t map;
-			struct pread_args r;
+			struct sys_pread_args r;
 			int rv;
 
 			prot |= VM_PROT_WRITE;
@@ -1395,25 +1395,25 @@ freebsd4_freebsd32_fhstatfs(struct thread *td, struct freebsd4_freebsd32_fhstatf
 int
 freebsd32_pread(struct thread *td, struct freebsd32_pread_args *uap)
 {
-	struct pread_args ap;
+	struct sys_pread_args ap;
 
 	ap.fd = uap->fd;
 	ap.buf = uap->buf;
 	ap.nbyte = uap->nbyte;
 	ap.offset = PAIR32TO64(off_t,uap->offset);
-	return (pread(td, &ap));
+	return (sys_pread(td, &ap));
 }
 
 int
 freebsd32_pwrite(struct thread *td, struct freebsd32_pwrite_args *uap)
 {
-	struct pwrite_args ap;
+	struct sys_pwrite_args ap;
 
 	ap.fd = uap->fd;
 	ap.buf = uap->buf;
 	ap.nbyte = uap->nbyte;
 	ap.offset = PAIR32TO64(off_t,uap->offset);
-	return (pwrite(td, &ap));
+	return (sys_pwrite(td, &ap));
 }
 
 #ifdef COMPAT_43
@@ -1513,25 +1513,25 @@ freebsd32_getdirentries(struct thread *td,
 int
 freebsd6_freebsd32_pread(struct thread *td, struct freebsd6_freebsd32_pread_args *uap)
 {
-	struct pread_args ap;
+	struct sys_pread_args ap;
 
 	ap.fd = uap->fd;
 	ap.buf = uap->buf;
 	ap.nbyte = uap->nbyte;
 	ap.offset = PAIR32TO64(off_t,uap->offset);
-	return (pread(td, &ap));
+	return (sys_pread(td, &ap));
 }
 
 int
 freebsd6_freebsd32_pwrite(struct thread *td, struct freebsd6_freebsd32_pwrite_args *uap)
 {
-	struct pwrite_args ap;
+	struct sys_pwrite_args ap;
 
 	ap.fd = uap->fd;
 	ap.buf = uap->buf;
 	ap.nbyte = uap->nbyte;
 	ap.offset = PAIR32TO64(off_t,uap->offset);
-	return (pwrite(td, &ap));
+	return (sys_pwrite(td, &ap));
 }
 
 int

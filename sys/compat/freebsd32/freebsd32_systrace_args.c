@@ -31,18 +31,18 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 0;
 		break;
 	}
-	/* read */
+	/* sys_read */
 	case 3: {
-		struct read_args *p = params;
+		struct sys_read_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = (intptr_t) p->buf; /* void * */
 		uarg[2] = p->nbyte; /* size_t */
 		*n_args = 3;
 		break;
 	}
-	/* write */
+	/* sys_write */
 	case 4: {
-		struct write_args *p = params;
+		struct sys_write_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = (intptr_t) p->buf; /* const void * */
 		uarg[2] = p->nbyte; /* size_t */
@@ -1040,9 +1040,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 1;
 		break;
 	}
-	/* poll */
+	/* sys_poll */
 	case 209: {
-		struct poll_args *p = params;
+		struct sys_poll_args *p = params;
 		uarg[0] = (intptr_t) p->fds; /* struct pollfd * */
 		uarg[1] = p->nfds; /* u_int */
 		iarg[2] = p->timeout; /* int */
@@ -3063,7 +3063,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 	/* fork */
 	case 2:
 		break;
-	/* read */
+	/* sys_read */
 	case 3:
 		switch(ndx) {
 		case 0:
@@ -3079,7 +3079,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* write */
+	/* sys_write */
 	case 4:
 		switch(ndx) {
 		case 0:
@@ -4702,7 +4702,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* poll */
+	/* sys_poll */
 	case 209:
 		switch(ndx) {
 		case 0:

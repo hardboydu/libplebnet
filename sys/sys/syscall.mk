@@ -6,8 +6,8 @@ MIASM =  \
 	syscall.o \
 	exit.o \
 	fork.o \
-	read.o \
-	write.o \
+	sys_read.o \
+	sys_write.o \
 	open.o \
 	close.o \
 	wait4.o \
@@ -49,7 +49,7 @@ MIASM =  \
 	setlogin.o \
 	acct.o \
 	sigaltstack.o \
-	ioctl.o \
+	sys_ioctl.o \
 	reboot.o \
 	revoke.o \
 	symlink.o \
@@ -88,8 +88,8 @@ MIASM =  \
 	gettimeofday.o \
 	getrusage.o \
 	sys_getsockopt.o \
-	readv.o \
-	writev.o \
+	sys_readv.o \
+	sys_writev.o \
 	settimeofday.o \
 	fchown.o \
 	fchmod.o \
@@ -147,7 +147,7 @@ MIASM =  \
 	undelete.o \
 	futimes.o \
 	getpgid.o \
-	poll.o \
+	sys_poll.o \
 	freebsd7___semctl.o \
 	semget.o \
 	semop.o \
@@ -185,8 +185,8 @@ MIASM =  \
 	nstat.o \
 	nfstat.o \
 	nlstat.o \
-	preadv.o \
-	pwritev.o \
+	sys_preadv.o \
+	sys_pwritev.o \
 	freebsd4_fhstatfs.o \
 	fhopen.o \
 	fhstat.o \
@@ -340,8 +340,8 @@ MIASM =  \
 	sctp_generic_sendmsg.o \
 	sctp_generic_sendmsg_iov.o \
 	sctp_generic_recvmsg.o \
-	pread.o \
-	pwrite.o \
+	sys_pread.o \
+	sys_pwrite.o \
 	mmap.o \
 	lseek.o \
 	truncate.o \
@@ -383,7 +383,7 @@ MIASM =  \
 	cap_getrights.o \
 	cap_enter.o \
 	cap_getmode.o \
-	pselect.o \
+	sys_pselect.o \
 	getloginclass.o \
 	setloginclass.o \
 	rctl_get_racct.o \

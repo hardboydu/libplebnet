@@ -9,8 +9,8 @@
 #define	FREEBSD32_SYS_syscall	0
 #define	FREEBSD32_SYS_exit	1
 #define	FREEBSD32_SYS_fork	2
-#define	FREEBSD32_SYS_read	3
-#define	FREEBSD32_SYS_write	4
+#define	FREEBSD32_SYS_sys_read	3
+#define	FREEBSD32_SYS_sys_write	4
 #define	FREEBSD32_SYS_open	5
 #define	FREEBSD32_SYS_close	6
 #define	FREEBSD32_SYS_freebsd32_wait4	7
@@ -191,7 +191,7 @@
 #define	FREEBSD32_SYS_undelete	205
 #define	FREEBSD32_SYS_freebsd32_futimes	206
 #define	FREEBSD32_SYS_getpgid	207
-#define	FREEBSD32_SYS_poll	209
+#define	FREEBSD32_SYS_sys_poll	209
 #define	FREEBSD32_SYS_freebsd7_freebsd32_semctl	220
 #define	FREEBSD32_SYS_semget	221
 #define	FREEBSD32_SYS_semop	222

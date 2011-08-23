@@ -28,18 +28,18 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 0;
 		break;
 	}
-	/* read */
+	/* sys_read */
 	case 3: {
-		struct read_args *p = params;
+		struct sys_read_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = (intptr_t) p->buf; /* void * */
 		uarg[2] = p->nbyte; /* size_t */
 		*n_args = 3;
 		break;
 	}
-	/* write */
+	/* sys_write */
 	case 4: {
-		struct write_args *p = params;
+		struct sys_write_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = (intptr_t) p->buf; /* const void * */
 		uarg[2] = p->nbyte; /* size_t */
@@ -355,9 +355,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 2;
 		break;
 	}
-	/* ioctl */
+	/* sys_ioctl */
 	case 54: {
-		struct ioctl_args *p = params;
+		struct sys_ioctl_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = p->com; /* u_long */
 		uarg[2] = (intptr_t) p->data; /* caddr_t */
@@ -671,18 +671,18 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 5;
 		break;
 	}
-	/* readv */
+	/* sys_readv */
 	case 120: {
-		struct readv_args *p = params;
+		struct sys_readv_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = (intptr_t) p->iovp; /* struct iovec * */
 		uarg[2] = p->iovcnt; /* u_int */
 		*n_args = 3;
 		break;
 	}
-	/* writev */
+	/* sys_writev */
 	case 121: {
-		struct writev_args *p = params;
+		struct sys_writev_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = (intptr_t) p->iovp; /* struct iovec * */
 		uarg[2] = p->iovcnt; /* u_int */
@@ -1133,9 +1133,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 1;
 		break;
 	}
-	/* poll */
+	/* sys_poll */
 	case 209: {
-		struct poll_args *p = params;
+		struct sys_poll_args *p = params;
 		uarg[0] = (intptr_t) p->fds; /* struct pollfd * */
 		uarg[1] = p->nfds; /* u_int */
 		iarg[2] = p->timeout; /* int */
@@ -1474,9 +1474,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 2;
 		break;
 	}
-	/* preadv */
+	/* sys_preadv */
 	case 289: {
-		struct preadv_args *p = params;
+		struct sys_preadv_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = (intptr_t) p->iovp; /* struct iovec * */
 		uarg[2] = p->iovcnt; /* u_int */
@@ -1484,9 +1484,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 4;
 		break;
 	}
-	/* pwritev */
+	/* sys_pwritev */
 	case 290: {
-		struct pwritev_args *p = params;
+		struct sys_pwritev_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = (intptr_t) p->iovp; /* struct iovec * */
 		uarg[2] = p->iovcnt; /* u_int */
@@ -2738,9 +2738,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 7;
 		break;
 	}
-	/* pread */
+	/* sys_pread */
 	case 475: {
-		struct pread_args *p = params;
+		struct sys_pread_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = (intptr_t) p->buf; /* void * */
 		uarg[2] = p->nbyte; /* size_t */
@@ -2748,9 +2748,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 4;
 		break;
 	}
-	/* pwrite */
+	/* sys_pwrite */
 	case 476: {
-		struct pwrite_args *p = params;
+		struct sys_pwrite_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = (intptr_t) p->buf; /* const void * */
 		uarg[2] = p->nbyte; /* size_t */
@@ -3124,9 +3124,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 1;
 		break;
 	}
-	/* pselect */
+	/* sys_pselect */
 	case 522: {
-		struct pselect_args *p = params;
+		struct sys_pselect_args *p = params;
 		iarg[0] = p->nd; /* int */
 		uarg[1] = (intptr_t) p->in; /* fd_set * */
 		uarg[2] = (intptr_t) p->ou; /* fd_set * */
@@ -3236,7 +3236,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 	/* fork */
 	case 2:
 		break;
-	/* read */
+	/* sys_read */
 	case 3:
 		switch(ndx) {
 		case 0:
@@ -3252,7 +3252,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* write */
+	/* sys_write */
 	case 4:
 		switch(ndx) {
 		case 0:
@@ -3747,7 +3747,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* ioctl */
+	/* sys_ioctl */
 	case 54:
 		switch(ndx) {
 		case 0:
@@ -4263,7 +4263,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* readv */
+	/* sys_readv */
 	case 120:
 		switch(ndx) {
 		case 0:
@@ -4279,7 +4279,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* writev */
+	/* sys_writev */
 	case 121:
 		switch(ndx) {
 		case 0:
@@ -5053,7 +5053,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* poll */
+	/* sys_poll */
 	case 209:
 		switch(ndx) {
 		case 0:
@@ -5570,7 +5570,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* preadv */
+	/* sys_preadv */
 	case 289:
 		switch(ndx) {
 		case 0:
@@ -5589,7 +5589,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* pwritev */
+	/* sys_pwritev */
 	case 290:
 		switch(ndx) {
 		case 0:
@@ -7697,7 +7697,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* pread */
+	/* sys_pread */
 	case 475:
 		switch(ndx) {
 		case 0:
@@ -7716,7 +7716,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* pwrite */
+	/* sys_pwrite */
 	case 476:
 		switch(ndx) {
 		case 0:
@@ -8381,7 +8381,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* pselect */
+	/* sys_pselect */
 	case 522:
 		switch(ndx) {
 		case 0:

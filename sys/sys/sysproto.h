@@ -41,12 +41,12 @@ struct sys_exit_args {
 struct fork_args {
 	register_t dummy;
 };
-struct read_args {
+struct sys_read_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char buf_l_[PADL_(void *)]; void * buf; char buf_r_[PADR_(void *)];
 	char nbyte_l_[PADL_(size_t)]; size_t nbyte; char nbyte_r_[PADR_(size_t)];
 };
-struct write_args {
+struct sys_write_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char buf_l_[PADL_(const void *)]; const void * buf; char buf_r_[PADR_(const void *)];
 	char nbyte_l_[PADL_(size_t)]; size_t nbyte; char nbyte_r_[PADR_(size_t)];
@@ -219,7 +219,7 @@ struct sigaltstack_args {
 	char ss_l_[PADL_(stack_t *)]; stack_t * ss; char ss_r_[PADR_(stack_t *)];
 	char oss_l_[PADL_(stack_t *)]; stack_t * oss; char oss_r_[PADR_(stack_t *)];
 };
-struct ioctl_args {
+struct sys_ioctl_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char com_l_[PADL_(u_long)]; u_long com; char com_r_[PADR_(u_long)];
 	char data_l_[PADL_(caddr_t)]; caddr_t data; char data_r_[PADR_(caddr_t)];
@@ -391,12 +391,12 @@ struct sys_getsockopt_args {
 	char val_l_[PADL_(caddr_t)]; caddr_t val; char val_r_[PADR_(caddr_t)];
 	char avalsize_l_[PADL_(int *)]; int * avalsize; char avalsize_r_[PADR_(int *)];
 };
-struct readv_args {
+struct sys_readv_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char iovp_l_[PADL_(struct iovec *)]; struct iovec * iovp; char iovp_r_[PADR_(struct iovec *)];
 	char iovcnt_l_[PADL_(u_int)]; u_int iovcnt; char iovcnt_r_[PADR_(u_int)];
 };
-struct writev_args {
+struct sys_writev_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char iovp_l_[PADL_(struct iovec *)]; struct iovec * iovp; char iovp_r_[PADR_(struct iovec *)];
 	char iovcnt_l_[PADL_(u_int)]; u_int iovcnt; char iovcnt_r_[PADR_(u_int)];
@@ -644,7 +644,7 @@ struct futimes_args {
 struct getpgid_args {
 	char pid_l_[PADL_(pid_t)]; pid_t pid; char pid_r_[PADR_(pid_t)];
 };
-struct poll_args {
+struct sys_poll_args {
 	char fds_l_[PADL_(struct pollfd *)]; struct pollfd * fds; char fds_r_[PADR_(struct pollfd *)];
 	char nfds_l_[PADL_(u_int)]; u_int nfds; char nfds_r_[PADR_(u_int)];
 	char timeout_l_[PADL_(int)]; int timeout; char timeout_r_[PADR_(int)];
@@ -787,13 +787,13 @@ struct nlstat_args {
 	char path_l_[PADL_(char *)]; char * path; char path_r_[PADR_(char *)];
 	char ub_l_[PADL_(struct nstat *)]; struct nstat * ub; char ub_r_[PADR_(struct nstat *)];
 };
-struct preadv_args {
+struct sys_preadv_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char iovp_l_[PADL_(struct iovec *)]; struct iovec * iovp; char iovp_r_[PADR_(struct iovec *)];
 	char iovcnt_l_[PADL_(u_int)]; u_int iovcnt; char iovcnt_r_[PADR_(u_int)];
 	char offset_l_[PADL_(off_t)]; off_t offset; char offset_r_[PADR_(off_t)];
 };
-struct pwritev_args {
+struct sys_pwritev_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char iovp_l_[PADL_(struct iovec *)]; struct iovec * iovp; char iovp_r_[PADR_(struct iovec *)];
 	char iovcnt_l_[PADL_(u_int)]; u_int iovcnt; char iovcnt_r_[PADR_(u_int)];
@@ -1455,13 +1455,13 @@ struct sctp_generic_recvmsg_args {
 	char sinfo_l_[PADL_(struct sctp_sndrcvinfo *)]; struct sctp_sndrcvinfo * sinfo; char sinfo_r_[PADR_(struct sctp_sndrcvinfo *)];
 	char msg_flags_l_[PADL_(int *)]; int * msg_flags; char msg_flags_r_[PADR_(int *)];
 };
-struct pread_args {
+struct sys_pread_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char buf_l_[PADL_(void *)]; void * buf; char buf_r_[PADR_(void *)];
 	char nbyte_l_[PADL_(size_t)]; size_t nbyte; char nbyte_r_[PADR_(size_t)];
 	char offset_l_[PADL_(off_t)]; off_t offset; char offset_r_[PADR_(off_t)];
 };
-struct pwrite_args {
+struct sys_pwrite_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char buf_l_[PADL_(const void *)]; const void * buf; char buf_r_[PADR_(const void *)];
 	char nbyte_l_[PADL_(size_t)]; size_t nbyte; char nbyte_r_[PADR_(size_t)];
@@ -1671,7 +1671,7 @@ struct cap_enter_args {
 struct cap_getmode_args {
 	char modep_l_[PADL_(u_int *)]; u_int * modep; char modep_r_[PADR_(u_int *)];
 };
-struct pselect_args {
+struct sys_pselect_args {
 	char nd_l_[PADL_(int)]; int nd; char nd_r_[PADR_(int)];
 	char in_l_[PADL_(fd_set *)]; fd_set * in; char in_r_[PADR_(fd_set *)];
 	char ou_l_[PADL_(fd_set *)]; fd_set * ou; char ou_r_[PADR_(fd_set *)];
@@ -1724,8 +1724,8 @@ struct posix_fallocate_args {
 int	nosys(struct thread *, struct nosys_args *);
 void	sys_exit(struct thread *, struct sys_exit_args *);
 int	fork(struct thread *, struct fork_args *);
-int	read(struct thread *, struct read_args *);
-int	write(struct thread *, struct write_args *);
+int	sys_read(struct thread *, struct sys_read_args *);
+int	sys_write(struct thread *, struct sys_write_args *);
 int	open(struct thread *, struct open_args *);
 int	close(struct thread *, struct close_args *);
 int	wait4(struct thread *, struct wait_args *);
@@ -1766,7 +1766,7 @@ int	getlogin(struct thread *, struct getlogin_args *);
 int	setlogin(struct thread *, struct setlogin_args *);
 int	acct(struct thread *, struct acct_args *);
 int	sigaltstack(struct thread *, struct sigaltstack_args *);
-int	ioctl(struct thread *, struct ioctl_args *);
+int	sys_ioctl(struct thread *, struct sys_ioctl_args *);
 int	reboot(struct thread *, struct reboot_args *);
 int	revoke(struct thread *, struct revoke_args *);
 int	symlink(struct thread *, struct symlink_args *);
@@ -1805,8 +1805,8 @@ int	sys_listen(struct thread *, struct sys_listen_args *);
 int	gettimeofday(struct thread *, struct gettimeofday_args *);
 int	getrusage(struct thread *, struct getrusage_args *);
 int	sys_getsockopt(struct thread *, struct sys_getsockopt_args *);
-int	readv(struct thread *, struct readv_args *);
-int	writev(struct thread *, struct writev_args *);
+int	sys_readv(struct thread *, struct sys_readv_args *);
+int	sys_writev(struct thread *, struct sys_writev_args *);
 int	settimeofday(struct thread *, struct settimeofday_args *);
 int	fchown(struct thread *, struct fchown_args *);
 int	fchmod(struct thread *, struct fchmod_args *);
@@ -1858,7 +1858,7 @@ int	munlock(struct thread *, struct munlock_args *);
 int	undelete(struct thread *, struct undelete_args *);
 int	futimes(struct thread *, struct futimes_args *);
 int	getpgid(struct thread *, struct getpgid_args *);
-int	poll(struct thread *, struct poll_args *);
+int	sys_poll(struct thread *, struct sys_poll_args *);
 int	semget(struct thread *, struct semget_args *);
 int	semop(struct thread *, struct semop_args *);
 int	msgget(struct thread *, struct msgget_args *);
@@ -1891,8 +1891,8 @@ int	lutimes(struct thread *, struct lutimes_args *);
 int	nstat(struct thread *, struct nstat_args *);
 int	nfstat(struct thread *, struct nfstat_args *);
 int	nlstat(struct thread *, struct nlstat_args *);
-int	preadv(struct thread *, struct preadv_args *);
-int	pwritev(struct thread *, struct pwritev_args *);
+int	sys_preadv(struct thread *, struct sys_preadv_args *);
+int	sys_pwritev(struct thread *, struct sys_pwritev_args *);
 int	fhopen(struct thread *, struct fhopen_args *);
 int	fhstat(struct thread *, struct fhstat_args *);
 int	modnext(struct thread *, struct modnext_args *);
@@ -2042,8 +2042,8 @@ int	sctp_peeloff(struct thread *, struct sctp_peeloff_args *);
 int	sctp_generic_sendmsg(struct thread *, struct sctp_generic_sendmsg_args *);
 int	sctp_generic_sendmsg_iov(struct thread *, struct sctp_generic_sendmsg_iov_args *);
 int	sctp_generic_recvmsg(struct thread *, struct sctp_generic_recvmsg_args *);
-int	pread(struct thread *, struct pread_args *);
-int	pwrite(struct thread *, struct pwrite_args *);
+int	sys_pread(struct thread *, struct sys_pread_args *);
+int	sys_pwrite(struct thread *, struct sys_pwrite_args *);
 int	mmap(struct thread *, struct mmap_args *);
 int	lseek(struct thread *, struct lseek_args *);
 int	truncate(struct thread *, struct truncate_args *);
@@ -2085,7 +2085,7 @@ int	cap_new(struct thread *, struct cap_new_args *);
 int	cap_getrights(struct thread *, struct cap_getrights_args *);
 int	cap_enter(struct thread *, struct cap_enter_args *);
 int	cap_getmode(struct thread *, struct cap_getmode_args *);
-int	pselect(struct thread *, struct pselect_args *);
+int	sys_pselect(struct thread *, struct sys_pselect_args *);
 int	getloginclass(struct thread *, struct getloginclass_args *);
 int	setloginclass(struct thread *, struct setloginclass_args *);
 int	rctl_get_racct(struct thread *, struct rctl_get_racct_args *);
@@ -2361,8 +2361,8 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_syscall	AUE_NULL
 #define	SYS_AUE_exit	AUE_EXIT
 #define	SYS_AUE_fork	AUE_FORK
-#define	SYS_AUE_read	AUE_NULL
-#define	SYS_AUE_write	AUE_NULL
+#define	SYS_AUE_sys_read	AUE_NULL
+#define	SYS_AUE_sys_write	AUE_NULL
 #define	SYS_AUE_open	AUE_OPEN_RWTC
 #define	SYS_AUE_close	AUE_CLOSE
 #define	SYS_AUE_wait4	AUE_WAIT4
@@ -2411,7 +2411,7 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_acct	AUE_ACCT
 #define	SYS_AUE_osigpending	AUE_SIGPENDING
 #define	SYS_AUE_sigaltstack	AUE_SIGALTSTACK
-#define	SYS_AUE_ioctl	AUE_IOCTL
+#define	SYS_AUE_sys_ioctl	AUE_IOCTL
 #define	SYS_AUE_reboot	AUE_REBOOT
 #define	SYS_AUE_revoke	AUE_REVOKE
 #define	SYS_AUE_symlink	AUE_SYMLINK
@@ -2468,8 +2468,8 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_gettimeofday	AUE_GETTIMEOFDAY
 #define	SYS_AUE_getrusage	AUE_GETRUSAGE
 #define	SYS_AUE_sys_getsockopt	AUE_GETSOCKOPT
-#define	SYS_AUE_readv	AUE_READV
-#define	SYS_AUE_writev	AUE_WRITEV
+#define	SYS_AUE_sys_readv	AUE_READV
+#define	SYS_AUE_sys_writev	AUE_WRITEV
 #define	SYS_AUE_settimeofday	AUE_SETTIMEOFDAY
 #define	SYS_AUE_fchown	AUE_FCHOWN
 #define	SYS_AUE_fchmod	AUE_FCHMOD
@@ -2538,7 +2538,7 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_undelete	AUE_UNDELETE
 #define	SYS_AUE_futimes	AUE_FUTIMES
 #define	SYS_AUE_getpgid	AUE_GETPGID
-#define	SYS_AUE_poll	AUE_POLL
+#define	SYS_AUE_sys_poll	AUE_POLL
 #define	SYS_AUE_freebsd7___semctl	AUE_SEMCTL
 #define	SYS_AUE_semget	AUE_SEMGET
 #define	SYS_AUE_semop	AUE_SEMOP
@@ -2574,8 +2574,8 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_nstat	AUE_STAT
 #define	SYS_AUE_nfstat	AUE_FSTAT
 #define	SYS_AUE_nlstat	AUE_LSTAT
-#define	SYS_AUE_preadv	AUE_PREADV
-#define	SYS_AUE_pwritev	AUE_PWRITEV
+#define	SYS_AUE_sys_preadv	AUE_PREADV
+#define	SYS_AUE_sys_pwritev	AUE_PWRITEV
 #define	SYS_AUE_freebsd4_fhstatfs	AUE_FHSTATFS
 #define	SYS_AUE_fhopen	AUE_FHOPEN
 #define	SYS_AUE_fhstat	AUE_FHSTAT
@@ -2729,8 +2729,8 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_sctp_generic_sendmsg	AUE_NULL
 #define	SYS_AUE_sctp_generic_sendmsg_iov	AUE_NULL
 #define	SYS_AUE_sctp_generic_recvmsg	AUE_NULL
-#define	SYS_AUE_pread	AUE_PREAD
-#define	SYS_AUE_pwrite	AUE_PWRITE
+#define	SYS_AUE_sys_pread	AUE_PREAD
+#define	SYS_AUE_sys_pwrite	AUE_PWRITE
 #define	SYS_AUE_mmap	AUE_MMAP
 #define	SYS_AUE_lseek	AUE_LSEEK
 #define	SYS_AUE_truncate	AUE_TRUNCATE
@@ -2772,7 +2772,7 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_cap_getrights	AUE_CAP_GETRIGHTS
 #define	SYS_AUE_cap_enter	AUE_CAP_ENTER
 #define	SYS_AUE_cap_getmode	AUE_CAP_GETMODE
-#define	SYS_AUE_pselect	AUE_SELECT
+#define	SYS_AUE_sys_pselect	AUE_SELECT
 #define	SYS_AUE_getloginclass	AUE_NULL
 #define	SYS_AUE_setloginclass	AUE_NULL
 #define	SYS_AUE_rctl_get_racct	AUE_NULL

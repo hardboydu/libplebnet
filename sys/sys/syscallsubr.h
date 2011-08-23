@@ -41,6 +41,7 @@ struct jail;
 struct mbuf;
 struct msghdr;
 struct msqid_ds;
+struct pollfd;
 struct rlimit;
 struct rusage;
 union semun;
@@ -155,6 +156,8 @@ int	kern_openat(struct thread *td, int fd, char *path,
 int	kern_pathconf(struct thread *td, char *path, enum uio_seg pathseg,
 	    int name, u_long flags);
 int	kern_pipe(struct thread *td, int fildes[2]);
+int	kern_poll(struct thread *td, struct pollfd *fds, u_int	nfds,
+	    int	timeout);
 int	kern_preadv(struct thread *td, int fd, struct uio *auio, off_t offset);
 int	kern_pselect(struct thread *td, int nd, fd_set *in, fd_set *ou,
 	    fd_set *ex, struct timeval *tvp, sigset_t *uset, int abi_nfdbits);

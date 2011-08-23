@@ -61,9 +61,9 @@
 1	AUE_EXIT	STD	{ void sys_exit(int rval); } exit \
 				    sys_exit_args void
 2	AUE_FORK	STD	{ int fork(void); }
-3	AUE_NULL	STD	{ ssize_t read(int fd, void *buf, \
+3	AUE_NULL	STD	{ ssize_t sys_read(int fd, void *buf, \
 				    size_t nbyte); }
-4	AUE_NULL	STD	{ ssize_t write(int fd, const void *buf, \
+4	AUE_NULL	STD	{ ssize_t sys_write(int fd, const void *buf, \
 				    size_t nbyte); }
 5	AUE_OPEN_RWTC	STD	{ int open(char *path, int flags, int mode); }
 ; XXX should be		{ int open(const char *path, int flags, ...); }
@@ -145,7 +145,7 @@
 52	AUE_SIGPENDING	COMPAT	{ int sigpending(void); }
 53	AUE_SIGALTSTACK	STD	{ int sigaltstack(stack_t *ss, \
 				    stack_t *oss); }
-54	AUE_IOCTL	STD	{ int ioctl(int fd, u_long com, \
+54	AUE_IOCTL	STD	{ int sys_ioctl(int fd, u_long com, \
 				    caddr_t data); }
 55	AUE_REBOOT	STD	{ int reboot(int opt); }
 56	AUE_REVOKE	STD	{ int revoke(char *path); }
@@ -253,9 +253,9 @@
 118	AUE_GETSOCKOPT	STD	{ int sys_getsockopt(int s, int level, int name, \
 				    caddr_t val, int *avalsize); }
 119	AUE_NULL	UNIMPL	resuba (BSD/OS 2.x)
-120	AUE_READV	STD	{ int readv(int fd, struct iovec *iovp, \
+120	AUE_READV	STD	{ int sys_readv(int fd, struct iovec *iovp, \
 				    u_int iovcnt); }
-121	AUE_WRITEV	STD	{ int writev(int fd, struct iovec *iovp, \
+121	AUE_WRITEV	STD	{ int sys_writev(int fd, struct iovec *iovp, \
 				    u_int iovcnt); }
 122	AUE_SETTIMEOFDAY	STD	{ int settimeofday(struct timeval *tv, \
 				    struct timezone *tzp); }
@@ -397,7 +397,7 @@
 206	AUE_FUTIMES	STD	{ int futimes(int fd, struct timeval *tptr); }
 207	AUE_GETPGID	STD	{ int getpgid(pid_t pid); }
 208	AUE_NULL	UNIMPL	newreboot (NetBSD)
-209	AUE_POLL	STD	{ int poll(struct pollfd *fds, u_int nfds, \
+209	AUE_POLL	STD	{ int sys_poll(struct pollfd *fds, u_int nfds, \
 				    int timeout); }
 
 ;
@@ -515,9 +515,9 @@
 287	AUE_NULL	UNIMPL	nosys
 288	AUE_NULL	UNIMPL	nosys
 ; 289 and 290 from NetBSD (OpenBSD: 267 and 268)
-289	AUE_PREADV	STD	{ ssize_t preadv(int fd, struct iovec *iovp, \
+289	AUE_PREADV	STD	{ ssize_t sys_preadv(int fd, struct iovec *iovp, \
 					u_int iovcnt, off_t offset); }
-290	AUE_PWRITEV	STD	{ ssize_t pwritev(int fd, struct iovec *iovp, \
+290	AUE_PWRITEV	STD	{ ssize_t sys_pwritev(int fd, struct iovec *iovp, \
 					u_int iovcnt, off_t offset); }
 291	AUE_NULL	UNIMPL	nosys
 292	AUE_NULL	UNIMPL	nosys
@@ -844,9 +844,9 @@
 474     AUE_NULL        STD    { int sctp_generic_recvmsg(int sd, struct iovec *iov, int iovlen, \
 				    struct sockaddr * from, __socklen_t *fromlenaddr, \
 				    struct sctp_sndrcvinfo *sinfo, int *msg_flags); }
-475	AUE_PREAD	STD	{ ssize_t pread(int fd, void *buf, \
+475	AUE_PREAD	STD	{ ssize_t sys_pread(int fd, void *buf, \
 				    size_t nbyte, off_t offset); }
-476	AUE_PWRITE	STD	{ ssize_t pwrite(int fd, const void *buf, \
+476	AUE_PWRITE	STD	{ ssize_t sys_pwrite(int fd, const void *buf, \
 				    size_t nbyte, off_t offset); }
 477	AUE_MMAP	STD	{ caddr_t mmap(caddr_t addr, size_t len, \
 				    int prot, int flags, int fd, off_t pos); }
@@ -923,7 +923,7 @@
 519	AUE_PDKILL	UNIMPL	pdkill
 520	AUE_PDGETPID	UNIMPL	pdgetpid
 521	AUE_PDWAIT	UNIMPL	pdwait
-522	AUE_SELECT	STD	{ int pselect(int nd, fd_set *in, \
+522	AUE_SELECT	STD	{ int sys_pselect(int nd, fd_set *in, \
 				    fd_set *ou, fd_set *ex, \
 				    const struct timespec *ts, \
 				    const sigset_t *sm); }
