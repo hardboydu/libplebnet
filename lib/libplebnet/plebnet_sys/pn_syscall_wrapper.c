@@ -182,7 +182,7 @@ setsockopt(int s, int level, int optname, const void *optval,
 
 	if (pn_user_fdisused(s)) {
 		if ((rc = kern_setsockopt(curthread, s, level, optname, 
-			    optval, UIO_SYSSPACE, optlen)))
+			    __DECONST(void *, optval), UIO_SYSSPACE, optlen)))
 			goto kern_fail;
 		rc = curthread->td_retval[0];
 	} else 
@@ -514,52 +514,6 @@ kern_fail:
 }
 
 int
-select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
-    struct timeval *timeout)
-
-{
-	int rc, kernfd, userfd;
-
-	rc = kernfd = userfd = 0;
-	if (readfds != NULL)
-		userfd = pleb_userfd_isset(nfds, readfds);
-	if (writefds != NULL)
-		userfd |= pleb_userfd_isset(nfds, writefds);
-	if (exceptfds != NULL)
-		userfd |= pleb_userfd_isset(nfds, exceptfds);
-
-	if (readfds != NULL)
-		kernfd = pleb_kernfd_isset(nfds, readfds);
-	if (writefds != NULL)
-		kernfd |= pleb_kernfd_isset(nfds, writefds);
-	if (exceptfds != NULL)
-		kernfd |= pleb_kernfd_isset(nfds, exceptfds);
-
-	if (!userfd && kernfd)
-		return _select(nfds, readfds, writefds, exceptfds, timeout);
-	else if (userfd && !kernfd) {
-		rc = kern_select(curthread, nfds, readfds, writefds, exceptfds, timeout, 1024/* XXX abi_nfdbits */);
-		if (rc)
-			goto kern_fail;
-		rc = curthread->td_retval[0];
-	} else if (userfd && kernfd) {
-
-		/* :(  :(   :( */
-		/* XXX need to create two separate fd sets 
-		 * one that is entirely user and one that
-		 * is entirely kernel
-		 */
-
-	}
-
-	return (rc);
-kern_fail:
-	errno = rc;
-	return (-1);
-
-}
-
-int
 fcntl(int fd, int cmd, ...)
 {
 	int rc;
@@ -652,32 +606,6 @@ socketpair(int domain, int type, int protocol, int *sv)
 		; /* track allocated descriptors */
 
 	return (rc);
-}
-
-int
-poll(struct pollfd fds[], nfds_t nfds, int timeout)
-{
-	int i, rc, kernfd, userfd;
-	
-	rc = kernfd = userfd = 0;
-	for (i = 0; i < nfds; i++) {
-		kernfd |= pn_kernel_fdisused(fds[i].fd);
-		userfd |= pn_user_fdisused(fds[i].fd);
-	}
-
-	if (kernfd && !userfd)
-		rc = _poll(fds, nfds, timeout);
-	else if (!kernfd && userfd) {
-		if ((rc = kern_poll(curthread, fds, nfds, timeout)))
-			goto kern_fail;
-		rc = curthread->td_retval[0];
-	} else if (kernfd && userfd) {
-
-	}
-	return (rc);
-kern_fail:
-	errno = rc;
-	return (-1);
 }
 
 int
@@ -890,3 +818,81 @@ kern_fail:
 	return (-1);
 }
 
+int
+select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
+    struct timeval *timeout)
+
+{
+	int rc, kernfd, userfd;
+
+	rc = kernfd = userfd = 0;
+	if (readfds != NULL)
+		userfd = pleb_userfd_isset(nfds, readfds);
+	if (writefds != NULL)
+		userfd |= pleb_userfd_isset(nfds, writefds);
+	if (exceptfds != NULL)
+		userfd |= pleb_userfd_isset(nfds, exceptfds);
+
+	if (readfds != NULL)
+		kernfd = pleb_kernfd_isset(nfds, readfds);
+	if (writefds != NULL)
+		kernfd |= pleb_kernfd_isset(nfds, writefds);
+	if (exceptfds != NULL)
+		kernfd |= pleb_kernfd_isset(nfds, exceptfds);
+
+	if (!userfd && kernfd)
+		return _select(nfds, readfds, writefds, exceptfds, timeout);
+	else if (userfd && !kernfd) {
+		rc = kern_select(curthread, nfds, readfds, writefds, exceptfds, timeout, 1024/* XXX abi_nfdbits */);
+		if (rc)
+			goto kern_fail;
+		rc = curthread->td_retval[0];
+	} else if (userfd && kernfd) {
+
+		/* :(  :(   :( */
+		/* XXX need to create two separate fd sets 
+		 * one that is entirely user and one that
+		 * is entirely kernel
+		 */
+
+	}
+
+	return (rc);
+kern_fail:
+	errno = rc;
+	return (-1);
+
+}
+
+int
+poll(struct pollfd fds[], nfds_t nfds, int timeout)
+{
+	int i, rc, kernfd, userfd;
+	
+	rc = kernfd = userfd = 0;
+	for (i = 0; i < nfds; i++) {
+		kernfd |= pn_kernel_fdisused(fds[i].fd);
+		userfd |= pn_user_fdisused(fds[i].fd);
+	}
+
+	if (kernfd && !userfd)
+		rc = _poll(fds, nfds, timeout);
+	else if (!kernfd && userfd) {
+		if ((rc = kern_poll(curthread, fds, nfds, timeout)))
+			goto kern_fail;
+		rc = curthread->td_retval[0];
+	} else if (kernfd && userfd) {
+
+	}
+	return (rc);
+kern_fail:
+	errno = rc;
+	return (-1);
+}
+
+int
+kqueue(void)
+{
+
+	return (kern_kqueue(curthread));
+}
