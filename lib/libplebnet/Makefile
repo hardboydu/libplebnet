@@ -27,7 +27,8 @@ PN_KERN_COMMON_OBJS +=		\
 	uipc_mbuf2.o		\
 	uipc_domain.o		\
 	uipc_sockbuf.o		\
-	uipc_socket.o
+	uipc_socket.o		\
+	uipc_syscalls.o
 
 PN_NET_COMMON_OBJS +=		\
 	bpf.o			\
@@ -51,7 +52,6 @@ PN_NETINET_COMMON_OBJS +=	\
 	if_ether.o		\
 	igmp.o			\
 	in.o			\
-	in_cksum.o		\
 	in_mcast.o		\
 	in_pcb.o		\
 	in_proto.o		\
@@ -118,12 +118,12 @@ PN_LIBKERN_COMMON_OBJS =	\
 # v6 requires sha1
 PN_OTHER_COMMON_OBJS =		\
 	harvest.o		\
-	sha1.o
+	sha1.o			\
+	in_cksum.o
 
 PN_SYS_COMMON_OBJS = 		\
 	pn_compat.o		\
 	pn_glue.o		\
-	pn_in_cksum.o		\
 	pn_init.o		\
 	pn_init_main.o		\
 	pn_kern_condvar.o	\
@@ -140,7 +140,6 @@ PN_SYS_COMMON_OBJS = 		\
 	pn_subr_taskqueue.o	\
 	pn_sys_generic.o	\
 	pn_syscall_wrapper.o	\
-	pn_uipc_syscalls.o	\
 	pn_uma_core.o		\
 	pn_user_sysctl.o	\
 	pn_veth.o
@@ -199,6 +198,8 @@ SYSDIR=	${_dir}
 PREFIX= ${SYSDIR}
 .PATH: ${PREFIX}/crypto
 .PATH: ${PREFIX}/kern
+# XXX
+.PATH: ${PREFIX}/amd64/amd64
 .PATH: ${PREFIX}/net
 .PATH: ${PREFIX}/netinet
 .PATH: ${PREFIX}/netinet6
