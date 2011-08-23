@@ -48,6 +48,7 @@
 #define _KERNEL
 #include <sys/malloc.h>
 #include <sys/socketvar.h>
+#include <sys/event.h>
 #undef _KERNEL
 #include <sys/kernel.h>
 #include <sys/refcount.h>
@@ -895,4 +896,73 @@ kqueue(void)
 {
 
 	return (kern_kqueue(curthread));
+}
+
+#ifndef _SYS_SYSPROTO_H_
+struct sys_kevent_args {
+	int	fd;
+	const struct kevent *changelist;
+	int	nchanges;
+	struct	kevent *eventlist;
+	int	nevents;
+	const struct timespec *timeout;
+};
+#endif
+
+struct kevent_copyops {
+	void	*arg;
+	int	(*k_copyout)(void *arg, struct kevent *kevp, int count);
+	int	(*k_copyin)(void *arg, struct kevent *kevp, int count);
+};
+
+static int
+kevent_copyout(void *arg, struct kevent *kevp, int count)
+{
+	struct sys_kevent_args *uap;
+
+	uap = (struct sys_kevent_args *)arg;
+	bcopy(kevp, uap->eventlist, count * sizeof *kevp);
+	return (0);
+}
+
+/*
+ * Copy 'count' items from the list pointed to by uap->changelist.
+ */
+static int
+kevent_copyin(void *arg, struct kevent *kevp, int count)
+{
+	struct sys_kevent_args *uap;
+
+	uap = (struct sys_kevent_args *)arg;
+	bcopy(uap->changelist, kevp, count * sizeof *kevp);
+	return (0);
+}
+
+int
+kevent(int kq, const struct kevent *changelist, int nchanges, 
+    struct kevent *eventlist, int nevents, const struct timespec *timeout)
+{
+	int rc;
+	struct sys_kevent_args ska = { kq,
+				       changelist,
+				       nchanges,
+				       eventlist,
+				       nevents,
+				       timeout};
+	struct kevent_copyops k_ops = { &ska,
+					kevent_copyout,
+					kevent_copyin};
+	/*
+	 * since kq is a user-level descriptor, if we get passed any
+	 * kernel descriptors we'll need to allocate a kernel descriptor
+	 * and associate it with the user descriptor
+	 */
+
+	if ((rc = kern_kevent(curthread, kq, nchanges, nevents, &k_ops, 
+		    timeout)))
+		goto kern_fail;
+	return (rc);
+kern_fail:
+	errno = rc;
+	return (-1);
 }
