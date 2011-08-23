@@ -676,7 +676,13 @@ filt_usertouch(struct knote *kn, struct kevent *kev, u_long type)
 }
 
 int
-kqueue(struct thread *td, struct kqueue_args *uap)
+sys_kqueue(struct thread *td, struct sys_kqueue_args *uap)
+{
+	return (kern_kqueue(td));
+}
+
+int
+kern_kqueue(struct thread *td)
 {
 	struct filedesc *fdp;
 	struct kqueue *kq;
@@ -709,7 +715,7 @@ done2:
 }
 
 #ifndef _SYS_SYSPROTO_H_
-struct kevent_args {
+struct sys_kevent_args {
 	int	fd;
 	const struct kevent *changelist;
 	int	nchanges;
@@ -719,7 +725,7 @@ struct kevent_args {
 };
 #endif
 int
-kevent(struct thread *td, struct kevent_args *uap)
+sys_kevent(struct thread *td, struct sys_kevent_args *uap)
 {
 	struct timespec ts, *tsp;
 	struct kevent_copyops k_ops = { uap,
@@ -776,11 +782,11 @@ kevent(struct thread *td, struct kevent_args *uap)
 static int
 kevent_copyout(void *arg, struct kevent *kevp, int count)
 {
-	struct kevent_args *uap;
+	struct sys_kevent_args *uap;
 	int error;
 
 	KASSERT(count <= KQ_NEVENTS, ("count (%d) > KQ_NEVENTS", count));
-	uap = (struct kevent_args *)arg;
+	uap = (struct sys_kevent_args *)arg;
 
 	error = copyout(kevp, uap->eventlist, count * sizeof *kevp);
 	if (error == 0)
@@ -794,11 +800,11 @@ kevent_copyout(void *arg, struct kevent *kevp, int count)
 static int
 kevent_copyin(void *arg, struct kevent *kevp, int count)
 {
-	struct kevent_args *uap;
+	struct sys_kevent_args *uap;
 	int error;
 
 	KASSERT(count <= KQ_NEVENTS, ("count (%d) > KQ_NEVENTS", count));
-	uap = (struct kevent_args *)arg;
+	uap = (struct sys_kevent_args *)arg;
 
 	error = copyin(uap->changelist, kevp, count * sizeof *kevp);
 	if (error == 0)

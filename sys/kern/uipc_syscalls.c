@@ -95,14 +95,16 @@ __FBSDID("$FreeBSD$");
 #endif /* SCTP */
 #endif /* INET || INET6 */
 
-static int sendit(struct thread *td, int s, struct msghdr *mp, int flags);
+int sendit(struct thread *td, int s, struct msghdr *mp, int flags);
 static int recvit(struct thread *td, int s, struct msghdr *mp, void *namelenp);
 
-static int accept1(struct thread *td, struct accept_args *uap, int compat);
+static int accept1(struct thread *td, struct sys_accept_args *uap, int compat);
+#ifndef PLEBNET
 static int do_sendfile(struct thread *td, struct sendfile_args *uap, int compat);
-static int getsockname1(struct thread *td, struct getsockname_args *uap,
+#endif
+static int getsockname1(struct thread *td, struct sys_getsockname_args *uap,
 			int compat);
-static int getpeername1(struct thread *td, struct getpeername_args *uap,
+static int getpeername1(struct thread *td, struct sys_getpeername_args *uap,
 			int compat);
 
 /*
@@ -157,23 +159,29 @@ getsock(struct filedesc *fdp, int fd, struct file **fpp, u_int *fflagp)
 #endif
 
 int
-socket(td, uap)
+sys_socket(td, uap)
 	struct thread *td;
-	struct socket_args /* {
+	struct sys_socket_args /* {
 		int	domain;
 		int	type;
 		int	protocol;
 	} */ *uap;
+{
+	AUDIT_ARG_SOCKET(uap->domain, uap->type, uap->protocol);
+
+	return (kern_socket(td, uap->domain, uap->type, uap->protocol));
+}
+int
+kern_socket(struct thread *td, int domain, int type, int protocol)
 {
 	struct filedesc *fdp;
 	struct socket *so;
 	struct file *fp;
 	int fd, error;
 
-	AUDIT_ARG_SOCKET(uap->domain, uap->type, uap->protocol);
 #ifdef MAC
-	error = mac_socket_check_create(td->td_ucred, uap->domain, uap->type,
-	    uap->protocol);
+	error = mac_socket_check_create(td->td_ucred, domain, type,
+	    protocol);
 	if (error)
 		return (error);
 #endif
@@ -182,7 +190,7 @@ socket(td, uap)
 	if (error)
 		return (error);
 	/* An extra reference on `fp' has been held for us by falloc(). */
-	error = socreate(uap->domain, &so, uap->type, uap->protocol,
+	error = socreate(domain, &so, type, protocol,
 	    td->td_ucred, td);
 	if (error) {
 		fdclose(fdp, fp, fd, td);
@@ -196,9 +204,9 @@ socket(td, uap)
 
 /* ARGSUSED */
 int
-bind(td, uap)
+sys_bind(td, uap)
 	struct thread *td;
-	struct bind_args /* {
+	struct sys_bind_args /* {
 		int	s;
 		caddr_t	name;
 		int	namelen;
@@ -245,26 +253,34 @@ kern_bind(td, fd, sa)
 
 /* ARGSUSED */
 int
-listen(td, uap)
+sys_listen(td, uap)
 	struct thread *td;
-	struct listen_args /* {
+	struct sys_listen_args /* {
 		int	s;
 		int	backlog;
 	} */ *uap;
+{
+
+	AUDIT_ARG_FD(uap->s);
+	
+	return (kern_listen(td, uap->s, uap->backlog));
+}
+
+int
+kern_listen(struct thread *td, int s, int backlog)
 {
 	struct socket *so;
 	struct file *fp;
 	int error;
 
-	AUDIT_ARG_FD(uap->s);
-	error = getsock(td->td_proc->p_fd, uap->s, &fp, NULL);
+	error = getsock(td->td_proc->p_fd, s, &fp, NULL);
 	if (error == 0) {
 		so = fp->f_data;
 #ifdef MAC
 		error = mac_socket_check_listen(td->td_ucred, so);
 		if (error == 0)
 #endif
-			error = solisten(so, uap->backlog, td);
+			error = solisten(so, backlog, td);
 		fdrop(fp, td);
 	}
 	return(error);
@@ -276,7 +292,7 @@ listen(td, uap)
 static int
 accept1(td, uap, compat)
 	struct thread *td;
-	struct accept_args /* {
+	struct sys_accept_args /* {
 		int	s;
 		struct sockaddr	* __restrict name;
 		socklen_t	* __restrict anamelen;
@@ -481,9 +497,9 @@ done:
 }
 
 int
-accept(td, uap)
+sys_accept(td, uap)
 	struct thread *td;
-	struct accept_args *uap;
+	struct sys_accept_args *uap;
 {
 
 	return (accept1(td, uap, 0));
@@ -502,9 +518,9 @@ oaccept(td, uap)
 
 /* ARGSUSED */
 int
-connect(td, uap)
+sys_connect(td, uap)
 	struct thread *td;
-	struct connect_args /* {
+	struct sys_connect_args /* {
 		int	s;
 		caddr_t	name;
 		int	namelen;
@@ -650,7 +666,7 @@ free1:
 }
 
 int
-socketpair(struct thread *td, struct socketpair_args *uap)
+sys_socketpair(struct thread *td, struct sys_socketpair_args *uap)
 {
 	int error, sv[2];
 
@@ -666,7 +682,7 @@ socketpair(struct thread *td, struct socketpair_args *uap)
 	return (error);
 }
 
-static int
+int
 sendit(td, s, mp, flags)
 	struct thread *td;
 	int s;
@@ -816,9 +832,9 @@ bad:
 }
 
 int
-sendto(td, uap)
+sys_sendto(td, uap)
 	struct thread *td;
-	struct sendto_args /* {
+	struct sys_sendto_args /* {
 		int	s;
 		caddr_t	buf;
 		size_t	len;
@@ -900,9 +916,9 @@ osendmsg(td, uap)
 #endif
 
 int
-sendmsg(td, uap)
+sys_sendmsg(td, uap)
 	struct thread *td;
-	struct sendmsg_args /* {
+	struct sys_sendmsg_args /* {
 		int	s;
 		caddr_t	msg;
 		int	flags;
@@ -1110,9 +1126,9 @@ recvit(td, s, mp, namelenp)
 }
 
 int
-recvfrom(td, uap)
+sys_recvfrom(td, uap)
 	struct thread *td;
-	struct recvfrom_args /* {
+	struct sys_recvfrom_args /* {
 		int	s;
 		caddr_t	buf;
 		size_t	len;
@@ -1220,9 +1236,9 @@ orecvmsg(td, uap)
 #endif
 
 int
-recvmsg(td, uap)
+sys_recvmsg(td, uap)
 	struct thread *td;
-	struct recvmsg_args /* {
+	struct sys_recvmsg_args /* {
 		int	s;
 		struct	msghdr *msg;
 		int	flags;
@@ -1255,22 +1271,30 @@ recvmsg(td, uap)
 
 /* ARGSUSED */
 int
-shutdown(td, uap)
+sys_shutdown(td, uap)
 	struct thread *td;
-	struct shutdown_args /* {
+	struct sys_shutdown_args /* {
 		int	s;
 		int	how;
 	} */ *uap;
+{
+
+	return (kern_shutdown(td, uap->s, uap->how));
+}
+
+
+int
+kern_shutdown(struct thread *td, int s, int how)
 {
 	struct socket *so;
 	struct file *fp;
 	int error;
 
-	AUDIT_ARG_FD(uap->s);
-	error = getsock(td->td_proc->p_fd, uap->s, &fp, NULL);
+	AUDIT_ARG_FD(s);
+	error = getsock(td->td_proc->p_fd, s, &fp, NULL);
 	if (error == 0) {
 		so = fp->f_data;
-		error = soshutdown(so, uap->how);
+		error = soshutdown(so, how);
 		fdrop(fp, td);
 	}
 	return (error);
@@ -1278,9 +1302,9 @@ shutdown(td, uap)
 
 /* ARGSUSED */
 int
-setsockopt(td, uap)
+sys_setsockopt(td, uap)
 	struct thread *td;
-	struct setsockopt_args /* {
+	struct sys_setsockopt_args /* {
 		int	s;
 		int	level;
 		int	name;
@@ -1341,9 +1365,9 @@ kern_setsockopt(td, s, level, name, val, valseg, valsize)
 
 /* ARGSUSED */
 int
-getsockopt(td, uap)
+sys_getsockopt(td, uap)
 	struct thread *td;
-	struct getsockopt_args /* {
+	struct sys_getsockopt_args /* {
 		int	s;
 		int	level;
 		int	name;
@@ -1426,7 +1450,7 @@ kern_getsockopt(td, s, level, name, val, valseg, valsize)
 static int
 getsockname1(td, uap, compat)
 	struct thread *td;
-	struct getsockname_args /* {
+	struct sys_getsockname_args /* {
 		int	fdes;
 		struct sockaddr * __restrict asa;
 		socklen_t * __restrict alen;
@@ -1500,9 +1524,9 @@ bad:
 }
 
 int
-getsockname(td, uap)
+sys_getsockname(td, uap)
 	struct thread *td;
-	struct getsockname_args *uap;
+	struct sys_getsockname_args *uap;
 {
 
 	return (getsockname1(td, uap, 0));
@@ -1526,7 +1550,7 @@ ogetsockname(td, uap)
 static int
 getpeername1(td, uap, compat)
 	struct thread *td;
-	struct getpeername_args /* {
+	struct sys_getpeername_args /* {
 		int	fdes;
 		struct sockaddr * __restrict	asa;
 		socklen_t * __restrict	alen;
@@ -1605,9 +1629,9 @@ done:
 }
 
 int
-getpeername(td, uap)
+sys_getpeername(td, uap)
 	struct thread *td;
-	struct getpeername_args *uap;
+	struct sys_getpeername_args *uap;
 {
 
 	return (getpeername1(td, uap, 0));
@@ -1694,6 +1718,7 @@ getsockaddr(namp, uaddr, len)
 	return (error);
 }
 
+#ifndef PLEBNET
 #include <sys/condvar.h>
 
 struct sendfile_sync {
@@ -2366,6 +2391,7 @@ done2:
 	return (EOPNOTSUPP);
 #endif /* SCTP */
 }
+#endif /* !PLEBNET */
 
 int
 sctp_generic_sendmsg (td, uap)

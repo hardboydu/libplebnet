@@ -36,9 +36,9 @@
 #define	FREEBSD32_SYS_freebsd32_recvmsg	27
 #define	FREEBSD32_SYS_freebsd32_sendmsg	28
 #define	FREEBSD32_SYS_freebsd32_recvfrom	29
-#define	FREEBSD32_SYS_accept	30
-#define	FREEBSD32_SYS_getpeername	31
-#define	FREEBSD32_SYS_getsockname	32
+#define	FREEBSD32_SYS_sys_accept	30
+#define	FREEBSD32_SYS_sys_getpeername	31
+#define	FREEBSD32_SYS_sys_getsockname	32
 #define	FREEBSD32_SYS_access	33
 #define	FREEBSD32_SYS_chflags	34
 #define	FREEBSD32_SYS_fchflags	35
@@ -101,16 +101,16 @@
 #define	FREEBSD32_SYS_freebsd32_select	93
 #define	FREEBSD32_SYS_fsync	95
 #define	FREEBSD32_SYS_setpriority	96
-#define	FREEBSD32_SYS_socket	97
-#define	FREEBSD32_SYS_connect	98
+#define	FREEBSD32_SYS_sys_socket	97
+#define	FREEBSD32_SYS_sys_connect	98
 				/* 99 is obsolete oaccept */
 #define	FREEBSD32_SYS_getpriority	100
 				/* 101 is obsolete osend */
 				/* 102 is obsolete orecv */
 				/* 103 is old freebsd32_sigreturn */
-#define	FREEBSD32_SYS_bind	104
-#define	FREEBSD32_SYS_setsockopt	105
-#define	FREEBSD32_SYS_listen	106
+#define	FREEBSD32_SYS_sys_bind	104
+#define	FREEBSD32_SYS_sys_setsockopt	105
+#define	FREEBSD32_SYS_sys_listen	106
 				/* 107 is obsolete vtimes */
 				/* 108 is old freebsd32_sigvec */
 				/* 109 is old freebsd32_sigblock */
@@ -122,7 +122,7 @@
 				/* 115 is obsolete vtrace */
 #define	FREEBSD32_SYS_freebsd32_gettimeofday	116
 #define	FREEBSD32_SYS_freebsd32_getrusage	117
-#define	FREEBSD32_SYS_getsockopt	118
+#define	FREEBSD32_SYS_sys_getsockopt	118
 #define	FREEBSD32_SYS_freebsd32_readv	120
 #define	FREEBSD32_SYS_freebsd32_writev	121
 #define	FREEBSD32_SYS_freebsd32_settimeofday	122
@@ -136,9 +136,9 @@
 				/* 130 is obsolete ftruncate */
 #define	FREEBSD32_SYS_flock	131
 #define	FREEBSD32_SYS_mkfifo	132
-#define	FREEBSD32_SYS_sendto	133
-#define	FREEBSD32_SYS_shutdown	134
-#define	FREEBSD32_SYS_socketpair	135
+#define	FREEBSD32_SYS_sys_sendto	133
+#define	FREEBSD32_SYS_sys_shutdown	134
+#define	FREEBSD32_SYS_sys_socketpair	135
 #define	FREEBSD32_SYS_mkdir	136
 #define	FREEBSD32_SYS_rmdir	137
 #define	FREEBSD32_SYS_freebsd32_utimes	138
@@ -289,7 +289,7 @@
 #define	FREEBSD32_SYS_freebsd32_aio_waitcomplete	359
 #define	FREEBSD32_SYS_getresuid	360
 #define	FREEBSD32_SYS_getresgid	361
-#define	FREEBSD32_SYS_kqueue	362
+#define	FREEBSD32_SYS_sys_kqueue	362
 #define	FREEBSD32_SYS_freebsd32_kevent	363
 #define	FREEBSD32_SYS_extattr_set_fd	371
 #define	FREEBSD32_SYS_extattr_get_fd	372

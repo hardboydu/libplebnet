@@ -33,12 +33,12 @@
 #define	SYS_getuid	24
 #define	SYS_geteuid	25
 #define	SYS_ptrace	26
-#define	SYS_recvmsg	27
-#define	SYS_sendmsg	28
-#define	SYS_recvfrom	29
-#define	SYS_accept	30
-#define	SYS_getpeername	31
-#define	SYS_getsockname	32
+#define	SYS_sys_recvmsg	27
+#define	SYS_sys_sendmsg	28
+#define	SYS_sys_recvfrom	29
+#define	SYS_sys_accept	30
+#define	SYS_sys_getpeername	31
+#define	SYS_sys_getsockname	32
 #define	SYS_access	33
 #define	SYS_chflags	34
 #define	SYS_fchflags	35
@@ -98,19 +98,19 @@
 #define	SYS_getdtablesize	89
 #define	SYS_dup2	90
 #define	SYS_fcntl	92
-#define	SYS_select	93
+#define	SYS_sys_select	93
 #define	SYS_fsync	95
 #define	SYS_setpriority	96
-#define	SYS_socket	97
-#define	SYS_connect	98
+#define	SYS_sys_socket	97
+#define	SYS_sys_connect	98
 				/* 99 is old accept */
 #define	SYS_getpriority	100
 				/* 101 is old send */
 				/* 102 is old recv */
 				/* 103 is old sigreturn */
-#define	SYS_bind	104
-#define	SYS_setsockopt	105
-#define	SYS_listen	106
+#define	SYS_sys_bind	104
+#define	SYS_sys_setsockopt	105
+#define	SYS_sys_listen	106
 				/* 107 is obsolete vtimes */
 				/* 108 is old sigvec */
 				/* 109 is old sigblock */
@@ -122,7 +122,7 @@
 				/* 115 is obsolete vtrace */
 #define	SYS_gettimeofday	116
 #define	SYS_getrusage	117
-#define	SYS_getsockopt	118
+#define	SYS_sys_getsockopt	118
 #define	SYS_readv	120
 #define	SYS_writev	121
 #define	SYS_settimeofday	122
@@ -136,9 +136,9 @@
 				/* 130 is old ftruncate */
 #define	SYS_flock	131
 #define	SYS_mkfifo	132
-#define	SYS_sendto	133
-#define	SYS_shutdown	134
-#define	SYS_socketpair	135
+#define	SYS_sys_sendto	133
+#define	SYS_sys_shutdown	134
+#define	SYS_sys_socketpair	135
 #define	SYS_mkdir	136
 #define	SYS_rmdir	137
 #define	SYS_utimes	138
@@ -300,8 +300,8 @@
 #define	SYS_aio_waitcomplete	359
 #define	SYS_getresuid	360
 #define	SYS_getresgid	361
-#define	SYS_kqueue	362
-#define	SYS_kevent	363
+#define	SYS_sys_kqueue	362
+#define	SYS_sys_kevent	363
 #define	SYS_extattr_set_fd	371
 #define	SYS_extattr_get_fd	372
 #define	SYS_extattr_delete_fd	373

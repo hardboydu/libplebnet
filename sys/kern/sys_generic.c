@@ -805,14 +805,14 @@ kern_pselect(struct thread *td, int nd, fd_set *in, fd_set *ou, fd_set *ex,
 }
 
 #ifndef _SYS_SYSPROTO_H_
-struct select_args {
+struct sys_select_args {
 	int	nd;
 	fd_set	*in, *ou, *ex;
 	struct	timeval *tv;
 };
 #endif
 int
-select(struct thread *td, struct select_args *uap)
+sys_select(struct thread *td, struct sys_select_args *uap)
 {
 	struct timeval tv, *tvp;
 	int error;

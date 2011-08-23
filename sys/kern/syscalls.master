@@ -98,21 +98,21 @@
 25	AUE_GETEUID	STD	{ uid_t geteuid(void); }
 26	AUE_PTRACE	STD	{ int ptrace(int req, pid_t pid, \
 				    caddr_t addr, int data); }
-27	AUE_RECVMSG	STD	{ int recvmsg(int s, struct msghdr *msg, \
+27	AUE_RECVMSG	STD	{ int sys_recvmsg(int s, struct msghdr *msg, \
 				    int flags); }
-28	AUE_SENDMSG	STD	{ int sendmsg(int s, struct msghdr *msg, \
+28	AUE_SENDMSG	STD	{ int sys_sendmsg(int s, struct msghdr *msg, \
 				    int flags); }
-29	AUE_RECVFROM	STD	{ int recvfrom(int s, caddr_t buf, \
+29	AUE_RECVFROM	STD	{ int sys_recvfrom(int s, caddr_t buf, \
 				    size_t len, int flags, \
 				    struct sockaddr * __restrict from, \
 				    __socklen_t * __restrict fromlenaddr); }
-30	AUE_ACCEPT	STD	{ int accept(int s, \
+30	AUE_ACCEPT	STD	{ int sys_accept(int s, \
 				    struct sockaddr * __restrict name, \
 				    __socklen_t * __restrict anamelen); }
-31	AUE_GETPEERNAME	STD	{ int getpeername(int fdes, \
+31	AUE_GETPEERNAME	STD	{ int sys_getpeername(int fdes, \
 				    struct sockaddr * __restrict asa, \
 				    __socklen_t * __restrict alen); }
-32	AUE_GETSOCKNAME	STD	{ int getsockname(int fdes, \
+32	AUE_GETSOCKNAME	STD	{ int sys_getsockname(int fdes, \
 				    struct sockaddr * __restrict asa, \
 				    __socklen_t * __restrict alen); }
 33	AUE_ACCESS	STD	{ int access(char *path, int flags); }
@@ -207,15 +207,15 @@
 92	AUE_FCNTL	STD	{ int fcntl(int fd, int cmd, long arg); }
 ; XXX should be	{ int fcntl(int fd, int cmd, ...); }
 ; but we're not ready for varargs.
-93	AUE_SELECT	STD	{ int select(int nd, fd_set *in, fd_set *ou, \
+93	AUE_SELECT	STD	{ int sys_select(int nd, fd_set *in, fd_set *ou, \
 				    fd_set *ex, struct timeval *tv); }
 94	AUE_NULL	UNIMPL	setdopt
 95	AUE_FSYNC	STD	{ int fsync(int fd); }
 96	AUE_SETPRIORITY	STD	{ int setpriority(int which, int who, \
 				    int prio); }
-97	AUE_SOCKET	STD	{ int socket(int domain, int type, \
+97	AUE_SOCKET	STD	{ int sys_socket(int domain, int type, \
 				    int protocol); }
-98	AUE_CONNECT	STD	{ int connect(int s, caddr_t name, \
+98	AUE_CONNECT	STD	{ int sys_connect(int s, caddr_t name, \
 				    int namelen); }
 99	AUE_ACCEPT	COMPAT|NOARGS { int accept(int s, caddr_t name, \
 				    int *anamelen); } accept accept_args int
@@ -226,11 +226,11 @@
 				    int flags); }
 103	AUE_SIGRETURN	COMPAT	{ int sigreturn( \
 				    struct osigcontext *sigcntxp); }
-104	AUE_BIND	STD	{ int bind(int s, caddr_t name, \
+104	AUE_BIND	STD	{ int sys_bind(int s, caddr_t name, \
 				    int namelen); }
-105	AUE_SETSOCKOPT	STD	{ int setsockopt(int s, int level, int name, \
+105	AUE_SETSOCKOPT	STD	{ int sys_setsockopt(int s, int level, int name, \
 				    caddr_t val, int valsize); }
-106	AUE_LISTEN	STD	{ int listen(int s, int backlog); }
+106	AUE_LISTEN	STD	{ int sys_listen(int s, int backlog); }
 107	AUE_NULL	OBSOL	vtimes
 108	AUE_NULL	COMPAT	{ int sigvec(int signum, struct sigvec *nsv, \
 				    struct sigvec *osv); }
@@ -250,7 +250,7 @@
 				    struct timezone *tzp); }
 117	AUE_GETRUSAGE	STD	{ int getrusage(int who, \
 				    struct rusage *rusage); }
-118	AUE_GETSOCKOPT	STD	{ int getsockopt(int s, int level, int name, \
+118	AUE_GETSOCKOPT	STD	{ int sys_getsockopt(int s, int level, int name, \
 				    caddr_t val, int *avalsize); }
 119	AUE_NULL	UNIMPL	resuba (BSD/OS 2.x)
 120	AUE_READV	STD	{ int readv(int fd, struct iovec *iovp, \
@@ -272,10 +272,10 @@
 130	AUE_FTRUNCATE	COMPAT	{ int ftruncate(int fd, long length); }
 131	AUE_FLOCK	STD	{ int flock(int fd, int how); }
 132	AUE_MKFIFO	STD	{ int mkfifo(char *path, int mode); }
-133	AUE_SENDTO	STD	{ int sendto(int s, caddr_t buf, size_t len, \
+133	AUE_SENDTO	STD	{ int sys_sendto(int s, caddr_t buf, size_t len, \
 				    int flags, caddr_t to, int tolen); }
-134	AUE_SHUTDOWN	STD	{ int shutdown(int s, int how); }
-135	AUE_SOCKETPAIR	STD	{ int socketpair(int domain, int type, \
+134	AUE_SHUTDOWN	STD	{ int sys_shutdown(int s, int how); }
+135	AUE_SOCKETPAIR	STD	{ int sys_socketpair(int domain, int type, \
 				    int protocol, int *rsv); }
 136	AUE_MKDIR	STD	{ int mkdir(char *path, int mode); }
 137	AUE_RMDIR	STD	{ int rmdir(char *path); }
@@ -648,8 +648,8 @@
 				    uid_t *suid); }
 361	AUE_GETRESGID	STD	{ int getresgid(gid_t *rgid, gid_t *egid, \
 				    gid_t *sgid); }
-362	AUE_KQUEUE	STD	{ int kqueue(void); }
-363	AUE_NULL	STD	{ int kevent(int fd, \
+362	AUE_KQUEUE	STD	{ int sys_kqueue(void); }
+363	AUE_NULL	STD	{ int sys_kevent(int fd, \
 				    struct kevent *changelist, int nchanges, \
 				    struct kevent *eventlist, int nevents, \
 				    const struct timespec *timeout); }

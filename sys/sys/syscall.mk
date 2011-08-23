@@ -27,12 +27,12 @@ MIASM =  \
 	getuid.o \
 	geteuid.o \
 	ptrace.o \
-	recvmsg.o \
-	sendmsg.o \
-	recvfrom.o \
-	accept.o \
-	getpeername.o \
-	getsockname.o \
+	sys_recvmsg.o \
+	sys_sendmsg.o \
+	sys_recvfrom.o \
+	sys_accept.o \
+	sys_getpeername.o \
+	sys_getsockname.o \
 	access.o \
 	chflags.o \
 	fchflags.o \
@@ -76,18 +76,18 @@ MIASM =  \
 	getdtablesize.o \
 	dup2.o \
 	fcntl.o \
-	select.o \
+	sys_select.o \
 	fsync.o \
 	setpriority.o \
-	socket.o \
-	connect.o \
+	sys_socket.o \
+	sys_connect.o \
 	getpriority.o \
-	bind.o \
-	setsockopt.o \
-	listen.o \
+	sys_bind.o \
+	sys_setsockopt.o \
+	sys_listen.o \
 	gettimeofday.o \
 	getrusage.o \
-	getsockopt.o \
+	sys_getsockopt.o \
 	readv.o \
 	writev.o \
 	settimeofday.o \
@@ -98,9 +98,9 @@ MIASM =  \
 	rename.o \
 	flock.o \
 	mkfifo.o \
-	sendto.o \
-	shutdown.o \
-	socketpair.o \
+	sys_sendto.o \
+	sys_shutdown.o \
+	sys_socketpair.o \
 	mkdir.o \
 	rmdir.o \
 	utimes.o \
@@ -249,8 +249,8 @@ MIASM =  \
 	aio_waitcomplete.o \
 	getresuid.o \
 	getresgid.o \
-	kqueue.o \
-	kevent.o \
+	sys_kqueue.o \
+	sys_kevent.o \
 	extattr_set_fd.o \
 	extattr_get_fd.o \
 	extattr_delete_fd.o \

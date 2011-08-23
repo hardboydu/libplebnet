@@ -184,27 +184,27 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 4;
 		break;
 	}
-	/* recvmsg */
+	/* sys_recvmsg */
 	case 27: {
-		struct recvmsg_args *p = params;
+		struct sys_recvmsg_args *p = params;
 		iarg[0] = p->s; /* int */
 		uarg[1] = (intptr_t) p->msg; /* struct msghdr * */
 		iarg[2] = p->flags; /* int */
 		*n_args = 3;
 		break;
 	}
-	/* sendmsg */
+	/* sys_sendmsg */
 	case 28: {
-		struct sendmsg_args *p = params;
+		struct sys_sendmsg_args *p = params;
 		iarg[0] = p->s; /* int */
 		uarg[1] = (intptr_t) p->msg; /* struct msghdr * */
 		iarg[2] = p->flags; /* int */
 		*n_args = 3;
 		break;
 	}
-	/* recvfrom */
+	/* sys_recvfrom */
 	case 29: {
-		struct recvfrom_args *p = params;
+		struct sys_recvfrom_args *p = params;
 		iarg[0] = p->s; /* int */
 		uarg[1] = (intptr_t) p->buf; /* caddr_t */
 		uarg[2] = p->len; /* size_t */
@@ -214,27 +214,27 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 6;
 		break;
 	}
-	/* accept */
+	/* sys_accept */
 	case 30: {
-		struct accept_args *p = params;
+		struct sys_accept_args *p = params;
 		iarg[0] = p->s; /* int */
 		uarg[1] = (intptr_t) p->name; /* struct sockaddr *__restrict */
 		uarg[2] = (intptr_t) p->anamelen; /* __socklen_t *__restrict */
 		*n_args = 3;
 		break;
 	}
-	/* getpeername */
+	/* sys_getpeername */
 	case 31: {
-		struct getpeername_args *p = params;
+		struct sys_getpeername_args *p = params;
 		iarg[0] = p->fdes; /* int */
 		uarg[1] = (intptr_t) p->asa; /* struct sockaddr *__restrict */
 		uarg[2] = (intptr_t) p->alen; /* __socklen_t *__restrict */
 		*n_args = 3;
 		break;
 	}
-	/* getsockname */
+	/* sys_getsockname */
 	case 32: {
-		struct getsockname_args *p = params;
+		struct sys_getsockname_args *p = params;
 		iarg[0] = p->fdes; /* int */
 		uarg[1] = (intptr_t) p->asa; /* struct sockaddr *__restrict */
 		uarg[2] = (intptr_t) p->alen; /* __socklen_t *__restrict */
@@ -563,9 +563,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 3;
 		break;
 	}
-	/* select */
+	/* sys_select */
 	case 93: {
-		struct select_args *p = params;
+		struct sys_select_args *p = params;
 		iarg[0] = p->nd; /* int */
 		uarg[1] = (intptr_t) p->in; /* fd_set * */
 		uarg[2] = (intptr_t) p->ou; /* fd_set * */
@@ -590,18 +590,18 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 3;
 		break;
 	}
-	/* socket */
+	/* sys_socket */
 	case 97: {
-		struct socket_args *p = params;
+		struct sys_socket_args *p = params;
 		iarg[0] = p->domain; /* int */
 		iarg[1] = p->type; /* int */
 		iarg[2] = p->protocol; /* int */
 		*n_args = 3;
 		break;
 	}
-	/* connect */
+	/* sys_connect */
 	case 98: {
-		struct connect_args *p = params;
+		struct sys_connect_args *p = params;
 		iarg[0] = p->s; /* int */
 		uarg[1] = (intptr_t) p->name; /* caddr_t */
 		iarg[2] = p->namelen; /* int */
@@ -616,18 +616,18 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 2;
 		break;
 	}
-	/* bind */
+	/* sys_bind */
 	case 104: {
-		struct bind_args *p = params;
+		struct sys_bind_args *p = params;
 		iarg[0] = p->s; /* int */
 		uarg[1] = (intptr_t) p->name; /* caddr_t */
 		iarg[2] = p->namelen; /* int */
 		*n_args = 3;
 		break;
 	}
-	/* setsockopt */
+	/* sys_setsockopt */
 	case 105: {
-		struct setsockopt_args *p = params;
+		struct sys_setsockopt_args *p = params;
 		iarg[0] = p->s; /* int */
 		iarg[1] = p->level; /* int */
 		iarg[2] = p->name; /* int */
@@ -636,9 +636,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 5;
 		break;
 	}
-	/* listen */
+	/* sys_listen */
 	case 106: {
-		struct listen_args *p = params;
+		struct sys_listen_args *p = params;
 		iarg[0] = p->s; /* int */
 		iarg[1] = p->backlog; /* int */
 		*n_args = 2;
@@ -660,9 +660,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 2;
 		break;
 	}
-	/* getsockopt */
+	/* sys_getsockopt */
 	case 118: {
-		struct getsockopt_args *p = params;
+		struct sys_getsockopt_args *p = params;
 		iarg[0] = p->s; /* int */
 		iarg[1] = p->level; /* int */
 		iarg[2] = p->name; /* int */
@@ -754,9 +754,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 2;
 		break;
 	}
-	/* sendto */
+	/* sys_sendto */
 	case 133: {
-		struct sendto_args *p = params;
+		struct sys_sendto_args *p = params;
 		iarg[0] = p->s; /* int */
 		uarg[1] = (intptr_t) p->buf; /* caddr_t */
 		uarg[2] = p->len; /* size_t */
@@ -766,17 +766,17 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 6;
 		break;
 	}
-	/* shutdown */
+	/* sys_shutdown */
 	case 134: {
-		struct shutdown_args *p = params;
+		struct sys_shutdown_args *p = params;
 		iarg[0] = p->s; /* int */
 		iarg[1] = p->how; /* int */
 		*n_args = 2;
 		break;
 	}
-	/* socketpair */
+	/* sys_socketpair */
 	case 135: {
-		struct socketpair_args *p = params;
+		struct sys_socketpair_args *p = params;
 		iarg[0] = p->domain; /* int */
 		iarg[1] = p->type; /* int */
 		iarg[2] = p->protocol; /* int */
@@ -1959,14 +1959,14 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 3;
 		break;
 	}
-	/* kqueue */
+	/* sys_kqueue */
 	case 362: {
 		*n_args = 0;
 		break;
 	}
-	/* kevent */
+	/* sys_kevent */
 	case 363: {
-		struct kevent_args *p = params;
+		struct sys_kevent_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = (intptr_t) p->changelist; /* struct kevent * */
 		iarg[2] = p->nchanges; /* int */
@@ -3481,7 +3481,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* recvmsg */
+	/* sys_recvmsg */
 	case 27:
 		switch(ndx) {
 		case 0:
@@ -3497,7 +3497,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sendmsg */
+	/* sys_sendmsg */
 	case 28:
 		switch(ndx) {
 		case 0:
@@ -3513,7 +3513,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* recvfrom */
+	/* sys_recvfrom */
 	case 29:
 		switch(ndx) {
 		case 0:
@@ -3538,7 +3538,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* accept */
+	/* sys_accept */
 	case 30:
 		switch(ndx) {
 		case 0:
@@ -3554,7 +3554,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* getpeername */
+	/* sys_getpeername */
 	case 31:
 		switch(ndx) {
 		case 0:
@@ -3570,7 +3570,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* getsockname */
+	/* sys_getsockname */
 	case 32:
 		switch(ndx) {
 		case 0:
@@ -4071,7 +4071,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* select */
+	/* sys_select */
 	case 93:
 		switch(ndx) {
 		case 0:
@@ -4119,7 +4119,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* socket */
+	/* sys_socket */
 	case 97:
 		switch(ndx) {
 		case 0:
@@ -4135,7 +4135,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* connect */
+	/* sys_connect */
 	case 98:
 		switch(ndx) {
 		case 0:
@@ -4164,7 +4164,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* bind */
+	/* sys_bind */
 	case 104:
 		switch(ndx) {
 		case 0:
@@ -4180,7 +4180,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* setsockopt */
+	/* sys_setsockopt */
 	case 105:
 		switch(ndx) {
 		case 0:
@@ -4202,7 +4202,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* listen */
+	/* sys_listen */
 	case 106:
 		switch(ndx) {
 		case 0:
@@ -4241,7 +4241,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* getsockopt */
+	/* sys_getsockopt */
 	case 118:
 		switch(ndx) {
 		case 0:
@@ -4402,7 +4402,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sendto */
+	/* sys_sendto */
 	case 133:
 		switch(ndx) {
 		case 0:
@@ -4427,7 +4427,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* shutdown */
+	/* sys_shutdown */
 	case 134:
 		switch(ndx) {
 		case 0:
@@ -4440,7 +4440,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* socketpair */
+	/* sys_socketpair */
 	case 135:
 		switch(ndx) {
 		case 0:
@@ -6362,10 +6362,10 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* kqueue */
+	/* sys_kqueue */
 	case 362:
 		break;
-	/* kevent */
+	/* sys_kevent */
 	case 363:
 		switch(ndx) {
 		case 0:
