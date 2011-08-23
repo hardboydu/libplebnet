@@ -470,6 +470,7 @@ taskqueue_start_threads(struct taskqueue **tqp, int count, int pri,
 		} else
 			tq->tq_tcount++;
 	}
+#ifndef PLEBNET
 	for (i = 0; i < count; i++) {
 		if (tq->tq_threads[i] == NULL)
 			continue;
@@ -479,7 +480,7 @@ taskqueue_start_threads(struct taskqueue **tqp, int count, int pri,
 		sched_add(td, SRQ_BORING);
 		thread_unlock(td);
 	}
-
+#endif
 	return (0);
 }
 
