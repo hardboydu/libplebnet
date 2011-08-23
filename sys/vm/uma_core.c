@@ -207,8 +207,9 @@ enum zfreeskip { SKIP_NONE, SKIP_DTOR, SKIP_FINI };
 #define	ZFREE_STATFREE	0x00000002	/* Update zone free statistic. */
 
 /* Prototypes.. */
-
+#ifndef PLEBNET
 static void *obj_alloc(uma_zone_t, int, u_int8_t *, int);
+#endif
 static void *page_alloc(uma_zone_t, int, u_int8_t *, int);
 static void *startup_alloc(uma_zone_t, int, u_int8_t *, int);
 static void page_free(void *, int, u_int8_t);
@@ -996,6 +997,7 @@ page_alloc(uma_zone_t zone, int bytes, u_int8_t *pflag, int wait)
 	return (p);
 }
 
+#ifndef PLEBNET
 /*
  * Allocates a number of pages from within an object
  *
@@ -1055,6 +1057,7 @@ done:
 
 	return ((void *)retkva);
 }
+#endif /* !PLEBNET */
 
 /*
  * Frees a number of pages to the system
@@ -2939,6 +2942,7 @@ uma_zone_set_allocf(uma_zone_t zone, uma_alloc allocf)
 	ZONE_UNLOCK(zone);
 }
 
+#ifndef PLEBNET
 /* See uma.h */
 int
 uma_zone_set_obj(uma_zone_t zone, struct vm_object *obj, int count)
@@ -2972,6 +2976,7 @@ uma_zone_set_obj(uma_zone_t zone, struct vm_object *obj, int count)
 	ZONE_UNLOCK(zone);
 	return (1);
 }
+#endif /* !PLEBNET */
 
 /* See uma.h */
 void
