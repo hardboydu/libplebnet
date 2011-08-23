@@ -120,6 +120,20 @@ _mtx_trylock(struct mtx *m, int opts, const char *file, int line)
 }
 
 void
+_mtx_lock_spin_flags(struct mtx *m, int opts, const char *file, int line)
+{
+
+	pthread_mutex_lock(&m->mtx_lock);
+}
+
+void
+_mtx_unlock_spin_flags(struct mtx *m, int opts, const char *file, int line)
+{
+
+	pthread_mutex_unlock(&m->mtx_lock);
+}
+
+void
 assert_rw(struct lock_object *lock, int what)
 {
 
@@ -138,6 +152,7 @@ struct lock_class lock_class_rw = {
 	.lc_owner = owner_rw,
 #endif
 };
+
 void
 rw_sysinit(void *arg)
 {

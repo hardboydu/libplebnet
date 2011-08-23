@@ -22,6 +22,7 @@ PN_KERN_COMMON_OBJS +=		\
 	subr_param.o		\
 	subr_pcpu.o		\
 	subr_sbuf.o		\
+	subr_taskqueue.o	\
 	sys_capability.o	\
 	sys_generic.o		\
 	sys_socket.o		\
@@ -140,7 +141,6 @@ PN_SYS_COMMON_OBJS = 		\
 	pn_private.o		\
 	pn_server_syscalls.o	\
 	pn_subr_prf.o		\
-	pn_subr_taskqueue.o	\
 	pn_syscall_wrapper.o	\
 	pn_user_sysctl.o	\
 	pn_veth.o

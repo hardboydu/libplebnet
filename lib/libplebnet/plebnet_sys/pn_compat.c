@@ -167,11 +167,16 @@ pthread_start_routine(void *arg)
 	pcurthread = psa->psa_td;
 	pcurthread->td_proc = &proc0;
 	psa->psa_start_routine(psa->psa_arg);
+	free(psa->psa_td);
 	free(psa);
 
 	return (NULL);
 }
 
+/*
+ * N.B. This doesn't actually create the proc if it doesn't exist. It 
+ * just uses proc0. 
+ */
 int
 kproc_kthread_add(void (*start_routine)(void *), void *arg,
     struct proc **p,  struct thread **td,
@@ -193,6 +198,34 @@ kproc_kthread_add(void (*start_routine)(void *), void *arg,
 	error = _pthread_create(&thread, &attr, pthread_start_routine, psa);
 
 	return (error);
+}
+
+int
+kthread_add(void (*start_routine)(void *), void *arg, struct proc *p,  
+    struct thread **td, int flags, int pages,
+    const char *str, ...)
+{
+	int error;
+	pthread_t thread;
+	pthread_attr_t attr;
+	struct pthread_start_args *psa;
+
+	*td = malloc(sizeof(struct thread));
+	psa = malloc(sizeof(struct pthread_start_args));
+	psa->psa_start_routine = start_routine;
+	psa->psa_arg = arg;
+	psa->psa_td = *td;
+	
+	pthread_attr_init(&attr); 
+	error = _pthread_create(&thread, &attr, pthread_start_routine, psa);
+
+	return (error);
+}
+
+void
+kthread_exit(void)
+{
+	/* nothing to do */;
 }
 
 void

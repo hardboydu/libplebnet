@@ -172,6 +172,32 @@ _sleep(void *ident, struct lock_object *lock, int priority,
 	return (rv);
 }
 
+int
+msleep_spin(void *ident, struct mtx *mtx, const char *wmesg, int timo)
+{
+	sleep_entry_t se;
+	int rv;
+	struct timespec ts;
+
+	pthread_mutex_lock(&synch_lock);
+	if ((se = se_lookup(ident)) != NULL)
+		se->waiters++;
+	else
+		se = se_alloc(ident, wmesg);
+	pthread_mutex_unlock(&synch_lock);
+
+	if (timo)
+		rv = pthread_cond_timedwait(&se->cond, &mtx->mtx_lock, &ts);
+	else
+		rv = pthread_cond_wait(&se->cond, &mtx->mtx_lock);
+
+	pthread_mutex_lock(&synch_lock);
+	se_free(se);
+	pthread_mutex_unlock(&synch_lock);
+
+	return (rv);
+}
+
 void
 wakeup(void *chan)
 {
