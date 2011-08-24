@@ -1383,23 +1383,23 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 3;
 		break;
 	}
-	/* aio_read */
+	/* sys_aio_read */
 	case 255: {
-		struct aio_read_args *p = params;
+		struct sys_aio_read_args *p = params;
 		uarg[0] = (intptr_t) p->aiocbp; /* struct aiocb * */
 		*n_args = 1;
 		break;
 	}
-	/* aio_write */
+	/* sys_aio_write */
 	case 256: {
-		struct aio_write_args *p = params;
+		struct sys_aio_write_args *p = params;
 		uarg[0] = (intptr_t) p->aiocbp; /* struct aiocb * */
 		*n_args = 1;
 		break;
 	}
-	/* lio_listio */
+	/* sys_lio_listio */
 	case 257: {
-		struct lio_listio_args *p = params;
+		struct sys_lio_listio_args *p = params;
 		iarg[0] = p->mode; /* int */
 		uarg[1] = (intptr_t) p->acb_list; /* struct aiocb *const * */
 		iarg[2] = p->nent; /* int */
@@ -1607,33 +1607,33 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 3;
 		break;
 	}
-	/* aio_return */
+	/* sys_aio_return */
 	case 314: {
-		struct aio_return_args *p = params;
+		struct sys_aio_return_args *p = params;
 		uarg[0] = (intptr_t) p->aiocbp; /* struct aiocb * */
 		*n_args = 1;
 		break;
 	}
-	/* aio_suspend */
+	/* sys_aio_suspend */
 	case 315: {
-		struct aio_suspend_args *p = params;
+		struct sys_aio_suspend_args *p = params;
 		uarg[0] = (intptr_t) p->aiocbp; /* struct aiocb *const * */
 		iarg[1] = p->nent; /* int */
 		uarg[2] = (intptr_t) p->timeout; /* const struct timespec * */
 		*n_args = 3;
 		break;
 	}
-	/* aio_cancel */
+	/* sys_aio_cancel */
 	case 316: {
-		struct aio_cancel_args *p = params;
+		struct sys_aio_cancel_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = (intptr_t) p->aiocbp; /* struct aiocb * */
 		*n_args = 2;
 		break;
 	}
-	/* aio_error */
+	/* sys_aio_error */
 	case 317: {
-		struct aio_error_args *p = params;
+		struct sys_aio_error_args *p = params;
 		uarg[0] = (intptr_t) p->aiocbp; /* struct aiocb * */
 		*n_args = 1;
 		break;
@@ -1933,9 +1933,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 3;
 		break;
 	}
-	/* aio_waitcomplete */
+	/* sys_aio_waitcomplete */
 	case 359: {
-		struct aio_waitcomplete_args *p = params;
+		struct sys_aio_waitcomplete_args *p = params;
 		uarg[0] = (intptr_t) p->aiocbp; /* struct aiocb ** */
 		uarg[1] = (intptr_t) p->timeout; /* struct timespec * */
 		*n_args = 2;
@@ -2674,9 +2674,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 2;
 		break;
 	}
-	/* aio_fsync */
+	/* sys_aio_fsync */
 	case 465: {
-		struct aio_fsync_args *p = params;
+		struct sys_aio_fsync_args *p = params;
 		iarg[0] = p->op; /* int */
 		uarg[1] = (intptr_t) p->aiocbp; /* struct aiocb * */
 		*n_args = 2;
@@ -5418,7 +5418,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* aio_read */
+	/* sys_aio_read */
 	case 255:
 		switch(ndx) {
 		case 0:
@@ -5428,7 +5428,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* aio_write */
+	/* sys_aio_write */
 	case 256:
 		switch(ndx) {
 		case 0:
@@ -5438,7 +5438,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* lio_listio */
+	/* sys_lio_listio */
 	case 257:
 		switch(ndx) {
 		case 0:
@@ -5782,7 +5782,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* aio_return */
+	/* sys_aio_return */
 	case 314:
 		switch(ndx) {
 		case 0:
@@ -5792,7 +5792,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* aio_suspend */
+	/* sys_aio_suspend */
 	case 315:
 		switch(ndx) {
 		case 0:
@@ -5808,7 +5808,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* aio_cancel */
+	/* sys_aio_cancel */
 	case 316:
 		switch(ndx) {
 		case 0:
@@ -5821,7 +5821,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* aio_error */
+	/* sys_aio_error */
 	case 317:
 		switch(ndx) {
 		case 0:
@@ -6317,7 +6317,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* aio_waitcomplete */
+	/* sys_aio_waitcomplete */
 	case 359:
 		switch(ndx) {
 		case 0:
@@ -7571,7 +7571,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* aio_fsync */
+	/* sys_aio_fsync */
 	case 465:
 		switch(ndx) {
 		case 0:

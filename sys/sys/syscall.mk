@@ -174,9 +174,9 @@ MIASM =  \
 	openbsd_poll.o \
 	issetugid.o \
 	lchown.o \
-	aio_read.o \
-	aio_write.o \
-	lio_listio.o \
+	sys_aio_read.o \
+	sys_aio_write.o \
+	sys_lio_listio.o \
 	getdents.o \
 	lchmod.o \
 	netbsd_lchown.o \
@@ -203,10 +203,10 @@ MIASM =  \
 	getsid.o \
 	setresuid.o \
 	setresgid.o \
-	aio_return.o \
-	aio_suspend.o \
-	aio_cancel.o \
-	aio_error.o \
+	sys_aio_return.o \
+	sys_aio_suspend.o \
+	sys_aio_cancel.o \
+	sys_aio_error.o \
 	oaio_read.o \
 	oaio_write.o \
 	olio_listio.o \
@@ -246,7 +246,7 @@ MIASM =  \
 	extattr_set_file.o \
 	extattr_get_file.o \
 	extattr_delete_file.o \
-	aio_waitcomplete.o \
+	sys_aio_waitcomplete.o \
 	getresuid.o \
 	getresgid.o \
 	sys_kqueue.o \
@@ -334,7 +334,7 @@ MIASM =  \
 	kmq_unlink.o \
 	abort2.o \
 	thr_set_name.o \
-	aio_fsync.o \
+	sys_aio_fsync.o \
 	rtprio_thread.o \
 	sctp_peeloff.o \
 	sctp_generic_sendmsg.o \

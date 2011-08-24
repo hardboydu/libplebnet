@@ -469,7 +469,9 @@ void	runningbufwakeup(struct buf *);
 void	waitrunningbufspace(void);
 caddr_t	kern_vfs_bio_buffer_alloc(caddr_t v, long physmem_est);
 void	bufinit(void);
+#ifndef PLEBNET
 void	bwillwrite(void);
+#endif
 int	buf_dirty_count_severe(void);
 void	bremfree(struct buf *);
 void	bremfreef(struct buf *);	/* XXX Force bremfree, only for nfs. */

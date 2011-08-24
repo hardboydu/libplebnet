@@ -222,9 +222,9 @@
 #define	SYS_openbsd_poll	252
 #define	SYS_issetugid	253
 #define	SYS_lchown	254
-#define	SYS_aio_read	255
-#define	SYS_aio_write	256
-#define	SYS_lio_listio	257
+#define	SYS_sys_aio_read	255
+#define	SYS_sys_aio_write	256
+#define	SYS_sys_lio_listio	257
 #define	SYS_getdents	272
 #define	SYS_lchmod	274
 #define	SYS_netbsd_lchown	275
@@ -252,10 +252,10 @@
 #define	SYS_setresuid	311
 #define	SYS_setresgid	312
 				/* 313 is obsolete signanosleep */
-#define	SYS_aio_return	314
-#define	SYS_aio_suspend	315
-#define	SYS_aio_cancel	316
-#define	SYS_aio_error	317
+#define	SYS_sys_aio_return	314
+#define	SYS_sys_aio_suspend	315
+#define	SYS_sys_aio_cancel	316
+#define	SYS_sys_aio_error	317
 #define	SYS_oaio_read	318
 #define	SYS_oaio_write	319
 #define	SYS_olio_listio	320
@@ -297,7 +297,7 @@
 #define	SYS_extattr_set_file	356
 #define	SYS_extattr_get_file	357
 #define	SYS_extattr_delete_file	358
-#define	SYS_aio_waitcomplete	359
+#define	SYS_sys_aio_waitcomplete	359
 #define	SYS_getresuid	360
 #define	SYS_getresgid	361
 #define	SYS_sys_kqueue	362
@@ -385,7 +385,7 @@
 #define	SYS_kmq_unlink	462
 #define	SYS_abort2	463
 #define	SYS_thr_set_name	464
-#define	SYS_aio_fsync	465
+#define	SYS_sys_aio_fsync	465
 #define	SYS_rtprio_thread	466
 #define	SYS_sctp_peeloff	471
 #define	SYS_sctp_generic_sendmsg	472

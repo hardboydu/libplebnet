@@ -423,15 +423,15 @@ static moduledata_t aio_mod = {
 };
 
 static struct syscall_helper_data aio_syscalls[] = {
-	SYSCALL_INIT_HELPER(aio_cancel),
-	SYSCALL_INIT_HELPER(aio_error),
-	SYSCALL_INIT_HELPER(aio_fsync),
-	SYSCALL_INIT_HELPER(aio_read),
-	SYSCALL_INIT_HELPER(aio_return),
-	SYSCALL_INIT_HELPER(aio_suspend),
-	SYSCALL_INIT_HELPER(aio_waitcomplete),
-	SYSCALL_INIT_HELPER(aio_write),
-	SYSCALL_INIT_HELPER(lio_listio),
+	SYSCALL_INIT_HELPER(sys_aio_cancel),
+	SYSCALL_INIT_HELPER(sys_aio_error),
+	SYSCALL_INIT_HELPER(sys_aio_fsync),
+	SYSCALL_INIT_HELPER(sys_aio_read),
+	SYSCALL_INIT_HELPER(sys_aio_return),
+	SYSCALL_INIT_HELPER(sys_aio_suspend),
+	SYSCALL_INIT_HELPER(sys_aio_waitcomplete),
+	SYSCALL_INIT_HELPER(sys_aio_write),
+	SYSCALL_INIT_HELPER(sys_lio_listio),
 	SYSCALL_INIT_HELPER(oaio_read),
 	SYSCALL_INIT_HELPER(oaio_write),
 	SYSCALL_INIT_HELPER(olio_listio),
@@ -1869,7 +1869,7 @@ kern_aio_return(struct thread *td, struct aiocb *uaiocb, struct aiocb_ops *ops)
 }
 
 int
-aio_return(struct thread *td, struct aio_return_args *uap)
+sys_aio_return(struct thread *td, struct sys_aio_return_args *uap)
 {
 
 	return (kern_aio_return(td, uap->aiocbp, &aiocb_ops));
@@ -1938,7 +1938,7 @@ RETURN:
 }
 
 int
-aio_suspend(struct thread *td, struct aio_suspend_args *uap)
+sys_aio_suspend(struct thread *td, struct sys_aio_suspend_args *uap)
 {
 	struct timespec ts, *tsp;
 	struct aiocb **ujoblist;
@@ -1968,7 +1968,7 @@ aio_suspend(struct thread *td, struct aio_suspend_args *uap)
  * progress.
  */
 int
-aio_cancel(struct thread *td, struct aio_cancel_args *uap)
+sys_aio_cancel(struct thread *td, struct sys_aio_cancel_args *uap)
 {
 	struct proc *p = td->td_proc;
 	struct kaioinfo *ki;
@@ -2110,7 +2110,7 @@ kern_aio_error(struct thread *td, struct aiocb *aiocbp, struct aiocb_ops *ops)
 }
 
 int
-aio_error(struct thread *td, struct aio_error_args *uap)
+sys_aio_error(struct thread *td, struct sys_aio_error_args *uap)
 {
 
 	return (kern_aio_error(td, uap->aiocbp, &aiocb_ops));
@@ -2126,7 +2126,7 @@ oaio_read(struct thread *td, struct oaio_read_args *uap)
 }
 
 int
-aio_read(struct thread *td, struct aio_read_args *uap)
+sys_aio_read(struct thread *td, struct sys_aio_read_args *uap)
 {
 
 	return (aio_aqueue(td, uap->aiocbp, NULL, LIO_READ, &aiocb_ops));
@@ -2142,7 +2142,7 @@ oaio_write(struct thread *td, struct oaio_write_args *uap)
 }
 
 int
-aio_write(struct thread *td, struct aio_write_args *uap)
+sys_aio_write(struct thread *td, struct sys_aio_write_args *uap)
 {
 
 	return (aio_aqueue(td, uap->aiocbp, NULL, LIO_WRITE, &aiocb_ops));
@@ -2322,7 +2322,7 @@ olio_listio(struct thread *td, struct olio_listio_args *uap)
 
 /* syscall - list directed I/O (REALTIME) */
 int
-lio_listio(struct thread *td, struct lio_listio_args *uap)
+sys_lio_listio(struct thread *td, struct sys_lio_listio_args *uap)
 {
 	struct aiocb **acb_list;
 	struct sigevent *sigp, sig;
@@ -2471,7 +2471,7 @@ kern_aio_waitcomplete(struct thread *td, struct aiocb **aiocbp,
 }
 
 int
-aio_waitcomplete(struct thread *td, struct aio_waitcomplete_args *uap)
+sys_aio_waitcomplete(struct thread *td, struct sys_aio_waitcomplete_args *uap)
 {
 	struct timespec ts, *tsp;
 	int error;
@@ -2504,7 +2504,7 @@ kern_aio_fsync(struct thread *td, int op, struct aiocb *aiocbp,
 }
 
 int
-aio_fsync(struct thread *td, struct aio_fsync_args *uap)
+sys_aio_fsync(struct thread *td, struct sys_aio_fsync_args *uap)
 {
 
 	return (kern_aio_fsync(td, uap->op, uap->aiocbp, &aiocb_ops));
@@ -2842,7 +2842,7 @@ int
 freebsd32_aio_cancel(struct thread *td, struct freebsd32_aio_cancel_args *uap)
 {
 
-	return (aio_cancel(td, (struct aio_cancel_args *)uap));
+	return (sys_aio_cancel(td, (struct aio_cancel_args *)uap));
 }
 
 int

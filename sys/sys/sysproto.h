@@ -750,13 +750,13 @@ struct lchown_args {
 	char uid_l_[PADL_(int)]; int uid; char uid_r_[PADR_(int)];
 	char gid_l_[PADL_(int)]; int gid; char gid_r_[PADR_(int)];
 };
-struct aio_read_args {
+struct sys_aio_read_args {
 	char aiocbp_l_[PADL_(struct aiocb *)]; struct aiocb * aiocbp; char aiocbp_r_[PADR_(struct aiocb *)];
 };
-struct aio_write_args {
+struct sys_aio_write_args {
 	char aiocbp_l_[PADL_(struct aiocb *)]; struct aiocb * aiocbp; char aiocbp_r_[PADR_(struct aiocb *)];
 };
-struct lio_listio_args {
+struct sys_lio_listio_args {
 	char mode_l_[PADL_(int)]; int mode; char mode_r_[PADR_(int)];
 	char acb_list_l_[PADL_(struct aiocb *const *)]; struct aiocb *const * acb_list; char acb_list_r_[PADR_(struct aiocb *const *)];
 	char nent_l_[PADL_(int)]; int nent; char nent_r_[PADR_(int)];
@@ -852,19 +852,19 @@ struct setresgid_args {
 	char egid_l_[PADL_(gid_t)]; gid_t egid; char egid_r_[PADR_(gid_t)];
 	char sgid_l_[PADL_(gid_t)]; gid_t sgid; char sgid_r_[PADR_(gid_t)];
 };
-struct aio_return_args {
+struct sys_aio_return_args {
 	char aiocbp_l_[PADL_(struct aiocb *)]; struct aiocb * aiocbp; char aiocbp_r_[PADR_(struct aiocb *)];
 };
-struct aio_suspend_args {
+struct sys_aio_suspend_args {
 	char aiocbp_l_[PADL_(struct aiocb *const *)]; struct aiocb *const * aiocbp; char aiocbp_r_[PADR_(struct aiocb *const *)];
 	char nent_l_[PADL_(int)]; int nent; char nent_r_[PADR_(int)];
 	char timeout_l_[PADL_(const struct timespec *)]; const struct timespec * timeout; char timeout_r_[PADR_(const struct timespec *)];
 };
-struct aio_cancel_args {
+struct sys_aio_cancel_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char aiocbp_l_[PADL_(struct aiocb *)]; struct aiocb * aiocbp; char aiocbp_r_[PADR_(struct aiocb *)];
 };
-struct aio_error_args {
+struct sys_aio_error_args {
 	char aiocbp_l_[PADL_(struct aiocb *)]; struct aiocb * aiocbp; char aiocbp_r_[PADR_(struct aiocb *)];
 };
 struct oaio_read_args {
@@ -1024,7 +1024,7 @@ struct extattr_delete_file_args {
 	char attrnamespace_l_[PADL_(int)]; int attrnamespace; char attrnamespace_r_[PADR_(int)];
 	char attrname_l_[PADL_(const char *)]; const char * attrname; char attrname_r_[PADR_(const char *)];
 };
-struct aio_waitcomplete_args {
+struct sys_aio_waitcomplete_args {
 	char aiocbp_l_[PADL_(struct aiocb **)]; struct aiocb ** aiocbp; char aiocbp_r_[PADR_(struct aiocb **)];
 	char timeout_l_[PADL_(struct timespec *)]; struct timespec * timeout; char timeout_r_[PADR_(struct timespec *)];
 };
@@ -1415,7 +1415,7 @@ struct thr_set_name_args {
 	char id_l_[PADL_(long)]; long id; char id_r_[PADR_(long)];
 	char name_l_[PADL_(const char *)]; const char * name; char name_r_[PADR_(const char *)];
 };
-struct aio_fsync_args {
+struct sys_aio_fsync_args {
 	char op_l_[PADL_(int)]; int op; char op_r_[PADR_(int)];
 	char aiocbp_l_[PADL_(struct aiocb *)]; struct aiocb * aiocbp; char aiocbp_r_[PADR_(struct aiocb *)];
 };
@@ -1882,9 +1882,9 @@ int	rfork(struct thread *, struct rfork_args *);
 int	openbsd_poll(struct thread *, struct openbsd_poll_args *);
 int	issetugid(struct thread *, struct issetugid_args *);
 int	lchown(struct thread *, struct lchown_args *);
-int	aio_read(struct thread *, struct aio_read_args *);
-int	aio_write(struct thread *, struct aio_write_args *);
-int	lio_listio(struct thread *, struct lio_listio_args *);
+int	sys_aio_read(struct thread *, struct sys_aio_read_args *);
+int	sys_aio_write(struct thread *, struct sys_aio_write_args *);
+int	sys_lio_listio(struct thread *, struct sys_lio_listio_args *);
 int	getdents(struct thread *, struct getdents_args *);
 int	lchmod(struct thread *, struct lchmod_args *);
 int	lutimes(struct thread *, struct lutimes_args *);
@@ -1908,10 +1908,10 @@ int	kldfirstmod(struct thread *, struct kldfirstmod_args *);
 int	getsid(struct thread *, struct getsid_args *);
 int	setresuid(struct thread *, struct setresuid_args *);
 int	setresgid(struct thread *, struct setresgid_args *);
-int	aio_return(struct thread *, struct aio_return_args *);
-int	aio_suspend(struct thread *, struct aio_suspend_args *);
-int	aio_cancel(struct thread *, struct aio_cancel_args *);
-int	aio_error(struct thread *, struct aio_error_args *);
+int	sys_aio_return(struct thread *, struct sys_aio_return_args *);
+int	sys_aio_suspend(struct thread *, struct sys_aio_suspend_args *);
+int	sys_aio_cancel(struct thread *, struct sys_aio_cancel_args *);
+int	sys_aio_error(struct thread *, struct sys_aio_error_args *);
 int	oaio_read(struct thread *, struct oaio_read_args *);
 int	oaio_write(struct thread *, struct oaio_write_args *);
 int	olio_listio(struct thread *, struct olio_listio_args *);
@@ -1948,7 +1948,7 @@ int	extattrctl(struct thread *, struct extattrctl_args *);
 int	extattr_set_file(struct thread *, struct extattr_set_file_args *);
 int	extattr_get_file(struct thread *, struct extattr_get_file_args *);
 int	extattr_delete_file(struct thread *, struct extattr_delete_file_args *);
-int	aio_waitcomplete(struct thread *, struct aio_waitcomplete_args *);
+int	sys_aio_waitcomplete(struct thread *, struct sys_aio_waitcomplete_args *);
 int	getresuid(struct thread *, struct getresuid_args *);
 int	getresgid(struct thread *, struct getresgid_args *);
 int	sys_kqueue(struct thread *, struct sys_kqueue_args *);
@@ -2036,7 +2036,7 @@ int	kmq_notify(struct thread *, struct kmq_notify_args *);
 int	kmq_unlink(struct thread *, struct kmq_unlink_args *);
 int	abort2(struct thread *, struct abort2_args *);
 int	thr_set_name(struct thread *, struct thr_set_name_args *);
-int	aio_fsync(struct thread *, struct aio_fsync_args *);
+int	sys_aio_fsync(struct thread *, struct sys_aio_fsync_args *);
 int	rtprio_thread(struct thread *, struct rtprio_thread_args *);
 int	sctp_peeloff(struct thread *, struct sctp_peeloff_args *);
 int	sctp_generic_sendmsg(struct thread *, struct sctp_generic_sendmsg_args *);
@@ -2565,9 +2565,9 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_openbsd_poll	AUE_POLL
 #define	SYS_AUE_issetugid	AUE_ISSETUGID
 #define	SYS_AUE_lchown	AUE_LCHOWN
-#define	SYS_AUE_aio_read	AUE_NULL
-#define	SYS_AUE_aio_write	AUE_NULL
-#define	SYS_AUE_lio_listio	AUE_NULL
+#define	SYS_AUE_sys_aio_read	AUE_NULL
+#define	SYS_AUE_sys_aio_write	AUE_NULL
+#define	SYS_AUE_sys_lio_listio	AUE_NULL
 #define	SYS_AUE_getdents	AUE_O_GETDENTS
 #define	SYS_AUE_lchmod	AUE_LCHMOD
 #define	SYS_AUE_lutimes	AUE_LUTIMES
@@ -2592,10 +2592,10 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_getsid	AUE_GETSID
 #define	SYS_AUE_setresuid	AUE_SETRESUID
 #define	SYS_AUE_setresgid	AUE_SETRESGID
-#define	SYS_AUE_aio_return	AUE_NULL
-#define	SYS_AUE_aio_suspend	AUE_NULL
-#define	SYS_AUE_aio_cancel	AUE_NULL
-#define	SYS_AUE_aio_error	AUE_NULL
+#define	SYS_AUE_sys_aio_return	AUE_NULL
+#define	SYS_AUE_sys_aio_suspend	AUE_NULL
+#define	SYS_AUE_sys_aio_cancel	AUE_NULL
+#define	SYS_AUE_sys_aio_error	AUE_NULL
 #define	SYS_AUE_oaio_read	AUE_NULL
 #define	SYS_AUE_oaio_write	AUE_NULL
 #define	SYS_AUE_olio_listio	AUE_NULL
@@ -2635,7 +2635,7 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_extattr_set_file	AUE_EXTATTR_SET_FILE
 #define	SYS_AUE_extattr_get_file	AUE_EXTATTR_GET_FILE
 #define	SYS_AUE_extattr_delete_file	AUE_EXTATTR_DELETE_FILE
-#define	SYS_AUE_aio_waitcomplete	AUE_NULL
+#define	SYS_AUE_sys_aio_waitcomplete	AUE_NULL
 #define	SYS_AUE_getresuid	AUE_GETRESUID
 #define	SYS_AUE_getresgid	AUE_GETRESGID
 #define	SYS_AUE_sys_kqueue	AUE_KQUEUE
@@ -2723,7 +2723,7 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_kmq_unlink	AUE_NULL
 #define	SYS_AUE_abort2	AUE_NULL
 #define	SYS_AUE_thr_set_name	AUE_NULL
-#define	SYS_AUE_aio_fsync	AUE_NULL
+#define	SYS_AUE_sys_aio_fsync	AUE_NULL
 #define	SYS_AUE_rtprio_thread	AUE_RTPRIO
 #define	SYS_AUE_sctp_peeloff	AUE_NULL
 #define	SYS_AUE_sctp_generic_sendmsg	AUE_NULL
