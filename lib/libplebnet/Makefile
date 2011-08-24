@@ -23,6 +23,7 @@ PN_KERN_COMMON_OBJS +=		\
 	subr_pcpu.o		\
 	subr_sbuf.o		\
 	subr_taskqueue.o	\
+	subr_unit.o		\
 	sys_capability.o	\
 	sys_generic.o		\
 	sys_socket.o		\
@@ -143,7 +144,8 @@ PN_SYS_COMMON_OBJS = 		\
 	pn_subr_prf.o		\
 	pn_syscall_wrapper.o	\
 	pn_user_sysctl.o	\
-	pn_veth.o
+	pn_veth.o		\
+	pn_vfs_aio.o
 
 
 PN_MFILES = 			\
@@ -183,7 +185,8 @@ PN_OPT_FILES = 			\
 	opt_capsicum.h		\
 	opt_msgbuf.h		\
 	opt_ofed.h		\
-	opt_pcbgroup.h
+	opt_pcbgroup.h		\
+	opt_vfs_aio.h
 
 # Search for kernel source tree in standard places.
 .for _dir in ${.CURDIR}/../.. ${.CURDIR}/../../sys ${.CURDIR}/../../.. /sys /usr/src/sys
