@@ -57,6 +57,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/conf.h>
 #include <sys/event.h>
 #include <sys/mount.h>
+#include <sys/uio.h>
 
 #include <machine/atomic.h>
 
@@ -340,11 +341,13 @@ static void	aio_process(struct aiocblist *aiocbe);
 static int	aio_newproc(int *);
 int		aio_aqueue(struct thread *td, struct aiocb *job,
 			struct aioliojob *lio, int type, struct aiocb_ops *ops);
-static void	aio_physwakeup(struct buf *bp);
 static void	aio_proc_rundown(void *arg, struct proc *p);
 static void	aio_proc_rundown_exec(void *arg, struct proc *p, struct image_params *imgp);
+#ifndef PLEBNET
+static void	aio_physwakeup(struct buf *bp);
 static int	aio_qphysio(struct proc *p, struct aiocblist *iocb);
 static void	biohelper(void *, int);
+#endif
 static void	aio_daemon(void *param);
 static void	aio_swake_cb(struct socket *, struct sockbuf *);
 static int	aio_unload(void);
@@ -826,6 +829,7 @@ aio_selectjob(struct aiothreadlist *aiop)
 	return (aiocbe);
 }
 
+#ifndef PLEBNET
 /*
  *  Move all data to a permanent storage device, this code
  *  simulates fsync syscall.
@@ -854,6 +858,7 @@ drop:
 	VFS_UNLOCK_GIANT(vfslocked);
 	return (error);
 }
+#endif
 
 /*
  * The AIO processing activity.  This is the code that does the I/O request for
@@ -884,6 +889,7 @@ aio_process(struct aiocblist *aiocbe)
 	cb = &aiocbe->uaiocb;
 	fp = aiocbe->fd_file;
 
+#ifndef PLEBNET
 	if (cb->aio_lio_opcode == LIO_SYNC) {
 		error = 0;
 		cnt = 0;
@@ -894,6 +900,7 @@ aio_process(struct aiocblist *aiocbe)
 		td->td_ucred = td_savedcred;
 		return;
 	}
+#endif
 
 	aiov.iov_base = (void *)(uintptr_t)cb->aio_buf;
 	aiov.iov_len = cb->aio_nbytes;
@@ -1237,6 +1244,7 @@ aio_newproc(int *start)
 	return (error);
 }
 
+#ifndef PLEBNET
 /*
  * Try the high-performance, low-overhead physio method for eligible
  * VCHR devices.  This method doesn't use an aio helper thread, and
@@ -1360,6 +1368,7 @@ doerror:
 	relpbuf(bp, NULL);
 	return (error);
 }
+#endif
 
 /*
  * Wake up aio requests that may be serviceable now.
@@ -1698,8 +1707,10 @@ no_kqueue:
 		SOCKBUF_UNLOCK(sb);
 	}
 
+#ifndef PLEBNET
 	if ((error = aio_qphysio(p, aiocbe)) == 0)
 		goto done;
+#endif
 #if 0
 	if (error > 0) {
 		aiocbe->uaiocb._aiocb_private.error = error;
@@ -1981,11 +1992,13 @@ aio_cancel(struct thread *td, struct aio_cancel_args *uap)
 
 	if (fp->f_type == DTYPE_VNODE) {
 		vp = fp->f_vnode;
+#ifndef PLEBNET
 		if (vn_isdisk(vp, &error)) {
 			fdrop(fp, td);
 			td->td_retval[0] = AIO_NOTCANCELED;
 			return (0);
 		}
+#endif
 	}
 
 	AIO_LOCK(ki);
@@ -2339,6 +2352,7 @@ lio_listio(struct thread *td, struct lio_listio_args *uap)
 	return (error);
 }
 
+#ifndef PLEBNET
 /*
  * Called from interrupt thread for physio, we should return as fast
  * as possible, so we schedule a biohelper task.
@@ -2388,6 +2402,7 @@ biohelper(void *context, int pending)
 	relpbuf(bp, NULL);
 	atomic_subtract_int(&num_buf_aio, 1);
 }
+#endif
 
 /* syscall - wait for the next completion of an aio request */
 static int
