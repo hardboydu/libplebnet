@@ -61,6 +61,9 @@ SYSCTL_NODE(_kern, OID_AUTO, features, CTLFLAG_RD, 0, "Kernel Features");
 SYSCTL_NODE(, 0,	  sysctl, CTLFLAG_RW, 0,
 	"Sysctl internal magic");
 
+SYSCTL_NODE(, CTL_VFS,	  vfs,     CTLFLAG_RW, 0,
+	"File system");
+
 SYSCTL_NODE(, CTL_KERN,	  kern,   CTLFLAG_RW, 0,
 	"High kernel, proc, limits &c");
 
