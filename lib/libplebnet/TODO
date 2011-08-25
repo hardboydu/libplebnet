@@ -1,13 +1,16 @@
 
-- initializing individual proc struct per pid for RPC functions
+Functional completeness:
 - callout emulation
+- aio support
+
+Robustness:
 - tracking kernel file descriptors
-- aio functions
-- enabling kevent / kqueue
-- taskqueue functions
+- properly handling mixed descriptors in kqueue, poll, and select
+
+Generality of use:
 - handling fork
 - conditional compilation of ipv4 and ipv6
-
+- initializing individual proc struct per pid for RPC functions
 - enabling compilation of SCTP
 - libnetstat for providing netstat interface to stack
 
