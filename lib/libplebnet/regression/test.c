@@ -1,5 +1,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/errno.h>
 #include <netdb.h>
 
 #include <stdio.h>
@@ -40,9 +41,9 @@ main(void)
 
 	fd = socket(PF_INET, SOCK_DGRAM, 0);
 	printf("fd=%d\n", fd);
-	sleep(3000);
+	sleep(180);
 	error = sendmsg(fd, &msg, 0);
-	printf("sendmsg returned %d\n", error);
+	printf("sendmsg returned %s\n", strerror(errno));
 	return (0);
 }
 	
