@@ -33,6 +33,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/wait.h>
 
 #include <err.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -48,9 +49,12 @@ struct test all_tests[] = {
 	TEST_INIT(capmode),
 	TEST_INIT(capabilities),
 	TEST_INIT(fcntl),
+	TEST_INIT(pdfork),
+	TEST_INIT(pdkill),
+	TEST_INIT(relative),
 	TEST_INIT(sysctl),
 };
-size_t test_count = sizeof(all_tests) / sizeof(struct test);
+int test_count = sizeof(all_tests) / sizeof(struct test);
 
 int
 main(int argc, char *argv[])
@@ -60,9 +64,9 @@ main(int argc, char *argv[])
 	 * If no tests have been specified at the command line, run them all.
 	 */
 	if (argc == 1) {
-		printf("1..%ld\n", test_count);
+		printf("1..%d\n", test_count);
 
-		for (size_t i = 0; i < test_count; i++)
+		for (int i = 0; i < test_count; i++)
 			execute(i + 1, all_tests + i);
 		return (0);
 	}
@@ -74,7 +78,7 @@ main(int argc, char *argv[])
 	for (int i = 1; i < argc; i++)
 	{
 		int found = 0;
-		for (size_t j = 0; j < test_count; j++) {
+		for (int j = 0; j < test_count; j++) {
 			if (strncmp(argv[i], all_tests[j].t_name,
 			    strlen(argv[i])) == 0) {
 				found = 1;
