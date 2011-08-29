@@ -433,7 +433,9 @@ taskqueue_start_threads(struct taskqueue **tqp, int count, int pri,
 			const char *name, ...)
 {
 	va_list ap;
+#ifndef PLEBNET
 	struct thread *td;
+#endif
 	struct taskqueue *tq;
 	int i, error;
 	char ktname[MAXCOMLEN + 1];
