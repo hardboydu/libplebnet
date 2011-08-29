@@ -28,6 +28,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/malloc.h>
 #include <sys/bio.h>
 #include <sys/buf.h>
+#include <sys/capability.h>
 #include <sys/eventhandler.h>
 #include <sys/sysproto.h>
 #include <sys/filedesc.h>
@@ -314,8 +315,20 @@ struct kaioinfo {
 #define KAIO_RUNDOWN	0x1	/* process is being run down */
 #define KAIO_WAKEUP	0x2	/* wakeup process when there is a significant event */
 
+struct aiocb_ops {
+	int	(*copyin)(struct aiocb *ujob, struct aiocb *kjob);
+	long	(*fetch_status)(struct aiocb *ujob);
+	long	(*fetch_error)(struct aiocb *ujob);
+	void	(*store_status)(struct aiocb *ujob, long status);
+	void	(*store_error)(struct aiocb *ujob, long error);
+	void	(*store_kernelinfo)(struct aiocb *ujob, long jobref);
+	void	(*store_aiocb)(struct aiocb **ujobp, struct aiocb *ujob);
+};
+
 static TAILQ_HEAD(,aiothreadlist) aio_freeproc;		/* (c) Idle daemons */
+#ifdef notyet
 static struct sema aio_newproc_sem;
+#endif
 static struct mtx aio_job_mtx;
 static struct mtx aio_sock_mtx;
 static TAILQ_HEAD(,aiocblist) aio_jobs;			/* (c) Async job list */
@@ -330,7 +343,9 @@ static void	aio_process(struct aiocblist *aiocbe);
 static int	aio_newproc(int *);
 static void	aio_proc_rundown(void *arg, struct proc *p);
 static void	aio_proc_rundown_exec(void *arg, struct proc *p, struct image_params *imgp);
+#ifdef notyet
 static void	aio_daemon(void *param);
+#endif
 static void	aio_swake_cb(struct socket *, struct sockbuf *);
 static int	aio_unload(void);
 static void	aio_bio_done_notify(struct proc *userp, struct aiocblist *aiocbe, int type);
@@ -346,15 +361,7 @@ static int	filt_lioattach(struct knote *kn);
 static void	filt_liodetach(struct knote *kn);
 static int	filt_lio(struct knote *kn, long hint);
 
-struct aiocb_ops {
-	int	(*copyin)(struct aiocb *ujob, struct aiocb *kjob);
-	long	(*fetch_status)(struct aiocb *ujob);
-	long	(*fetch_error)(struct aiocb *ujob);
-	void	(*store_status)(struct aiocb *ujob, long status);
-	void	(*store_error)(struct aiocb *ujob, long error);
-	void	(*store_kernelinfo)(struct aiocb *ujob, long jobref);
-	void	(*store_aiocb)(struct aiocb **ujobp, struct aiocb *ujob);
-};
+static int	kern_aio_cancel(struct thread *td, int fd, struct aiocb *aiocbp);
 
 /*
  * Zones for:
@@ -958,6 +965,7 @@ notification_done:
 	}
 }
 
+#ifdef notyet
 /*
  * The AIO daemon, most of the actual work is done in aio_process,
  * but the setup (and address space mgmt) is done in this routine.
@@ -990,7 +998,7 @@ aio_daemon(void *_id)
 	aiop->aiothreadflags = 0;
 
 	/* The daemon resides in its own pgrp. */
-	setsid(td, NULL);
+	sys_setsid(td, NULL);
 
 #ifdef notyet
 	/*
@@ -1075,7 +1083,7 @@ aio_daemon(void *_id)
 	mtx_unlock(&aio_job_mtx);
 	panic("shouldn't be here\n");
 }
-
+#endif
 /*
  * Create a new AIO daemon. This is mostly a kernel-thread fork routine. The
  * AIO daemon modifies its environment itself.
@@ -1330,13 +1338,13 @@ aio_aqueue(struct thread *td, struct aiocb *job, void *jobarg,
 	fd = aiocbe->uaiocb.aio_fildes;
 	switch (opcode) {
 	case LIO_WRITE:
-		error = fget_write(td, fd, &fp);
+		error = fget_write(td, fd, CAP_WRITE | CAP_SEEK, &fp);
 		break;
 	case LIO_READ:
-		error = fget_read(td, fd, &fp);
+		error = fget_read(td, fd, CAP_WRITE | CAP_SEEK, &fp);
 		break;
 	default:
-		error = fget(td, fd, &fp);
+		error = fget(td, fd, 0, &fp);
 	}
 	if (error) {
 		uma_zfree(aiocb_zone, aiocbe);
@@ -1601,7 +1609,7 @@ kern_aio_return(struct thread *td, struct aiocb *uaiocb, struct aiocb_ops *ops)
 }
 
 int
-sys_aio_return(struct thread *td, struct sys_aio_return_args *uap)
+sys_aio_return(struct thread *td, struct aio_return_args *uap)
 {
 
 	return (kern_aio_return(td, uap->aiocbp, &aiocb_ops));
@@ -1670,7 +1678,7 @@ RETURN:
 }
 
 int
-sys_aio_suspend(struct thread *td, struct sys_aio_suspend_args *uap)
+sys_aio_suspend(struct thread *td, struct aio_suspend_args *uap)
 {
 	struct timespec ts, *tsp;
 	struct aiocb **ujoblist;
@@ -1695,13 +1703,12 @@ sys_aio_suspend(struct thread *td, struct sys_aio_suspend_args *uap)
 	return (error);
 }
 
-
 /*
  * aio_cancel cancels any non-physio aio operations not currently in
  * progress.
  */
 int
-sys_aio_cancel(struct thread *td, struct sys_aio_cancel_args *uap)
+sys_aio_cancel(struct thread *td, struct aio_cancel_args *uap)
 {
 
 	return (kern_aio_cancel(td, uap->fd, uap->aiocbp));
@@ -1721,7 +1728,7 @@ kern_aio_cancel(struct thread *td, int fd, struct aiocb *aiocbp)
 	int notcancelled = 0;
 
 	/* Lookup file object. */
-	error = fget(td, fd, &fp);
+	error = fget(td, fd, 0, &fp);
 	if (error)
 		return (error);
 
@@ -1838,7 +1845,7 @@ kern_aio_error(struct thread *td, struct aiocb *aiocbp, struct aiocb_ops *ops)
 }
 
 int
-sys_aio_error(struct thread *td, struct sys_aio_error_args *uap)
+sys_aio_error(struct thread *td, struct aio_error_args *uap)
 {
 
 	return (kern_aio_error(td, uap->aiocbp, &aiocb_ops));
@@ -1854,7 +1861,7 @@ oaio_read(struct thread *td, struct oaio_read_args *uap)
 }
 
 int
-sys_aio_read(struct thread *td, struct sys_aio_read_args *uap)
+sys_aio_read(struct thread *td, struct aio_read_args *uap)
 {
 
 	return (aio_aqueue(td, uap->aiocbp, NULL, LIO_READ, &aiocb_ops));
@@ -1870,7 +1877,7 @@ oaio_write(struct thread *td, struct oaio_write_args *uap)
 }
 
 int
-sys_aio_write(struct thread *td, struct sys_aio_write_args *uap)
+sys_aio_write(struct thread *td, struct aio_write_args *uap)
 {
 
 	return (aio_aqueue(td, uap->aiocbp, NULL, LIO_WRITE, &aiocb_ops));
@@ -2052,7 +2059,7 @@ olio_listio(struct thread *td, struct olio_listio_args *uap)
 
 /* syscall - list directed I/O (REALTIME) */
 int
-sys_lio_listio(struct thread *td, struct sys_lio_listio_args *uap)
+sys_lio_listio(struct thread *td, struct lio_listio_args *uap)
 {
 	struct aiocb **acb_list;
 	struct sigevent *sigp, sig;
@@ -2149,7 +2156,7 @@ kern_aio_waitcomplete(struct thread *td, struct aiocb **aiocbp,
 }
 
 int
-sys_aio_waitcomplete(struct thread *td, struct sys_aio_waitcomplete_args *uap)
+sys_aio_waitcomplete(struct thread *td, struct aio_waitcomplete_args *uap)
 {
 	struct timespec ts, *tsp;
 	int error;
@@ -2182,7 +2189,7 @@ kern_aio_fsync(struct thread *td, int op, struct aiocb *aiocbp,
 }
 
 int
-sys_aio_fsync(struct thread *td, struct sys_aio_fsync_args *uap)
+sys_aio_fsync(struct thread *td, struct aio_fsync_args *uap)
 {
 
 	return (kern_aio_fsync(td, uap->op, uap->aiocbp, &aiocb_ops));

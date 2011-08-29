@@ -112,10 +112,10 @@ target_bind(void)
 		exit(1);
 
 	atexit(cleanup);
-	dispatch_table[SYS_sys_socket] = dispatch_socket;
-	dispatch_table[SYS_sys_ioctl] = dispatch_ioctl;
-	dispatch_table[SYS_sys_write] = dispatch_write;
-	dispatch_table[SYS_sys_shutdown] = dispatch_shutdown;
+	dispatch_table[SYS_socket] = dispatch_socket;
+	dispatch_table[SYS_ioctl] = dispatch_ioctl;
+	dispatch_table[SYS_write] = dispatch_write;
+	dispatch_table[SYS_shutdown] = dispatch_shutdown;
 	dispatch_table[SYS___sysctl] = dispatch_sysctl;
 	listen(target_fd, 10);
 	printf("listening\n");

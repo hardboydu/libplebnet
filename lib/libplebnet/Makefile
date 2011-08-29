@@ -157,6 +157,7 @@ PN_OPT_FILES = 			\
 	opt_atalk.h		\
 	opt_bootp.h		\
 	opt_bpf.h		\
+	opt_capsicum.h		\
 	opt_carp.h		\
 	opt_compat.h		\
 	opt_device_polling.h	\
@@ -175,18 +176,18 @@ PN_OPT_FILES = 			\
 	opt_mpath.h		\
 	opt_mprof.h		\
 	opt_mrouting.h		\
+	opt_msgbuf.h		\
 	opt_netgraph.h		\
+	opt_ofed.h		\
 	opt_param.h		\
+	opt_pcbgroup.h		\
 	opt_pf.h		\
+	opt_procdesc.h		\
 	opt_route.h		\
 	opt_sctp.h		\
 	opt_tcpdebug.h		\
-	opt_zero.h		\
-	opt_capsicum.h		\
-	opt_msgbuf.h		\
-	opt_ofed.h		\
-	opt_pcbgroup.h		\
-	opt_vfs_aio.h
+	opt_vfs_aio.h		\
+	opt_zero.h
 
 # Search for kernel source tree in standard places.
 .for _dir in ${.CURDIR}/../.. ${.CURDIR}/../../sys ${.CURDIR}/../../.. /sys /usr/src/sys
