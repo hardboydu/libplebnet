@@ -66,13 +66,13 @@
 1	AUE_EXIT	NOPROTO	{ void sys_exit(int rval); } exit \
 				    sys_exit_args void
 2	AUE_FORK	NOPROTO	{ int fork(void); }
-3	AUE_READ	NOPROTO	{ ssize_t sys_read(int fd, void *buf, \
+3	AUE_READ	NOPROTO	{ ssize_t read(int fd, void *buf, \
 				    size_t nbyte); }
-4	AUE_WRITE	NOPROTO	{ ssize_t sys_write(int fd, const void *buf, \
+4	AUE_WRITE	NOPROTO	{ ssize_t write(int fd, const void *buf, \
 				    size_t nbyte); }
 5	AUE_OPEN_RWTC	NOPROTO	{ int open(char *path, int flags, \
 				    int mode); }
-6	AUE_CLOSE	NOPROTO	{ int sys_close(int fd); }
+6	AUE_CLOSE	NOPROTO	{ int close(int fd); }
 7	AUE_WAIT4	STD	{ int freebsd32_wait4(int pid, int *status, \
 				    int options, struct rusage32 *rusage); }
 8	AUE_CREAT	OBSOL	old creat
@@ -107,11 +107,11 @@
 29	AUE_RECVFROM	STD	{ int freebsd32_recvfrom(int s, u_int32_t buf, \
 				    u_int32_t len, int flags, u_int32_t from, \
 				    u_int32_t fromlenaddr); }
-30	AUE_ACCEPT	NOPROTO	{ int sys_accept(int s, caddr_t name, \
+30	AUE_ACCEPT	NOPROTO	{ int accept(int s, caddr_t name, \
 				    int *anamelen); }
-31	AUE_GETPEERNAME	NOPROTO	{ int sys_getpeername(int fdes, caddr_t asa, \
+31	AUE_GETPEERNAME	NOPROTO	{ int getpeername(int fdes, caddr_t asa, \
 				    int *alen); }
-32	AUE_GETSOCKNAME	NOPROTO	{ int sys_getsockname(int fdes, caddr_t asa, \
+32	AUE_GETSOCKNAME	NOPROTO	{ int getsockname(int fdes, caddr_t asa, \
 				    int *alen); }
 33	AUE_ACCESS	NOPROTO	{ int access(char *path, int flags); }
 34	AUE_CHFLAGS	NOPROTO	{ int chflags(char *path, int flags); }
@@ -123,7 +123,7 @@
 39	AUE_GETPPID	NOPROTO	{ pid_t getppid(void); }
 40	AUE_LSTAT	COMPAT	{ int freebsd32_lstat(char *path, \
 				    struct ostat *ub); }
-41	AUE_DUP		NOPROTO	{ int sys_dup(u_int fd); }
+41	AUE_DUP		NOPROTO	{ int dup(u_int fd); }
 42	AUE_PIPE	NOPROTO	{ int pipe(void); }
 43	AUE_GETEGID	NOPROTO	{ gid_t getegid(void); }
 44	AUE_PROFILE	NOPROTO	{ int profil(caddr_t samples, size_t size, \
@@ -197,9 +197,9 @@
 87	AUE_O_GETHOSTNAME	OBSOL	ogethostname
 88	AUE_O_SETHOSTNAME	OBSOL	osethostname
 89	AUE_GETDTABLESIZE	NOPROTO	{ int getdtablesize(void); }
-90	AUE_DUP2	NOPROTO	{ int sys_dup2(u_int from, u_int to); }
+90	AUE_DUP2	NOPROTO	{ int dup2(u_int from, u_int to); }
 91	AUE_NULL	UNIMPL	getdopt
-92	AUE_FCNTL	NOPROTO	{ int sys_fcntl(int fd, int cmd, long arg); }
+92	AUE_FCNTL	NOPROTO	{ int fcntl(int fd, int cmd, long arg); }
 93	AUE_SELECT	STD	{ int freebsd32_select(int nd, fd_set *in, \
 				    fd_set *ou, fd_set *ex, \
 				    struct timeval32 *tv); }
@@ -207,9 +207,9 @@
 95	AUE_FSYNC	NOPROTO	{ int fsync(int fd); }
 96	AUE_SETPRIORITY	NOPROTO	{ int setpriority(int which, int who, \
 				    int prio); }
-97	AUE_SOCKET	NOPROTO	{ int sys_socket(int domain, int type, \
+97	AUE_SOCKET	NOPROTO	{ int socket(int domain, int type, \
 				    int protocol); }
-98	AUE_CONNECT	NOPROTO	{ int sys_connect(int s, caddr_t name, \
+98	AUE_CONNECT	NOPROTO	{ int connect(int s, caddr_t name, \
 				    int namelen); }
 99	AUE_NULL	OBSOL	oaccept
 100	AUE_GETPRIORITY	NOPROTO	{ int getpriority(int which, int who); }
@@ -217,11 +217,11 @@
 102	AUE_NULL	OBSOL	orecv
 103	AUE_NULL	COMPAT	{ int freebsd32_sigreturn( \
 				    struct ia32_sigcontext3 *sigcntxp); }
-104	AUE_BIND	NOPROTO	{ int sys_bind(int s, caddr_t name, \
+104	AUE_BIND	NOPROTO	{ int bind(int s, caddr_t name, \
 				    int namelen); }
-105	AUE_SETSOCKOPT	NOPROTO	{ int sys_setsockopt(int s, int level, \
+105	AUE_SETSOCKOPT	NOPROTO	{ int setsockopt(int s, int level, \
 				    int name, caddr_t val, int valsize); }
-106	AUE_LISTEN	NOPROTO	{ int sys_listen(int s, int backlog); }
+106	AUE_LISTEN	NOPROTO	{ int listen(int s, int backlog); }
 107	AUE_NULL	OBSOL	vtimes
 108	AUE_O_SIGVEC	COMPAT	{ int freebsd32_sigvec(int signum, \
 				     struct sigvec32 *nsv, \
@@ -240,7 +240,7 @@
 				    struct timezone *tzp); }
 117	AUE_GETRUSAGE	STD	{ int freebsd32_getrusage(int who, \
 				    struct rusage32 *rusage); }
-118	AUE_GETSOCKOPT	NOPROTO	{ int sys_getsockopt(int s, int level, \
+118	AUE_GETSOCKOPT	NOPROTO	{ int getsockopt(int s, int level, \
 				    int name, caddr_t val, int *avalsize); }
 119	AUE_NULL	UNIMPL	resuba (BSD/OS 2.x)
 120	AUE_READV	STD	{ int freebsd32_readv(int fd, \
@@ -260,11 +260,11 @@
 130	AUE_FTRUNCATE	OBSOL	ftruncate
 131	AUE_FLOCK	NOPROTO	{ int flock(int fd, int how); }
 132	AUE_MKFIFO	NOPROTO	{ int mkfifo(char *path, int mode); }
-133	AUE_SENDTO	NOPROTO	{ int sys_sendto(int s, caddr_t buf, \
+133	AUE_SENDTO	NOPROTO	{ int sendto(int s, caddr_t buf, \
 				    size_t len, int flags, caddr_t to, \
 				    int tolen); }
-134	AUE_SHUTDOWN	NOPROTO	{ int sys_shutdown(int s, int how); }
-135	AUE_SOCKETPAIR	NOPROTO	{ int sys_socketpair(int domain, int type, \
+134	AUE_SHUTDOWN	NOPROTO	{ int shutdown(int s, int how); }
+135	AUE_SOCKETPAIR	NOPROTO	{ int socketpair(int domain, int type, \
 				    int protocol, int *rsv); }
 136	AUE_MKDIR	NOPROTO	{ int mkdir(char *path, int mode); }
 137	AUE_RMDIR	NOPROTO	{ int rmdir(char *path); }
@@ -387,7 +387,7 @@
 				    struct timeval32 *tptr); }
 207	AUE_GETPGID	NOPROTO	{ int getpgid(pid_t pid); }
 208	AUE_NULL	UNIMPL	newreboot (NetBSD)
-209	AUE_POLL	NOPROTO	{ int sys_poll(struct pollfd *fds, u_int nfds, \
+209	AUE_POLL	NOPROTO	{ int poll(struct pollfd *fds, u_int nfds, \
 				    int timeout); }
 
 ;
@@ -647,7 +647,7 @@
 				    uid_t *suid); }
 361	AUE_GETRESGID	NOPROTO	{ int getresgid(gid_t *rgid, gid_t *egid, \
 				    gid_t *sgid); }
-362	AUE_KQUEUE	NOPROTO	{ int sys_kqueue(void); }
+362	AUE_KQUEUE	NOPROTO	{ int kqueue(void); }
 363	AUE_NULL	STD	{ int freebsd32_kevent(int fd, \
 				    const struct kevent32 *changelist, \
 				    int nchanges, \
@@ -949,7 +949,7 @@
 507	AUE_NULL	STD	{ int freebsd32_jail_set(struct iovec32 *iovp, \
 				    unsigned int iovcnt, int flags); }
 508	AUE_NULL	NOPROTO	{ int jail_remove(int jid); }
-509	AUE_CLOSEFROM	NOPROTO	{ int sys_closefrom(int lowfd); }
+509	AUE_CLOSEFROM	NOPROTO	{ int closefrom(int lowfd); }
 510	AUE_SEMCTL	NOSTD { int freebsd32_semctl(int semid, int semnum, \
 				    int cmd, union semun32 *arg); }
 511	AUE_MSGCTL	NOSTD	{ int freebsd32_msgctl(int msqid, int cmd, \

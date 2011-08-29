@@ -41,12 +41,12 @@ struct sys_exit_args {
 struct fork_args {
 	register_t dummy;
 };
-struct sys_read_args {
+struct read_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char buf_l_[PADL_(void *)]; void * buf; char buf_r_[PADR_(void *)];
 	char nbyte_l_[PADL_(size_t)]; size_t nbyte; char nbyte_r_[PADR_(size_t)];
 };
-struct sys_write_args {
+struct write_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char buf_l_[PADL_(const void *)]; const void * buf; char buf_r_[PADR_(const void *)];
 	char nbyte_l_[PADL_(size_t)]; size_t nbyte; char nbyte_r_[PADR_(size_t)];
@@ -56,7 +56,7 @@ struct open_args {
 	char flags_l_[PADL_(int)]; int flags; char flags_r_[PADR_(int)];
 	char mode_l_[PADL_(int)]; int mode; char mode_r_[PADR_(int)];
 };
-struct sys_close_args {
+struct close_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 };
 struct wait_args {
@@ -123,17 +123,17 @@ struct ptrace_args {
 	char addr_l_[PADL_(caddr_t)]; caddr_t addr; char addr_r_[PADR_(caddr_t)];
 	char data_l_[PADL_(int)]; int data; char data_r_[PADR_(int)];
 };
-struct sys_recvmsg_args {
+struct recvmsg_args {
 	char s_l_[PADL_(int)]; int s; char s_r_[PADR_(int)];
 	char msg_l_[PADL_(struct msghdr *)]; struct msghdr * msg; char msg_r_[PADR_(struct msghdr *)];
 	char flags_l_[PADL_(int)]; int flags; char flags_r_[PADR_(int)];
 };
-struct sys_sendmsg_args {
+struct sendmsg_args {
 	char s_l_[PADL_(int)]; int s; char s_r_[PADR_(int)];
 	char msg_l_[PADL_(struct msghdr *)]; struct msghdr * msg; char msg_r_[PADR_(struct msghdr *)];
 	char flags_l_[PADL_(int)]; int flags; char flags_r_[PADR_(int)];
 };
-struct sys_recvfrom_args {
+struct recvfrom_args {
 	char s_l_[PADL_(int)]; int s; char s_r_[PADR_(int)];
 	char buf_l_[PADL_(caddr_t)]; caddr_t buf; char buf_r_[PADR_(caddr_t)];
 	char len_l_[PADL_(size_t)]; size_t len; char len_r_[PADR_(size_t)];
@@ -141,17 +141,17 @@ struct sys_recvfrom_args {
 	char from_l_[PADL_(struct sockaddr *__restrict)]; struct sockaddr *__restrict from; char from_r_[PADR_(struct sockaddr *__restrict)];
 	char fromlenaddr_l_[PADL_(__socklen_t *__restrict)]; __socklen_t *__restrict fromlenaddr; char fromlenaddr_r_[PADR_(__socklen_t *__restrict)];
 };
-struct sys_accept_args {
+struct accept_args {
 	char s_l_[PADL_(int)]; int s; char s_r_[PADR_(int)];
 	char name_l_[PADL_(struct sockaddr *__restrict)]; struct sockaddr *__restrict name; char name_r_[PADR_(struct sockaddr *__restrict)];
 	char anamelen_l_[PADL_(__socklen_t *__restrict)]; __socklen_t *__restrict anamelen; char anamelen_r_[PADR_(__socklen_t *__restrict)];
 };
-struct sys_getpeername_args {
+struct getpeername_args {
 	char fdes_l_[PADL_(int)]; int fdes; char fdes_r_[PADR_(int)];
 	char asa_l_[PADL_(struct sockaddr *__restrict)]; struct sockaddr *__restrict asa; char asa_r_[PADR_(struct sockaddr *__restrict)];
 	char alen_l_[PADL_(__socklen_t *__restrict)]; __socklen_t *__restrict alen; char alen_r_[PADR_(__socklen_t *__restrict)];
 };
-struct sys_getsockname_args {
+struct getsockname_args {
 	char fdes_l_[PADL_(int)]; int fdes; char fdes_r_[PADR_(int)];
 	char asa_l_[PADL_(struct sockaddr *__restrict)]; struct sockaddr *__restrict asa; char asa_r_[PADR_(struct sockaddr *__restrict)];
 	char alen_l_[PADL_(__socklen_t *__restrict)]; __socklen_t *__restrict alen; char alen_r_[PADR_(__socklen_t *__restrict)];
@@ -178,7 +178,7 @@ struct kill_args {
 struct getppid_args {
 	register_t dummy;
 };
-struct sys_dup_args {
+struct dup_args {
 	char fd_l_[PADL_(u_int)]; u_int fd; char fd_r_[PADR_(u_int)];
 };
 struct pipe_args {
@@ -219,7 +219,7 @@ struct sigaltstack_args {
 	char ss_l_[PADL_(stack_t *)]; stack_t * ss; char ss_r_[PADR_(stack_t *)];
 	char oss_l_[PADL_(stack_t *)]; stack_t * oss; char oss_r_[PADR_(stack_t *)];
 };
-struct sys_ioctl_args {
+struct ioctl_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char com_l_[PADL_(u_long)]; u_long com; char com_r_[PADR_(u_long)];
 	char data_l_[PADL_(caddr_t)]; caddr_t data; char data_r_[PADR_(caddr_t)];
@@ -322,16 +322,16 @@ struct getitimer_args {
 struct getdtablesize_args {
 	register_t dummy;
 };
-struct sys_dup2_args {
+struct dup2_args {
 	char from_l_[PADL_(u_int)]; u_int from; char from_r_[PADR_(u_int)];
 	char to_l_[PADL_(u_int)]; u_int to; char to_r_[PADR_(u_int)];
 };
-struct sys_fcntl_args {
+struct fcntl_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char cmd_l_[PADL_(int)]; int cmd; char cmd_r_[PADR_(int)];
 	char arg_l_[PADL_(long)]; long arg; char arg_r_[PADR_(long)];
 };
-struct sys_select_args {
+struct select_args {
 	char nd_l_[PADL_(int)]; int nd; char nd_r_[PADR_(int)];
 	char in_l_[PADL_(fd_set *)]; fd_set * in; char in_r_[PADR_(fd_set *)];
 	char ou_l_[PADL_(fd_set *)]; fd_set * ou; char ou_r_[PADR_(fd_set *)];
@@ -346,12 +346,12 @@ struct setpriority_args {
 	char who_l_[PADL_(int)]; int who; char who_r_[PADR_(int)];
 	char prio_l_[PADL_(int)]; int prio; char prio_r_[PADR_(int)];
 };
-struct sys_socket_args {
+struct socket_args {
 	char domain_l_[PADL_(int)]; int domain; char domain_r_[PADR_(int)];
 	char type_l_[PADL_(int)]; int type; char type_r_[PADR_(int)];
 	char protocol_l_[PADL_(int)]; int protocol; char protocol_r_[PADR_(int)];
 };
-struct sys_connect_args {
+struct connect_args {
 	char s_l_[PADL_(int)]; int s; char s_r_[PADR_(int)];
 	char name_l_[PADL_(caddr_t)]; caddr_t name; char name_r_[PADR_(caddr_t)];
 	char namelen_l_[PADL_(int)]; int namelen; char namelen_r_[PADR_(int)];
@@ -360,19 +360,19 @@ struct getpriority_args {
 	char which_l_[PADL_(int)]; int which; char which_r_[PADR_(int)];
 	char who_l_[PADL_(int)]; int who; char who_r_[PADR_(int)];
 };
-struct sys_bind_args {
+struct bind_args {
 	char s_l_[PADL_(int)]; int s; char s_r_[PADR_(int)];
 	char name_l_[PADL_(caddr_t)]; caddr_t name; char name_r_[PADR_(caddr_t)];
 	char namelen_l_[PADL_(int)]; int namelen; char namelen_r_[PADR_(int)];
 };
-struct sys_setsockopt_args {
+struct setsockopt_args {
 	char s_l_[PADL_(int)]; int s; char s_r_[PADR_(int)];
 	char level_l_[PADL_(int)]; int level; char level_r_[PADR_(int)];
 	char name_l_[PADL_(int)]; int name; char name_r_[PADR_(int)];
 	char val_l_[PADL_(caddr_t)]; caddr_t val; char val_r_[PADR_(caddr_t)];
 	char valsize_l_[PADL_(int)]; int valsize; char valsize_r_[PADR_(int)];
 };
-struct sys_listen_args {
+struct listen_args {
 	char s_l_[PADL_(int)]; int s; char s_r_[PADR_(int)];
 	char backlog_l_[PADL_(int)]; int backlog; char backlog_r_[PADR_(int)];
 };
@@ -384,19 +384,19 @@ struct getrusage_args {
 	char who_l_[PADL_(int)]; int who; char who_r_[PADR_(int)];
 	char rusage_l_[PADL_(struct rusage *)]; struct rusage * rusage; char rusage_r_[PADR_(struct rusage *)];
 };
-struct sys_getsockopt_args {
+struct getsockopt_args {
 	char s_l_[PADL_(int)]; int s; char s_r_[PADR_(int)];
 	char level_l_[PADL_(int)]; int level; char level_r_[PADR_(int)];
 	char name_l_[PADL_(int)]; int name; char name_r_[PADR_(int)];
 	char val_l_[PADL_(caddr_t)]; caddr_t val; char val_r_[PADR_(caddr_t)];
 	char avalsize_l_[PADL_(int *)]; int * avalsize; char avalsize_r_[PADR_(int *)];
 };
-struct sys_readv_args {
+struct readv_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char iovp_l_[PADL_(struct iovec *)]; struct iovec * iovp; char iovp_r_[PADR_(struct iovec *)];
 	char iovcnt_l_[PADL_(u_int)]; u_int iovcnt; char iovcnt_r_[PADR_(u_int)];
 };
-struct sys_writev_args {
+struct writev_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char iovp_l_[PADL_(struct iovec *)]; struct iovec * iovp; char iovp_r_[PADR_(struct iovec *)];
 	char iovcnt_l_[PADL_(u_int)]; u_int iovcnt; char iovcnt_r_[PADR_(u_int)];
@@ -434,7 +434,7 @@ struct mkfifo_args {
 	char path_l_[PADL_(char *)]; char * path; char path_r_[PADR_(char *)];
 	char mode_l_[PADL_(int)]; int mode; char mode_r_[PADR_(int)];
 };
-struct sys_sendto_args {
+struct sendto_args {
 	char s_l_[PADL_(int)]; int s; char s_r_[PADR_(int)];
 	char buf_l_[PADL_(caddr_t)]; caddr_t buf; char buf_r_[PADR_(caddr_t)];
 	char len_l_[PADL_(size_t)]; size_t len; char len_r_[PADR_(size_t)];
@@ -442,11 +442,11 @@ struct sys_sendto_args {
 	char to_l_[PADL_(caddr_t)]; caddr_t to; char to_r_[PADR_(caddr_t)];
 	char tolen_l_[PADL_(int)]; int tolen; char tolen_r_[PADR_(int)];
 };
-struct sys_shutdown_args {
+struct shutdown_args {
 	char s_l_[PADL_(int)]; int s; char s_r_[PADR_(int)];
 	char how_l_[PADL_(int)]; int how; char how_r_[PADR_(int)];
 };
-struct sys_socketpair_args {
+struct socketpair_args {
 	char domain_l_[PADL_(int)]; int domain; char domain_r_[PADR_(int)];
 	char type_l_[PADL_(int)]; int type; char type_r_[PADR_(int)];
 	char protocol_l_[PADL_(int)]; int protocol; char protocol_r_[PADR_(int)];
@@ -644,7 +644,7 @@ struct futimes_args {
 struct getpgid_args {
 	char pid_l_[PADL_(pid_t)]; pid_t pid; char pid_r_[PADR_(pid_t)];
 };
-struct sys_poll_args {
+struct poll_args {
 	char fds_l_[PADL_(struct pollfd *)]; struct pollfd * fds; char fds_r_[PADR_(struct pollfd *)];
 	char nfds_l_[PADL_(u_int)]; u_int nfds; char nfds_r_[PADR_(u_int)];
 	char timeout_l_[PADL_(int)]; int timeout; char timeout_r_[PADR_(int)];
@@ -750,13 +750,13 @@ struct lchown_args {
 	char uid_l_[PADL_(int)]; int uid; char uid_r_[PADR_(int)];
 	char gid_l_[PADL_(int)]; int gid; char gid_r_[PADR_(int)];
 };
-struct sys_aio_read_args {
+struct aio_read_args {
 	char aiocbp_l_[PADL_(struct aiocb *)]; struct aiocb * aiocbp; char aiocbp_r_[PADR_(struct aiocb *)];
 };
-struct sys_aio_write_args {
+struct aio_write_args {
 	char aiocbp_l_[PADL_(struct aiocb *)]; struct aiocb * aiocbp; char aiocbp_r_[PADR_(struct aiocb *)];
 };
-struct sys_lio_listio_args {
+struct lio_listio_args {
 	char mode_l_[PADL_(int)]; int mode; char mode_r_[PADR_(int)];
 	char acb_list_l_[PADL_(struct aiocb *const *)]; struct aiocb *const * acb_list; char acb_list_r_[PADR_(struct aiocb *const *)];
 	char nent_l_[PADL_(int)]; int nent; char nent_r_[PADR_(int)];
@@ -787,13 +787,13 @@ struct nlstat_args {
 	char path_l_[PADL_(char *)]; char * path; char path_r_[PADR_(char *)];
 	char ub_l_[PADL_(struct nstat *)]; struct nstat * ub; char ub_r_[PADR_(struct nstat *)];
 };
-struct sys_preadv_args {
+struct preadv_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char iovp_l_[PADL_(struct iovec *)]; struct iovec * iovp; char iovp_r_[PADR_(struct iovec *)];
 	char iovcnt_l_[PADL_(u_int)]; u_int iovcnt; char iovcnt_r_[PADR_(u_int)];
 	char offset_l_[PADL_(off_t)]; off_t offset; char offset_r_[PADR_(off_t)];
 };
-struct sys_pwritev_args {
+struct pwritev_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char iovp_l_[PADL_(struct iovec *)]; struct iovec * iovp; char iovp_r_[PADR_(struct iovec *)];
 	char iovcnt_l_[PADL_(u_int)]; u_int iovcnt; char iovcnt_r_[PADR_(u_int)];
@@ -852,19 +852,19 @@ struct setresgid_args {
 	char egid_l_[PADL_(gid_t)]; gid_t egid; char egid_r_[PADR_(gid_t)];
 	char sgid_l_[PADL_(gid_t)]; gid_t sgid; char sgid_r_[PADR_(gid_t)];
 };
-struct sys_aio_return_args {
+struct aio_return_args {
 	char aiocbp_l_[PADL_(struct aiocb *)]; struct aiocb * aiocbp; char aiocbp_r_[PADR_(struct aiocb *)];
 };
-struct sys_aio_suspend_args {
+struct aio_suspend_args {
 	char aiocbp_l_[PADL_(struct aiocb *const *)]; struct aiocb *const * aiocbp; char aiocbp_r_[PADR_(struct aiocb *const *)];
 	char nent_l_[PADL_(int)]; int nent; char nent_r_[PADR_(int)];
 	char timeout_l_[PADL_(const struct timespec *)]; const struct timespec * timeout; char timeout_r_[PADR_(const struct timespec *)];
 };
-struct sys_aio_cancel_args {
+struct aio_cancel_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char aiocbp_l_[PADL_(struct aiocb *)]; struct aiocb * aiocbp; char aiocbp_r_[PADR_(struct aiocb *)];
 };
-struct sys_aio_error_args {
+struct aio_error_args {
 	char aiocbp_l_[PADL_(struct aiocb *)]; struct aiocb * aiocbp; char aiocbp_r_[PADR_(struct aiocb *)];
 };
 struct oaio_read_args {
@@ -1024,7 +1024,7 @@ struct extattr_delete_file_args {
 	char attrnamespace_l_[PADL_(int)]; int attrnamespace; char attrnamespace_r_[PADR_(int)];
 	char attrname_l_[PADL_(const char *)]; const char * attrname; char attrname_r_[PADR_(const char *)];
 };
-struct sys_aio_waitcomplete_args {
+struct aio_waitcomplete_args {
 	char aiocbp_l_[PADL_(struct aiocb **)]; struct aiocb ** aiocbp; char aiocbp_r_[PADR_(struct aiocb **)];
 	char timeout_l_[PADL_(struct timespec *)]; struct timespec * timeout; char timeout_r_[PADR_(struct timespec *)];
 };
@@ -1038,10 +1038,10 @@ struct getresgid_args {
 	char egid_l_[PADL_(gid_t *)]; gid_t * egid; char egid_r_[PADR_(gid_t *)];
 	char sgid_l_[PADL_(gid_t *)]; gid_t * sgid; char sgid_r_[PADR_(gid_t *)];
 };
-struct sys_kqueue_args {
+struct kqueue_args {
 	register_t dummy;
 };
-struct sys_kevent_args {
+struct kevent_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char changelist_l_[PADL_(struct kevent *)]; struct kevent * changelist; char changelist_r_[PADR_(struct kevent *)];
 	char nchanges_l_[PADL_(int)]; int nchanges; char nchanges_r_[PADR_(int)];
@@ -1415,7 +1415,7 @@ struct thr_set_name_args {
 	char id_l_[PADL_(long)]; long id; char id_r_[PADR_(long)];
 	char name_l_[PADL_(const char *)]; const char * name; char name_r_[PADR_(const char *)];
 };
-struct sys_aio_fsync_args {
+struct aio_fsync_args {
 	char op_l_[PADL_(int)]; int op; char op_r_[PADR_(int)];
 	char aiocbp_l_[PADL_(struct aiocb *)]; struct aiocb * aiocbp; char aiocbp_r_[PADR_(struct aiocb *)];
 };
@@ -1455,13 +1455,13 @@ struct sctp_generic_recvmsg_args {
 	char sinfo_l_[PADL_(struct sctp_sndrcvinfo *)]; struct sctp_sndrcvinfo * sinfo; char sinfo_r_[PADR_(struct sctp_sndrcvinfo *)];
 	char msg_flags_l_[PADL_(int *)]; int * msg_flags; char msg_flags_r_[PADR_(int *)];
 };
-struct sys_pread_args {
+struct pread_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char buf_l_[PADL_(void *)]; void * buf; char buf_r_[PADR_(void *)];
 	char nbyte_l_[PADL_(size_t)]; size_t nbyte; char nbyte_r_[PADR_(size_t)];
 	char offset_l_[PADL_(off_t)]; off_t offset; char offset_r_[PADR_(off_t)];
 };
-struct sys_pwrite_args {
+struct pwrite_args {
 	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
 	char buf_l_[PADL_(const void *)]; const void * buf; char buf_r_[PADR_(const void *)];
 	char nbyte_l_[PADL_(size_t)]; size_t nbyte; char nbyte_r_[PADR_(size_t)];
@@ -1634,7 +1634,7 @@ struct jail_set_args {
 struct jail_remove_args {
 	char jid_l_[PADL_(int)]; int jid; char jid_r_[PADR_(int)];
 };
-struct sys_closefrom_args {
+struct closefrom_args {
 	char lowfd_l_[PADL_(int)]; int lowfd; char lowfd_r_[PADR_(int)];
 };
 struct __semctl_args {
@@ -1671,7 +1671,19 @@ struct cap_enter_args {
 struct cap_getmode_args {
 	char modep_l_[PADL_(u_int *)]; u_int * modep; char modep_r_[PADR_(u_int *)];
 };
-struct sys_pselect_args {
+struct pdfork_args {
+	char fdp_l_[PADL_(int *)]; int * fdp; char fdp_r_[PADR_(int *)];
+	char flags_l_[PADL_(int)]; int flags; char flags_r_[PADR_(int)];
+};
+struct pdkill_args {
+	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
+	char signum_l_[PADL_(int)]; int signum; char signum_r_[PADR_(int)];
+};
+struct pdgetpid_args {
+	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
+	char pidp_l_[PADL_(pid_t *)]; pid_t * pidp; char pidp_r_[PADR_(pid_t *)];
+};
+struct pselect_args {
 	char nd_l_[PADL_(int)]; int nd; char nd_r_[PADR_(int)];
 	char in_l_[PADL_(fd_set *)]; fd_set * in; char in_r_[PADR_(fd_set *)];
 	char ou_l_[PADL_(fd_set *)]; fd_set * ou; char ou_r_[PADR_(fd_set *)];
@@ -1724,10 +1736,10 @@ struct posix_fallocate_args {
 int	nosys(struct thread *, struct nosys_args *);
 void	sys_exit(struct thread *, struct sys_exit_args *);
 int	fork(struct thread *, struct fork_args *);
-int	sys_read(struct thread *, struct sys_read_args *);
-int	sys_write(struct thread *, struct sys_write_args *);
+int	read(struct thread *, struct read_args *);
+int	write(struct thread *, struct write_args *);
 int	open(struct thread *, struct open_args *);
-int	sys_close(struct thread *, struct sys_close_args *);
+int	close(struct thread *, struct close_args *);
 int	wait4(struct thread *, struct wait_args *);
 int	link(struct thread *, struct link_args *);
 int	unlink(struct thread *, struct unlink_args *);
@@ -1744,19 +1756,19 @@ int	setuid(struct thread *, struct setuid_args *);
 int	getuid(struct thread *, struct getuid_args *);
 int	geteuid(struct thread *, struct geteuid_args *);
 int	ptrace(struct thread *, struct ptrace_args *);
-int	sys_recvmsg(struct thread *, struct sys_recvmsg_args *);
-int	sys_sendmsg(struct thread *, struct sys_sendmsg_args *);
-int	sys_recvfrom(struct thread *, struct sys_recvfrom_args *);
-int	sys_accept(struct thread *, struct sys_accept_args *);
-int	sys_getpeername(struct thread *, struct sys_getpeername_args *);
-int	sys_getsockname(struct thread *, struct sys_getsockname_args *);
+int	recvmsg(struct thread *, struct recvmsg_args *);
+int	sendmsg(struct thread *, struct sendmsg_args *);
+int	recvfrom(struct thread *, struct recvfrom_args *);
+int	accept(struct thread *, struct accept_args *);
+int	getpeername(struct thread *, struct getpeername_args *);
+int	getsockname(struct thread *, struct getsockname_args *);
 int	access(struct thread *, struct access_args *);
 int	chflags(struct thread *, struct chflags_args *);
 int	fchflags(struct thread *, struct fchflags_args *);
 int	sync(struct thread *, struct sync_args *);
 int	kill(struct thread *, struct kill_args *);
 int	getppid(struct thread *, struct getppid_args *);
-int	sys_dup(struct thread *, struct sys_dup_args *);
+int	dup(struct thread *, struct dup_args *);
 int	pipe(struct thread *, struct pipe_args *);
 int	getegid(struct thread *, struct getegid_args *);
 int	profil(struct thread *, struct profil_args *);
@@ -1766,7 +1778,7 @@ int	getlogin(struct thread *, struct getlogin_args *);
 int	setlogin(struct thread *, struct setlogin_args *);
 int	acct(struct thread *, struct acct_args *);
 int	sigaltstack(struct thread *, struct sigaltstack_args *);
-int	sys_ioctl(struct thread *, struct sys_ioctl_args *);
+int	ioctl(struct thread *, struct ioctl_args *);
 int	reboot(struct thread *, struct reboot_args *);
 int	revoke(struct thread *, struct revoke_args *);
 int	symlink(struct thread *, struct symlink_args *);
@@ -1791,22 +1803,22 @@ int	setitimer(struct thread *, struct setitimer_args *);
 int	swapon(struct thread *, struct swapon_args *);
 int	getitimer(struct thread *, struct getitimer_args *);
 int	getdtablesize(struct thread *, struct getdtablesize_args *);
-int	sys_dup2(struct thread *, struct sys_dup2_args *);
-int	sys_fcntl(struct thread *, struct sys_fcntl_args *);
-int	sys_select(struct thread *, struct sys_select_args *);
+int	dup2(struct thread *, struct dup2_args *);
+int	fcntl(struct thread *, struct fcntl_args *);
+int	select(struct thread *, struct select_args *);
 int	fsync(struct thread *, struct fsync_args *);
 int	setpriority(struct thread *, struct setpriority_args *);
-int	sys_socket(struct thread *, struct sys_socket_args *);
-int	sys_connect(struct thread *, struct sys_connect_args *);
+int	socket(struct thread *, struct socket_args *);
+int	connect(struct thread *, struct connect_args *);
 int	getpriority(struct thread *, struct getpriority_args *);
-int	sys_bind(struct thread *, struct sys_bind_args *);
-int	sys_setsockopt(struct thread *, struct sys_setsockopt_args *);
-int	sys_listen(struct thread *, struct sys_listen_args *);
+int	bind(struct thread *, struct bind_args *);
+int	setsockopt(struct thread *, struct setsockopt_args *);
+int	listen(struct thread *, struct listen_args *);
 int	gettimeofday(struct thread *, struct gettimeofday_args *);
 int	getrusage(struct thread *, struct getrusage_args *);
-int	sys_getsockopt(struct thread *, struct sys_getsockopt_args *);
-int	sys_readv(struct thread *, struct sys_readv_args *);
-int	sys_writev(struct thread *, struct sys_writev_args *);
+int	getsockopt(struct thread *, struct getsockopt_args *);
+int	readv(struct thread *, struct readv_args *);
+int	writev(struct thread *, struct writev_args *);
 int	settimeofday(struct thread *, struct settimeofday_args *);
 int	fchown(struct thread *, struct fchown_args *);
 int	fchmod(struct thread *, struct fchmod_args *);
@@ -1815,9 +1827,9 @@ int	setregid(struct thread *, struct setregid_args *);
 int	rename(struct thread *, struct rename_args *);
 int	flock(struct thread *, struct flock_args *);
 int	mkfifo(struct thread *, struct mkfifo_args *);
-int	sys_sendto(struct thread *, struct sys_sendto_args *);
-int	sys_shutdown(struct thread *, struct sys_shutdown_args *);
-int	sys_socketpair(struct thread *, struct sys_socketpair_args *);
+int	sendto(struct thread *, struct sendto_args *);
+int	shutdown(struct thread *, struct shutdown_args *);
+int	socketpair(struct thread *, struct socketpair_args *);
 int	mkdir(struct thread *, struct mkdir_args *);
 int	rmdir(struct thread *, struct rmdir_args *);
 int	utimes(struct thread *, struct utimes_args *);
@@ -1858,7 +1870,7 @@ int	munlock(struct thread *, struct munlock_args *);
 int	undelete(struct thread *, struct undelete_args *);
 int	futimes(struct thread *, struct futimes_args *);
 int	getpgid(struct thread *, struct getpgid_args *);
-int	sys_poll(struct thread *, struct sys_poll_args *);
+int	poll(struct thread *, struct poll_args *);
 int	semget(struct thread *, struct semget_args *);
 int	semop(struct thread *, struct semop_args *);
 int	msgget(struct thread *, struct msgget_args *);
@@ -1882,17 +1894,17 @@ int	rfork(struct thread *, struct rfork_args *);
 int	openbsd_poll(struct thread *, struct openbsd_poll_args *);
 int	issetugid(struct thread *, struct issetugid_args *);
 int	lchown(struct thread *, struct lchown_args *);
-int	sys_aio_read(struct thread *, struct sys_aio_read_args *);
-int	sys_aio_write(struct thread *, struct sys_aio_write_args *);
-int	sys_lio_listio(struct thread *, struct sys_lio_listio_args *);
+int	aio_read(struct thread *, struct aio_read_args *);
+int	aio_write(struct thread *, struct aio_write_args *);
+int	lio_listio(struct thread *, struct lio_listio_args *);
 int	getdents(struct thread *, struct getdents_args *);
 int	lchmod(struct thread *, struct lchmod_args *);
 int	lutimes(struct thread *, struct lutimes_args *);
 int	nstat(struct thread *, struct nstat_args *);
 int	nfstat(struct thread *, struct nfstat_args *);
 int	nlstat(struct thread *, struct nlstat_args *);
-int	sys_preadv(struct thread *, struct sys_preadv_args *);
-int	sys_pwritev(struct thread *, struct sys_pwritev_args *);
+int	preadv(struct thread *, struct preadv_args *);
+int	pwritev(struct thread *, struct pwritev_args *);
 int	fhopen(struct thread *, struct fhopen_args *);
 int	fhstat(struct thread *, struct fhstat_args *);
 int	modnext(struct thread *, struct modnext_args *);
@@ -1908,10 +1920,10 @@ int	kldfirstmod(struct thread *, struct kldfirstmod_args *);
 int	getsid(struct thread *, struct getsid_args *);
 int	setresuid(struct thread *, struct setresuid_args *);
 int	setresgid(struct thread *, struct setresgid_args *);
-int	sys_aio_return(struct thread *, struct sys_aio_return_args *);
-int	sys_aio_suspend(struct thread *, struct sys_aio_suspend_args *);
-int	sys_aio_cancel(struct thread *, struct sys_aio_cancel_args *);
-int	sys_aio_error(struct thread *, struct sys_aio_error_args *);
+int	aio_return(struct thread *, struct aio_return_args *);
+int	aio_suspend(struct thread *, struct aio_suspend_args *);
+int	aio_cancel(struct thread *, struct aio_cancel_args *);
+int	aio_error(struct thread *, struct aio_error_args *);
 int	oaio_read(struct thread *, struct oaio_read_args *);
 int	oaio_write(struct thread *, struct oaio_write_args *);
 int	olio_listio(struct thread *, struct olio_listio_args *);
@@ -1948,11 +1960,11 @@ int	extattrctl(struct thread *, struct extattrctl_args *);
 int	extattr_set_file(struct thread *, struct extattr_set_file_args *);
 int	extattr_get_file(struct thread *, struct extattr_get_file_args *);
 int	extattr_delete_file(struct thread *, struct extattr_delete_file_args *);
-int	sys_aio_waitcomplete(struct thread *, struct sys_aio_waitcomplete_args *);
+int	aio_waitcomplete(struct thread *, struct aio_waitcomplete_args *);
 int	getresuid(struct thread *, struct getresuid_args *);
 int	getresgid(struct thread *, struct getresgid_args *);
-int	sys_kqueue(struct thread *, struct sys_kqueue_args *);
-int	sys_kevent(struct thread *, struct sys_kevent_args *);
+int	kqueue(struct thread *, struct kqueue_args *);
+int	kevent(struct thread *, struct kevent_args *);
 int	extattr_set_fd(struct thread *, struct extattr_set_fd_args *);
 int	extattr_get_fd(struct thread *, struct extattr_get_fd_args *);
 int	extattr_delete_fd(struct thread *, struct extattr_delete_fd_args *);
@@ -2036,14 +2048,14 @@ int	kmq_notify(struct thread *, struct kmq_notify_args *);
 int	kmq_unlink(struct thread *, struct kmq_unlink_args *);
 int	abort2(struct thread *, struct abort2_args *);
 int	thr_set_name(struct thread *, struct thr_set_name_args *);
-int	sys_aio_fsync(struct thread *, struct sys_aio_fsync_args *);
+int	aio_fsync(struct thread *, struct aio_fsync_args *);
 int	rtprio_thread(struct thread *, struct rtprio_thread_args *);
 int	sctp_peeloff(struct thread *, struct sctp_peeloff_args *);
 int	sctp_generic_sendmsg(struct thread *, struct sctp_generic_sendmsg_args *);
 int	sctp_generic_sendmsg_iov(struct thread *, struct sctp_generic_sendmsg_iov_args *);
 int	sctp_generic_recvmsg(struct thread *, struct sctp_generic_recvmsg_args *);
-int	sys_pread(struct thread *, struct sys_pread_args *);
-int	sys_pwrite(struct thread *, struct sys_pwrite_args *);
+int	pread(struct thread *, struct pread_args *);
+int	pwrite(struct thread *, struct pwrite_args *);
 int	mmap(struct thread *, struct mmap_args *);
 int	lseek(struct thread *, struct lseek_args *);
 int	truncate(struct thread *, struct truncate_args *);
@@ -2076,7 +2088,7 @@ int	gssd_syscall(struct thread *, struct gssd_syscall_args *);
 int	jail_get(struct thread *, struct jail_get_args *);
 int	jail_set(struct thread *, struct jail_set_args *);
 int	jail_remove(struct thread *, struct jail_remove_args *);
-int	sys_closefrom(struct thread *, struct sys_closefrom_args *);
+int	closefrom(struct thread *, struct closefrom_args *);
 int	__semctl(struct thread *, struct __semctl_args *);
 int	msgctl(struct thread *, struct msgctl_args *);
 int	shmctl(struct thread *, struct shmctl_args *);
@@ -2085,7 +2097,10 @@ int	cap_new(struct thread *, struct cap_new_args *);
 int	cap_getrights(struct thread *, struct cap_getrights_args *);
 int	cap_enter(struct thread *, struct cap_enter_args *);
 int	cap_getmode(struct thread *, struct cap_getmode_args *);
-int	sys_pselect(struct thread *, struct sys_pselect_args *);
+int	pdfork(struct thread *, struct pdfork_args *);
+int	pdkill(struct thread *, struct pdkill_args *);
+int	pdgetpid(struct thread *, struct pdgetpid_args *);
+int	pselect(struct thread *, struct pselect_args *);
 int	getloginclass(struct thread *, struct getloginclass_args *);
 int	setloginclass(struct thread *, struct setloginclass_args *);
 int	rctl_get_racct(struct thread *, struct rctl_get_racct_args *);
@@ -2361,10 +2376,10 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_syscall	AUE_NULL
 #define	SYS_AUE_exit	AUE_EXIT
 #define	SYS_AUE_fork	AUE_FORK
-#define	SYS_AUE_sys_read	AUE_NULL
-#define	SYS_AUE_sys_write	AUE_NULL
+#define	SYS_AUE_read	AUE_NULL
+#define	SYS_AUE_write	AUE_NULL
 #define	SYS_AUE_open	AUE_OPEN_RWTC
-#define	SYS_AUE_sys_close	AUE_CLOSE
+#define	SYS_AUE_close	AUE_CLOSE
 #define	SYS_AUE_wait4	AUE_WAIT4
 #define	SYS_AUE_ocreat	AUE_CREAT
 #define	SYS_AUE_link	AUE_LINK
@@ -2384,12 +2399,12 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_getuid	AUE_GETUID
 #define	SYS_AUE_geteuid	AUE_GETEUID
 #define	SYS_AUE_ptrace	AUE_PTRACE
-#define	SYS_AUE_sys_recvmsg	AUE_RECVMSG
-#define	SYS_AUE_sys_sendmsg	AUE_SENDMSG
-#define	SYS_AUE_sys_recvfrom	AUE_RECVFROM
-#define	SYS_AUE_sys_accept	AUE_ACCEPT
-#define	SYS_AUE_sys_getpeername	AUE_GETPEERNAME
-#define	SYS_AUE_sys_getsockname	AUE_GETSOCKNAME
+#define	SYS_AUE_recvmsg	AUE_RECVMSG
+#define	SYS_AUE_sendmsg	AUE_SENDMSG
+#define	SYS_AUE_recvfrom	AUE_RECVFROM
+#define	SYS_AUE_accept	AUE_ACCEPT
+#define	SYS_AUE_getpeername	AUE_GETPEERNAME
+#define	SYS_AUE_getsockname	AUE_GETSOCKNAME
 #define	SYS_AUE_access	AUE_ACCESS
 #define	SYS_AUE_chflags	AUE_CHFLAGS
 #define	SYS_AUE_fchflags	AUE_FCHFLAGS
@@ -2398,7 +2413,7 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_ostat	AUE_STAT
 #define	SYS_AUE_getppid	AUE_GETPPID
 #define	SYS_AUE_olstat	AUE_LSTAT
-#define	SYS_AUE_sys_dup	AUE_DUP
+#define	SYS_AUE_dup	AUE_DUP
 #define	SYS_AUE_pipe	AUE_PIPE
 #define	SYS_AUE_getegid	AUE_GETEGID
 #define	SYS_AUE_profil	AUE_PROFILE
@@ -2411,7 +2426,7 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_acct	AUE_ACCT
 #define	SYS_AUE_osigpending	AUE_SIGPENDING
 #define	SYS_AUE_sigaltstack	AUE_SIGALTSTACK
-#define	SYS_AUE_sys_ioctl	AUE_IOCTL
+#define	SYS_AUE_ioctl	AUE_IOCTL
 #define	SYS_AUE_reboot	AUE_REBOOT
 #define	SYS_AUE_revoke	AUE_REVOKE
 #define	SYS_AUE_symlink	AUE_SYMLINK
@@ -2443,21 +2458,21 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_ogethostname	AUE_SYSCTL
 #define	SYS_AUE_osethostname	AUE_SYSCTL
 #define	SYS_AUE_getdtablesize	AUE_GETDTABLESIZE
-#define	SYS_AUE_sys_dup2	AUE_DUP2
-#define	SYS_AUE_sys_fcntl	AUE_FCNTL
-#define	SYS_AUE_sys_select	AUE_SELECT
+#define	SYS_AUE_dup2	AUE_DUP2
+#define	SYS_AUE_fcntl	AUE_FCNTL
+#define	SYS_AUE_select	AUE_SELECT
 #define	SYS_AUE_fsync	AUE_FSYNC
 #define	SYS_AUE_setpriority	AUE_SETPRIORITY
-#define	SYS_AUE_sys_socket	AUE_SOCKET
-#define	SYS_AUE_sys_connect	AUE_CONNECT
+#define	SYS_AUE_socket	AUE_SOCKET
+#define	SYS_AUE_connect	AUE_CONNECT
 #define	SYS_AUE_oaccept	AUE_ACCEPT
 #define	SYS_AUE_getpriority	AUE_GETPRIORITY
 #define	SYS_AUE_osend	AUE_SEND
 #define	SYS_AUE_orecv	AUE_RECV
 #define	SYS_AUE_osigreturn	AUE_SIGRETURN
-#define	SYS_AUE_sys_bind	AUE_BIND
-#define	SYS_AUE_sys_setsockopt	AUE_SETSOCKOPT
-#define	SYS_AUE_sys_listen	AUE_LISTEN
+#define	SYS_AUE_bind	AUE_BIND
+#define	SYS_AUE_setsockopt	AUE_SETSOCKOPT
+#define	SYS_AUE_listen	AUE_LISTEN
 #define	SYS_AUE_osigvec	AUE_NULL
 #define	SYS_AUE_osigblock	AUE_NULL
 #define	SYS_AUE_osigsetmask	AUE_NULL
@@ -2467,9 +2482,9 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_osendmsg	AUE_SENDMSG
 #define	SYS_AUE_gettimeofday	AUE_GETTIMEOFDAY
 #define	SYS_AUE_getrusage	AUE_GETRUSAGE
-#define	SYS_AUE_sys_getsockopt	AUE_GETSOCKOPT
-#define	SYS_AUE_sys_readv	AUE_READV
-#define	SYS_AUE_sys_writev	AUE_WRITEV
+#define	SYS_AUE_getsockopt	AUE_GETSOCKOPT
+#define	SYS_AUE_readv	AUE_READV
+#define	SYS_AUE_writev	AUE_WRITEV
 #define	SYS_AUE_settimeofday	AUE_SETTIMEOFDAY
 #define	SYS_AUE_fchown	AUE_FCHOWN
 #define	SYS_AUE_fchmod	AUE_FCHMOD
@@ -2481,9 +2496,9 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_oftruncate	AUE_FTRUNCATE
 #define	SYS_AUE_flock	AUE_FLOCK
 #define	SYS_AUE_mkfifo	AUE_MKFIFO
-#define	SYS_AUE_sys_sendto	AUE_SENDTO
-#define	SYS_AUE_sys_shutdown	AUE_SHUTDOWN
-#define	SYS_AUE_sys_socketpair	AUE_SOCKETPAIR
+#define	SYS_AUE_sendto	AUE_SENDTO
+#define	SYS_AUE_shutdown	AUE_SHUTDOWN
+#define	SYS_AUE_socketpair	AUE_SOCKETPAIR
 #define	SYS_AUE_mkdir	AUE_MKDIR
 #define	SYS_AUE_rmdir	AUE_RMDIR
 #define	SYS_AUE_utimes	AUE_UTIMES
@@ -2538,7 +2553,7 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_undelete	AUE_UNDELETE
 #define	SYS_AUE_futimes	AUE_FUTIMES
 #define	SYS_AUE_getpgid	AUE_GETPGID
-#define	SYS_AUE_sys_poll	AUE_POLL
+#define	SYS_AUE_poll	AUE_POLL
 #define	SYS_AUE_freebsd7___semctl	AUE_SEMCTL
 #define	SYS_AUE_semget	AUE_SEMGET
 #define	SYS_AUE_semop	AUE_SEMOP
@@ -2565,17 +2580,17 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_openbsd_poll	AUE_POLL
 #define	SYS_AUE_issetugid	AUE_ISSETUGID
 #define	SYS_AUE_lchown	AUE_LCHOWN
-#define	SYS_AUE_sys_aio_read	AUE_NULL
-#define	SYS_AUE_sys_aio_write	AUE_NULL
-#define	SYS_AUE_sys_lio_listio	AUE_NULL
+#define	SYS_AUE_aio_read	AUE_NULL
+#define	SYS_AUE_aio_write	AUE_NULL
+#define	SYS_AUE_lio_listio	AUE_NULL
 #define	SYS_AUE_getdents	AUE_O_GETDENTS
 #define	SYS_AUE_lchmod	AUE_LCHMOD
 #define	SYS_AUE_lutimes	AUE_LUTIMES
 #define	SYS_AUE_nstat	AUE_STAT
 #define	SYS_AUE_nfstat	AUE_FSTAT
 #define	SYS_AUE_nlstat	AUE_LSTAT
-#define	SYS_AUE_sys_preadv	AUE_PREADV
-#define	SYS_AUE_sys_pwritev	AUE_PWRITEV
+#define	SYS_AUE_preadv	AUE_PREADV
+#define	SYS_AUE_pwritev	AUE_PWRITEV
 #define	SYS_AUE_freebsd4_fhstatfs	AUE_FHSTATFS
 #define	SYS_AUE_fhopen	AUE_FHOPEN
 #define	SYS_AUE_fhstat	AUE_FHSTAT
@@ -2592,10 +2607,10 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_getsid	AUE_GETSID
 #define	SYS_AUE_setresuid	AUE_SETRESUID
 #define	SYS_AUE_setresgid	AUE_SETRESGID
-#define	SYS_AUE_sys_aio_return	AUE_NULL
-#define	SYS_AUE_sys_aio_suspend	AUE_NULL
-#define	SYS_AUE_sys_aio_cancel	AUE_NULL
-#define	SYS_AUE_sys_aio_error	AUE_NULL
+#define	SYS_AUE_aio_return	AUE_NULL
+#define	SYS_AUE_aio_suspend	AUE_NULL
+#define	SYS_AUE_aio_cancel	AUE_NULL
+#define	SYS_AUE_aio_error	AUE_NULL
 #define	SYS_AUE_oaio_read	AUE_NULL
 #define	SYS_AUE_oaio_write	AUE_NULL
 #define	SYS_AUE_olio_listio	AUE_NULL
@@ -2635,11 +2650,11 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_extattr_set_file	AUE_EXTATTR_SET_FILE
 #define	SYS_AUE_extattr_get_file	AUE_EXTATTR_GET_FILE
 #define	SYS_AUE_extattr_delete_file	AUE_EXTATTR_DELETE_FILE
-#define	SYS_AUE_sys_aio_waitcomplete	AUE_NULL
+#define	SYS_AUE_aio_waitcomplete	AUE_NULL
 #define	SYS_AUE_getresuid	AUE_GETRESUID
 #define	SYS_AUE_getresgid	AUE_GETRESGID
-#define	SYS_AUE_sys_kqueue	AUE_KQUEUE
-#define	SYS_AUE_sys_kevent	AUE_NULL
+#define	SYS_AUE_kqueue	AUE_KQUEUE
+#define	SYS_AUE_kevent	AUE_NULL
 #define	SYS_AUE_extattr_set_fd	AUE_EXTATTR_SET_FD
 #define	SYS_AUE_extattr_get_fd	AUE_EXTATTR_GET_FD
 #define	SYS_AUE_extattr_delete_fd	AUE_EXTATTR_DELETE_FD
@@ -2723,14 +2738,14 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_kmq_unlink	AUE_NULL
 #define	SYS_AUE_abort2	AUE_NULL
 #define	SYS_AUE_thr_set_name	AUE_NULL
-#define	SYS_AUE_sys_aio_fsync	AUE_NULL
+#define	SYS_AUE_aio_fsync	AUE_NULL
 #define	SYS_AUE_rtprio_thread	AUE_RTPRIO
 #define	SYS_AUE_sctp_peeloff	AUE_NULL
 #define	SYS_AUE_sctp_generic_sendmsg	AUE_NULL
 #define	SYS_AUE_sctp_generic_sendmsg_iov	AUE_NULL
 #define	SYS_AUE_sctp_generic_recvmsg	AUE_NULL
-#define	SYS_AUE_sys_pread	AUE_PREAD
-#define	SYS_AUE_sys_pwrite	AUE_PWRITE
+#define	SYS_AUE_pread	AUE_PREAD
+#define	SYS_AUE_pwrite	AUE_PWRITE
 #define	SYS_AUE_mmap	AUE_MMAP
 #define	SYS_AUE_lseek	AUE_LSEEK
 #define	SYS_AUE_truncate	AUE_TRUNCATE
@@ -2763,7 +2778,7 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_jail_get	AUE_NULL
 #define	SYS_AUE_jail_set	AUE_NULL
 #define	SYS_AUE_jail_remove	AUE_NULL
-#define	SYS_AUE_sys_closefrom	AUE_CLOSEFROM
+#define	SYS_AUE_closefrom	AUE_CLOSEFROM
 #define	SYS_AUE___semctl	AUE_SEMCTL
 #define	SYS_AUE_msgctl	AUE_MSGCTL
 #define	SYS_AUE_shmctl	AUE_SHMCTL
@@ -2772,7 +2787,10 @@ int	freebsd7_shmctl(struct thread *, struct freebsd7_shmctl_args *);
 #define	SYS_AUE_cap_getrights	AUE_CAP_GETRIGHTS
 #define	SYS_AUE_cap_enter	AUE_CAP_ENTER
 #define	SYS_AUE_cap_getmode	AUE_CAP_GETMODE
-#define	SYS_AUE_sys_pselect	AUE_SELECT
+#define	SYS_AUE_pdfork	AUE_PDFORK
+#define	SYS_AUE_pdkill	AUE_PDKILL
+#define	SYS_AUE_pdgetpid	AUE_PDGETPID
+#define	SYS_AUE_pselect	AUE_SELECT
 #define	SYS_AUE_getloginclass	AUE_NULL
 #define	SYS_AUE_setloginclass	AUE_NULL
 #define	SYS_AUE_rctl_get_racct	AUE_NULL

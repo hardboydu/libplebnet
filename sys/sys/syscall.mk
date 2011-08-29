@@ -6,10 +6,10 @@ MIASM =  \
 	syscall.o \
 	exit.o \
 	fork.o \
-	sys_read.o \
-	sys_write.o \
+	read.o \
+	write.o \
 	open.o \
-	sys_close.o \
+	close.o \
 	wait4.o \
 	link.o \
 	unlink.o \
@@ -27,19 +27,19 @@ MIASM =  \
 	getuid.o \
 	geteuid.o \
 	ptrace.o \
-	sys_recvmsg.o \
-	sys_sendmsg.o \
-	sys_recvfrom.o \
-	sys_accept.o \
-	sys_getpeername.o \
-	sys_getsockname.o \
+	recvmsg.o \
+	sendmsg.o \
+	recvfrom.o \
+	accept.o \
+	getpeername.o \
+	getsockname.o \
 	access.o \
 	chflags.o \
 	fchflags.o \
 	sync.o \
 	kill.o \
 	getppid.o \
-	sys_dup.o \
+	dup.o \
 	pipe.o \
 	getegid.o \
 	profil.o \
@@ -49,7 +49,7 @@ MIASM =  \
 	setlogin.o \
 	acct.o \
 	sigaltstack.o \
-	sys_ioctl.o \
+	ioctl.o \
 	reboot.o \
 	revoke.o \
 	symlink.o \
@@ -74,22 +74,22 @@ MIASM =  \
 	swapon.o \
 	getitimer.o \
 	getdtablesize.o \
-	sys_dup2.o \
-	sys_fcntl.o \
-	sys_select.o \
+	dup2.o \
+	fcntl.o \
+	select.o \
 	fsync.o \
 	setpriority.o \
-	sys_socket.o \
-	sys_connect.o \
+	socket.o \
+	connect.o \
 	getpriority.o \
-	sys_bind.o \
-	sys_setsockopt.o \
-	sys_listen.o \
+	bind.o \
+	setsockopt.o \
+	listen.o \
 	gettimeofday.o \
 	getrusage.o \
-	sys_getsockopt.o \
-	sys_readv.o \
-	sys_writev.o \
+	getsockopt.o \
+	readv.o \
+	writev.o \
 	settimeofday.o \
 	fchown.o \
 	fchmod.o \
@@ -98,9 +98,9 @@ MIASM =  \
 	rename.o \
 	flock.o \
 	mkfifo.o \
-	sys_sendto.o \
-	sys_shutdown.o \
-	sys_socketpair.o \
+	sendto.o \
+	shutdown.o \
+	socketpair.o \
 	mkdir.o \
 	rmdir.o \
 	utimes.o \
@@ -147,7 +147,7 @@ MIASM =  \
 	undelete.o \
 	futimes.o \
 	getpgid.o \
-	sys_poll.o \
+	poll.o \
 	freebsd7___semctl.o \
 	semget.o \
 	semop.o \
@@ -174,9 +174,9 @@ MIASM =  \
 	openbsd_poll.o \
 	issetugid.o \
 	lchown.o \
-	sys_aio_read.o \
-	sys_aio_write.o \
-	sys_lio_listio.o \
+	aio_read.o \
+	aio_write.o \
+	lio_listio.o \
 	getdents.o \
 	lchmod.o \
 	netbsd_lchown.o \
@@ -185,8 +185,8 @@ MIASM =  \
 	nstat.o \
 	nfstat.o \
 	nlstat.o \
-	sys_preadv.o \
-	sys_pwritev.o \
+	preadv.o \
+	pwritev.o \
 	freebsd4_fhstatfs.o \
 	fhopen.o \
 	fhstat.o \
@@ -203,10 +203,10 @@ MIASM =  \
 	getsid.o \
 	setresuid.o \
 	setresgid.o \
-	sys_aio_return.o \
-	sys_aio_suspend.o \
-	sys_aio_cancel.o \
-	sys_aio_error.o \
+	aio_return.o \
+	aio_suspend.o \
+	aio_cancel.o \
+	aio_error.o \
 	oaio_read.o \
 	oaio_write.o \
 	olio_listio.o \
@@ -246,11 +246,11 @@ MIASM =  \
 	extattr_set_file.o \
 	extattr_get_file.o \
 	extattr_delete_file.o \
-	sys_aio_waitcomplete.o \
+	aio_waitcomplete.o \
 	getresuid.o \
 	getresgid.o \
-	sys_kqueue.o \
-	sys_kevent.o \
+	kqueue.o \
+	kevent.o \
 	extattr_set_fd.o \
 	extattr_get_fd.o \
 	extattr_delete_fd.o \
@@ -334,14 +334,14 @@ MIASM =  \
 	kmq_unlink.o \
 	abort2.o \
 	thr_set_name.o \
-	sys_aio_fsync.o \
+	aio_fsync.o \
 	rtprio_thread.o \
 	sctp_peeloff.o \
 	sctp_generic_sendmsg.o \
 	sctp_generic_sendmsg_iov.o \
 	sctp_generic_recvmsg.o \
-	sys_pread.o \
-	sys_pwrite.o \
+	pread.o \
+	pwrite.o \
 	mmap.o \
 	lseek.o \
 	truncate.o \
@@ -374,7 +374,7 @@ MIASM =  \
 	jail_get.o \
 	jail_set.o \
 	jail_remove.o \
-	sys_closefrom.o \
+	closefrom.o \
 	__semctl.o \
 	msgctl.o \
 	shmctl.o \
@@ -383,7 +383,10 @@ MIASM =  \
 	cap_getrights.o \
 	cap_enter.o \
 	cap_getmode.o \
-	sys_pselect.o \
+	pdfork.o \
+	pdkill.o \
+	pdgetpid.o \
+	pselect.o \
 	getloginclass.o \
 	setloginclass.o \
 	rctl_get_racct.o \

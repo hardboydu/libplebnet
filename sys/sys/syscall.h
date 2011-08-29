@@ -9,10 +9,10 @@
 #define	SYS_syscall	0
 #define	SYS_exit	1
 #define	SYS_fork	2
-#define	SYS_sys_read	3
-#define	SYS_sys_write	4
+#define	SYS_read	3
+#define	SYS_write	4
 #define	SYS_open	5
-#define	SYS_sys_close	6
+#define	SYS_close	6
 #define	SYS_wait4	7
 				/* 8 is old creat */
 #define	SYS_link	9
@@ -33,12 +33,12 @@
 #define	SYS_getuid	24
 #define	SYS_geteuid	25
 #define	SYS_ptrace	26
-#define	SYS_sys_recvmsg	27
-#define	SYS_sys_sendmsg	28
-#define	SYS_sys_recvfrom	29
-#define	SYS_sys_accept	30
-#define	SYS_sys_getpeername	31
-#define	SYS_sys_getsockname	32
+#define	SYS_recvmsg	27
+#define	SYS_sendmsg	28
+#define	SYS_recvfrom	29
+#define	SYS_accept	30
+#define	SYS_getpeername	31
+#define	SYS_getsockname	32
 #define	SYS_access	33
 #define	SYS_chflags	34
 #define	SYS_fchflags	35
@@ -47,7 +47,7 @@
 				/* 38 is old stat */
 #define	SYS_getppid	39
 				/* 40 is old lstat */
-#define	SYS_sys_dup	41
+#define	SYS_dup	41
 #define	SYS_pipe	42
 #define	SYS_getegid	43
 #define	SYS_profil	44
@@ -60,7 +60,7 @@
 #define	SYS_acct	51
 				/* 52 is old sigpending */
 #define	SYS_sigaltstack	53
-#define	SYS_sys_ioctl	54
+#define	SYS_ioctl	54
 #define	SYS_reboot	55
 #define	SYS_revoke	56
 #define	SYS_symlink	57
@@ -96,21 +96,21 @@
 				/* 87 is old gethostname */
 				/* 88 is old sethostname */
 #define	SYS_getdtablesize	89
-#define	SYS_sys_dup2	90
-#define	SYS_sys_fcntl	92
-#define	SYS_sys_select	93
+#define	SYS_dup2	90
+#define	SYS_fcntl	92
+#define	SYS_select	93
 #define	SYS_fsync	95
 #define	SYS_setpriority	96
-#define	SYS_sys_socket	97
-#define	SYS_sys_connect	98
+#define	SYS_socket	97
+#define	SYS_connect	98
 				/* 99 is old accept */
 #define	SYS_getpriority	100
 				/* 101 is old send */
 				/* 102 is old recv */
 				/* 103 is old sigreturn */
-#define	SYS_sys_bind	104
-#define	SYS_sys_setsockopt	105
-#define	SYS_sys_listen	106
+#define	SYS_bind	104
+#define	SYS_setsockopt	105
+#define	SYS_listen	106
 				/* 107 is obsolete vtimes */
 				/* 108 is old sigvec */
 				/* 109 is old sigblock */
@@ -122,9 +122,9 @@
 				/* 115 is obsolete vtrace */
 #define	SYS_gettimeofday	116
 #define	SYS_getrusage	117
-#define	SYS_sys_getsockopt	118
-#define	SYS_sys_readv	120
-#define	SYS_sys_writev	121
+#define	SYS_getsockopt	118
+#define	SYS_readv	120
+#define	SYS_writev	121
 #define	SYS_settimeofday	122
 #define	SYS_fchown	123
 #define	SYS_fchmod	124
@@ -136,9 +136,9 @@
 				/* 130 is old ftruncate */
 #define	SYS_flock	131
 #define	SYS_mkfifo	132
-#define	SYS_sys_sendto	133
-#define	SYS_sys_shutdown	134
-#define	SYS_sys_socketpair	135
+#define	SYS_sendto	133
+#define	SYS_shutdown	134
+#define	SYS_socketpair	135
 #define	SYS_mkdir	136
 #define	SYS_rmdir	137
 #define	SYS_utimes	138
@@ -195,7 +195,7 @@
 #define	SYS_undelete	205
 #define	SYS_futimes	206
 #define	SYS_getpgid	207
-#define	SYS_sys_poll	209
+#define	SYS_poll	209
 #define	SYS_freebsd7___semctl	220
 #define	SYS_semget	221
 #define	SYS_semop	222
@@ -222,9 +222,9 @@
 #define	SYS_openbsd_poll	252
 #define	SYS_issetugid	253
 #define	SYS_lchown	254
-#define	SYS_sys_aio_read	255
-#define	SYS_sys_aio_write	256
-#define	SYS_sys_lio_listio	257
+#define	SYS_aio_read	255
+#define	SYS_aio_write	256
+#define	SYS_lio_listio	257
 #define	SYS_getdents	272
 #define	SYS_lchmod	274
 #define	SYS_netbsd_lchown	275
@@ -233,8 +233,8 @@
 #define	SYS_nstat	278
 #define	SYS_nfstat	279
 #define	SYS_nlstat	280
-#define	SYS_sys_preadv	289
-#define	SYS_sys_pwritev	290
+#define	SYS_preadv	289
+#define	SYS_pwritev	290
 #define	SYS_freebsd4_fhstatfs	297
 #define	SYS_fhopen	298
 #define	SYS_fhstat	299
@@ -252,10 +252,10 @@
 #define	SYS_setresuid	311
 #define	SYS_setresgid	312
 				/* 313 is obsolete signanosleep */
-#define	SYS_sys_aio_return	314
-#define	SYS_sys_aio_suspend	315
-#define	SYS_sys_aio_cancel	316
-#define	SYS_sys_aio_error	317
+#define	SYS_aio_return	314
+#define	SYS_aio_suspend	315
+#define	SYS_aio_cancel	316
+#define	SYS_aio_error	317
 #define	SYS_oaio_read	318
 #define	SYS_oaio_write	319
 #define	SYS_olio_listio	320
@@ -297,11 +297,11 @@
 #define	SYS_extattr_set_file	356
 #define	SYS_extattr_get_file	357
 #define	SYS_extattr_delete_file	358
-#define	SYS_sys_aio_waitcomplete	359
+#define	SYS_aio_waitcomplete	359
 #define	SYS_getresuid	360
 #define	SYS_getresgid	361
-#define	SYS_sys_kqueue	362
-#define	SYS_sys_kevent	363
+#define	SYS_kqueue	362
+#define	SYS_kevent	363
 #define	SYS_extattr_set_fd	371
 #define	SYS_extattr_get_fd	372
 #define	SYS_extattr_delete_fd	373
@@ -385,14 +385,14 @@
 #define	SYS_kmq_unlink	462
 #define	SYS_abort2	463
 #define	SYS_thr_set_name	464
-#define	SYS_sys_aio_fsync	465
+#define	SYS_aio_fsync	465
 #define	SYS_rtprio_thread	466
 #define	SYS_sctp_peeloff	471
 #define	SYS_sctp_generic_sendmsg	472
 #define	SYS_sctp_generic_sendmsg_iov	473
 #define	SYS_sctp_generic_recvmsg	474
-#define	SYS_sys_pread	475
-#define	SYS_sys_pwrite	476
+#define	SYS_pread	475
+#define	SYS_pwrite	476
 #define	SYS_mmap	477
 #define	SYS_lseek	478
 #define	SYS_truncate	479
@@ -425,7 +425,7 @@
 #define	SYS_jail_get	506
 #define	SYS_jail_set	507
 #define	SYS_jail_remove	508
-#define	SYS_sys_closefrom	509
+#define	SYS_closefrom	509
 #define	SYS___semctl	510
 #define	SYS_msgctl	511
 #define	SYS_shmctl	512
@@ -434,7 +434,10 @@
 #define	SYS_cap_getrights	515
 #define	SYS_cap_enter	516
 #define	SYS_cap_getmode	517
-#define	SYS_sys_pselect	522
+#define	SYS_pdfork	518
+#define	SYS_pdkill	519
+#define	SYS_pdgetpid	520
+#define	SYS_pselect	522
 #define	SYS_getloginclass	523
 #define	SYS_setloginclass	524
 #define	SYS_rctl_get_racct	525

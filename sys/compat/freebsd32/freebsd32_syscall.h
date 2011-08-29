@@ -9,10 +9,10 @@
 #define	FREEBSD32_SYS_syscall	0
 #define	FREEBSD32_SYS_exit	1
 #define	FREEBSD32_SYS_fork	2
-#define	FREEBSD32_SYS_sys_read	3
-#define	FREEBSD32_SYS_sys_write	4
+#define	FREEBSD32_SYS_read	3
+#define	FREEBSD32_SYS_write	4
 #define	FREEBSD32_SYS_open	5
-#define	FREEBSD32_SYS_sys_close	6
+#define	FREEBSD32_SYS_close	6
 #define	FREEBSD32_SYS_freebsd32_wait4	7
 				/* 8 is obsolete old creat */
 #define	FREEBSD32_SYS_link	9
@@ -36,9 +36,9 @@
 #define	FREEBSD32_SYS_freebsd32_recvmsg	27
 #define	FREEBSD32_SYS_freebsd32_sendmsg	28
 #define	FREEBSD32_SYS_freebsd32_recvfrom	29
-#define	FREEBSD32_SYS_sys_accept	30
-#define	FREEBSD32_SYS_sys_getpeername	31
-#define	FREEBSD32_SYS_sys_getsockname	32
+#define	FREEBSD32_SYS_accept	30
+#define	FREEBSD32_SYS_getpeername	31
+#define	FREEBSD32_SYS_getsockname	32
 #define	FREEBSD32_SYS_access	33
 #define	FREEBSD32_SYS_chflags	34
 #define	FREEBSD32_SYS_fchflags	35
@@ -47,7 +47,7 @@
 				/* 38 is old freebsd32_stat */
 #define	FREEBSD32_SYS_getppid	39
 				/* 40 is old freebsd32_lstat */
-#define	FREEBSD32_SYS_sys_dup	41
+#define	FREEBSD32_SYS_dup	41
 #define	FREEBSD32_SYS_pipe	42
 #define	FREEBSD32_SYS_getegid	43
 #define	FREEBSD32_SYS_profil	44
@@ -96,21 +96,21 @@
 				/* 87 is obsolete ogethostname */
 				/* 88 is obsolete osethostname */
 #define	FREEBSD32_SYS_getdtablesize	89
-#define	FREEBSD32_SYS_sys_dup2	90
-#define	FREEBSD32_SYS_sys_fcntl	92
+#define	FREEBSD32_SYS_dup2	90
+#define	FREEBSD32_SYS_fcntl	92
 #define	FREEBSD32_SYS_freebsd32_select	93
 #define	FREEBSD32_SYS_fsync	95
 #define	FREEBSD32_SYS_setpriority	96
-#define	FREEBSD32_SYS_sys_socket	97
-#define	FREEBSD32_SYS_sys_connect	98
+#define	FREEBSD32_SYS_socket	97
+#define	FREEBSD32_SYS_connect	98
 				/* 99 is obsolete oaccept */
 #define	FREEBSD32_SYS_getpriority	100
 				/* 101 is obsolete osend */
 				/* 102 is obsolete orecv */
 				/* 103 is old freebsd32_sigreturn */
-#define	FREEBSD32_SYS_sys_bind	104
-#define	FREEBSD32_SYS_sys_setsockopt	105
-#define	FREEBSD32_SYS_sys_listen	106
+#define	FREEBSD32_SYS_bind	104
+#define	FREEBSD32_SYS_setsockopt	105
+#define	FREEBSD32_SYS_listen	106
 				/* 107 is obsolete vtimes */
 				/* 108 is old freebsd32_sigvec */
 				/* 109 is old freebsd32_sigblock */
@@ -122,7 +122,7 @@
 				/* 115 is obsolete vtrace */
 #define	FREEBSD32_SYS_freebsd32_gettimeofday	116
 #define	FREEBSD32_SYS_freebsd32_getrusage	117
-#define	FREEBSD32_SYS_sys_getsockopt	118
+#define	FREEBSD32_SYS_getsockopt	118
 #define	FREEBSD32_SYS_freebsd32_readv	120
 #define	FREEBSD32_SYS_freebsd32_writev	121
 #define	FREEBSD32_SYS_freebsd32_settimeofday	122
@@ -136,9 +136,9 @@
 				/* 130 is obsolete ftruncate */
 #define	FREEBSD32_SYS_flock	131
 #define	FREEBSD32_SYS_mkfifo	132
-#define	FREEBSD32_SYS_sys_sendto	133
-#define	FREEBSD32_SYS_sys_shutdown	134
-#define	FREEBSD32_SYS_sys_socketpair	135
+#define	FREEBSD32_SYS_sendto	133
+#define	FREEBSD32_SYS_shutdown	134
+#define	FREEBSD32_SYS_socketpair	135
 #define	FREEBSD32_SYS_mkdir	136
 #define	FREEBSD32_SYS_rmdir	137
 #define	FREEBSD32_SYS_freebsd32_utimes	138
@@ -191,7 +191,7 @@
 #define	FREEBSD32_SYS_undelete	205
 #define	FREEBSD32_SYS_freebsd32_futimes	206
 #define	FREEBSD32_SYS_getpgid	207
-#define	FREEBSD32_SYS_sys_poll	209
+#define	FREEBSD32_SYS_poll	209
 #define	FREEBSD32_SYS_freebsd7_freebsd32_semctl	220
 #define	FREEBSD32_SYS_semget	221
 #define	FREEBSD32_SYS_semop	222
@@ -289,7 +289,7 @@
 #define	FREEBSD32_SYS_freebsd32_aio_waitcomplete	359
 #define	FREEBSD32_SYS_getresuid	360
 #define	FREEBSD32_SYS_getresgid	361
-#define	FREEBSD32_SYS_sys_kqueue	362
+#define	FREEBSD32_SYS_kqueue	362
 #define	FREEBSD32_SYS_freebsd32_kevent	363
 #define	FREEBSD32_SYS_extattr_set_fd	371
 #define	FREEBSD32_SYS_extattr_get_fd	372
@@ -406,7 +406,7 @@
 #define	FREEBSD32_SYS_freebsd32_jail_get	506
 #define	FREEBSD32_SYS_freebsd32_jail_set	507
 #define	FREEBSD32_SYS_jail_remove	508
-#define	FREEBSD32_SYS_sys_closefrom	509
+#define	FREEBSD32_SYS_closefrom	509
 #define	FREEBSD32_SYS_freebsd32_semctl	510
 #define	FREEBSD32_SYS_freebsd32_msgctl	511
 #define	FREEBSD32_SYS_freebsd32_shmctl	512

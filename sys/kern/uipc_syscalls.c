@@ -98,13 +98,13 @@ __FBSDID("$FreeBSD$");
 int sendit(struct thread *td, int s, struct msghdr *mp, int flags);
 static int recvit(struct thread *td, int s, struct msghdr *mp, void *namelenp);
 
-static int accept1(struct thread *td, struct sys_accept_args *uap, int compat);
+static int accept1(struct thread *td, struct accept_args *uap, int compat);
 #ifndef PLEBNET
 static int do_sendfile(struct thread *td, struct sendfile_args *uap, int compat);
 #endif
-static int getsockname1(struct thread *td, struct sys_getsockname_args *uap,
+static int getsockname1(struct thread *td, struct getsockname_args *uap,
 			int compat);
-static int getpeername1(struct thread *td, struct sys_getpeername_args *uap,
+static int getpeername1(struct thread *td, struct getpeername_args *uap,
 			int compat);
 
 /*
@@ -159,9 +159,9 @@ getsock(struct filedesc *fdp, int fd, struct file **fpp, u_int *fflagp)
 #endif
 
 int
-sys_socket(td, uap)
+socket(td, uap)
 	struct thread *td;
-	struct sys_socket_args /* {
+	struct socket_args /* {
 		int	domain;
 		int	type;
 		int	protocol;
@@ -204,9 +204,9 @@ kern_socket(struct thread *td, int domain, int type, int protocol)
 
 /* ARGSUSED */
 int
-sys_bind(td, uap)
+bind(td, uap)
 	struct thread *td;
-	struct sys_bind_args /* {
+	struct bind_args /* {
 		int	s;
 		caddr_t	name;
 		int	namelen;
@@ -253,9 +253,9 @@ kern_bind(td, fd, sa)
 
 /* ARGSUSED */
 int
-sys_listen(td, uap)
+listen(td, uap)
 	struct thread *td;
-	struct sys_listen_args /* {
+	struct listen_args /* {
 		int	s;
 		int	backlog;
 	} */ *uap;
@@ -292,7 +292,7 @@ kern_listen(struct thread *td, int s, int backlog)
 static int
 accept1(td, uap, compat)
 	struct thread *td;
-	struct sys_accept_args /* {
+	struct accept_args /* {
 		int	s;
 		struct sockaddr	* __restrict name;
 		socklen_t	* __restrict anamelen;
@@ -497,9 +497,9 @@ done:
 }
 
 int
-sys_accept(td, uap)
+accept(td, uap)
 	struct thread *td;
-	struct sys_accept_args *uap;
+	struct accept_args *uap;
 {
 
 	return (accept1(td, uap, 0));
@@ -518,9 +518,9 @@ oaccept(td, uap)
 
 /* ARGSUSED */
 int
-sys_connect(td, uap)
+connect(td, uap)
 	struct thread *td;
-	struct sys_connect_args /* {
+	struct connect_args /* {
 		int	s;
 		caddr_t	name;
 		int	namelen;
@@ -666,7 +666,7 @@ free1:
 }
 
 int
-sys_socketpair(struct thread *td, struct sys_socketpair_args *uap)
+socketpair(struct thread *td, struct socketpair_args *uap)
 {
 	int error, sv[2];
 
@@ -832,9 +832,9 @@ bad:
 }
 
 int
-sys_sendto(td, uap)
+sendto(td, uap)
 	struct thread *td;
-	struct sys_sendto_args /* {
+	struct sendto_args /* {
 		int	s;
 		caddr_t	buf;
 		size_t	len;
@@ -916,9 +916,9 @@ osendmsg(td, uap)
 #endif
 
 int
-sys_sendmsg(td, uap)
+sendmsg(td, uap)
 	struct thread *td;
-	struct sys_sendmsg_args /* {
+	struct sendmsg_args /* {
 		int	s;
 		caddr_t	msg;
 		int	flags;
@@ -1126,9 +1126,9 @@ recvit(td, s, mp, namelenp)
 }
 
 int
-sys_recvfrom(td, uap)
+recvfrom(td, uap)
 	struct thread *td;
-	struct sys_recvfrom_args /* {
+	struct recvfrom_args /* {
 		int	s;
 		caddr_t	buf;
 		size_t	len;
@@ -1236,9 +1236,9 @@ orecvmsg(td, uap)
 #endif
 
 int
-sys_recvmsg(td, uap)
+recvmsg(td, uap)
 	struct thread *td;
-	struct sys_recvmsg_args /* {
+	struct recvmsg_args /* {
 		int	s;
 		struct	msghdr *msg;
 		int	flags;
@@ -1271,9 +1271,9 @@ sys_recvmsg(td, uap)
 
 /* ARGSUSED */
 int
-sys_shutdown(td, uap)
+shutdown(td, uap)
 	struct thread *td;
-	struct sys_shutdown_args /* {
+	struct shutdown_args /* {
 		int	s;
 		int	how;
 	} */ *uap;
@@ -1302,9 +1302,9 @@ kern_shutdown(struct thread *td, int s, int how)
 
 /* ARGSUSED */
 int
-sys_setsockopt(td, uap)
+setsockopt(td, uap)
 	struct thread *td;
-	struct sys_setsockopt_args /* {
+	struct setsockopt_args /* {
 		int	s;
 		int	level;
 		int	name;
@@ -1365,9 +1365,9 @@ kern_setsockopt(td, s, level, name, val, valseg, valsize)
 
 /* ARGSUSED */
 int
-sys_getsockopt(td, uap)
+getsockopt(td, uap)
 	struct thread *td;
-	struct sys_getsockopt_args /* {
+	struct getsockopt_args /* {
 		int	s;
 		int	level;
 		int	name;
@@ -1450,7 +1450,7 @@ kern_getsockopt(td, s, level, name, val, valseg, valsize)
 static int
 getsockname1(td, uap, compat)
 	struct thread *td;
-	struct sys_getsockname_args /* {
+	struct getsockname_args /* {
 		int	fdes;
 		struct sockaddr * __restrict asa;
 		socklen_t * __restrict alen;
@@ -1524,9 +1524,9 @@ bad:
 }
 
 int
-sys_getsockname(td, uap)
+getsockname(td, uap)
 	struct thread *td;
-	struct sys_getsockname_args *uap;
+	struct getsockname_args *uap;
 {
 
 	return (getsockname1(td, uap, 0));
@@ -1550,7 +1550,7 @@ ogetsockname(td, uap)
 static int
 getpeername1(td, uap, compat)
 	struct thread *td;
-	struct sys_getpeername_args /* {
+	struct getpeername_args /* {
 		int	fdes;
 		struct sockaddr * __restrict	asa;
 		socklen_t * __restrict	alen;
@@ -1629,9 +1629,9 @@ done:
 }
 
 int
-sys_getpeername(td, uap)
+getpeername(td, uap)
 	struct thread *td;
-	struct sys_getpeername_args *uap;
+	struct getpeername_args *uap;
 {
 
 	return (getpeername1(td, uap, 0));

@@ -346,7 +346,7 @@ cleanup:
 int
 freebsd32_ioctl(struct thread *td, struct freebsd32_ioctl_args *uap)
 {
-	struct sys_ioctl_args ap /*{
+	struct ioctl_args ap /*{
 		int	fd;
 		u_long	com;
 		caddr_t	data;
@@ -395,7 +395,7 @@ freebsd32_ioctl(struct thread *td, struct freebsd32_ioctl_args *uap)
 		ap.fd = uap->fd;
 		ap.com = uap->com;
 		PTRIN_CP(*uap, ap, data);
-		return sys_ioctl(td, &ap);
+		return ioctl(td, &ap);
 	}
 
 	fdrop(fp, td);

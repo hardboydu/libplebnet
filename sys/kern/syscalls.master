@@ -61,15 +61,15 @@
 1	AUE_EXIT	STD	{ void sys_exit(int rval); } exit \
 				    sys_exit_args void
 2	AUE_FORK	STD	{ int fork(void); }
-3	AUE_NULL	STD	{ ssize_t sys_read(int fd, void *buf, \
+3	AUE_NULL	STD	{ ssize_t read(int fd, void *buf, \
 				    size_t nbyte); }
-4	AUE_NULL	STD	{ ssize_t sys_write(int fd, const void *buf, \
+4	AUE_NULL	STD	{ ssize_t write(int fd, const void *buf, \
 				    size_t nbyte); }
 5	AUE_OPEN_RWTC	STD	{ int open(char *path, int flags, int mode); }
 ; XXX should be		{ int open(const char *path, int flags, ...); }
 ; but we're not ready for `const' or varargs.
 ; XXX man page says `mode_t mode'.
-6	AUE_CLOSE	STD	{ int sys_close(int fd); }
+6	AUE_CLOSE	STD	{ int close(int fd); }
 7	AUE_WAIT4	STD	{ int wait4(int pid, int *status, \
 				    int options, struct rusage *rusage); } \
 				    wait4 wait_args int
@@ -98,21 +98,21 @@
 25	AUE_GETEUID	STD	{ uid_t geteuid(void); }
 26	AUE_PTRACE	STD	{ int ptrace(int req, pid_t pid, \
 				    caddr_t addr, int data); }
-27	AUE_RECVMSG	STD	{ int sys_recvmsg(int s, struct msghdr *msg, \
+27	AUE_RECVMSG	STD	{ int recvmsg(int s, struct msghdr *msg, \
 				    int flags); }
-28	AUE_SENDMSG	STD	{ int sys_sendmsg(int s, struct msghdr *msg, \
+28	AUE_SENDMSG	STD	{ int sendmsg(int s, struct msghdr *msg, \
 				    int flags); }
-29	AUE_RECVFROM	STD	{ int sys_recvfrom(int s, caddr_t buf, \
+29	AUE_RECVFROM	STD	{ int recvfrom(int s, caddr_t buf, \
 				    size_t len, int flags, \
 				    struct sockaddr * __restrict from, \
 				    __socklen_t * __restrict fromlenaddr); }
-30	AUE_ACCEPT	STD	{ int sys_accept(int s, \
+30	AUE_ACCEPT	STD	{ int accept(int s, \
 				    struct sockaddr * __restrict name, \
 				    __socklen_t * __restrict anamelen); }
-31	AUE_GETPEERNAME	STD	{ int sys_getpeername(int fdes, \
+31	AUE_GETPEERNAME	STD	{ int getpeername(int fdes, \
 				    struct sockaddr * __restrict asa, \
 				    __socklen_t * __restrict alen); }
-32	AUE_GETSOCKNAME	STD	{ int sys_getsockname(int fdes, \
+32	AUE_GETSOCKNAME	STD	{ int getsockname(int fdes, \
 				    struct sockaddr * __restrict asa, \
 				    __socklen_t * __restrict alen); }
 33	AUE_ACCESS	STD	{ int access(char *path, int flags); }
@@ -123,7 +123,7 @@
 38	AUE_STAT	COMPAT	{ int stat(char *path, struct ostat *ub); }
 39	AUE_GETPPID	STD	{ pid_t getppid(void); }
 40	AUE_LSTAT	COMPAT	{ int lstat(char *path, struct ostat *ub); }
-41	AUE_DUP		STD	{ int sys_dup(u_int fd); }
+41	AUE_DUP		STD	{ int dup(u_int fd); }
 42	AUE_PIPE	STD	{ int pipe(void); }
 43	AUE_GETEGID	STD	{ gid_t getegid(void); }
 44	AUE_PROFILE	STD	{ int profil(caddr_t samples, size_t size, \
@@ -145,7 +145,7 @@
 52	AUE_SIGPENDING	COMPAT	{ int sigpending(void); }
 53	AUE_SIGALTSTACK	STD	{ int sigaltstack(stack_t *ss, \
 				    stack_t *oss); }
-54	AUE_IOCTL	STD	{ int sys_ioctl(int fd, u_long com, \
+54	AUE_IOCTL	STD	{ int ioctl(int fd, u_long com, \
 				    caddr_t data); }
 55	AUE_REBOOT	STD	{ int reboot(int opt); }
 56	AUE_REVOKE	STD	{ int revoke(char *path); }
@@ -202,20 +202,20 @@
 				    u_int len); } sethostname \
 				    sethostname_args int
 89	AUE_GETDTABLESIZE	STD	{ int getdtablesize(void); }
-90	AUE_DUP2	STD	{ int sys_dup2(u_int from, u_int to); }
+90	AUE_DUP2	STD	{ int dup2(u_int from, u_int to); }
 91	AUE_NULL	UNIMPL	getdopt
-92	AUE_FCNTL	STD	{ int sys_fcntl(int fd, int cmd, long arg); }
+92	AUE_FCNTL	STD	{ int fcntl(int fd, int cmd, long arg); }
 ; XXX should be	{ int fcntl(int fd, int cmd, ...); }
 ; but we're not ready for varargs.
-93	AUE_SELECT	STD	{ int sys_select(int nd, fd_set *in, fd_set *ou, \
+93	AUE_SELECT	STD	{ int select(int nd, fd_set *in, fd_set *ou, \
 				    fd_set *ex, struct timeval *tv); }
 94	AUE_NULL	UNIMPL	setdopt
 95	AUE_FSYNC	STD	{ int fsync(int fd); }
 96	AUE_SETPRIORITY	STD	{ int setpriority(int which, int who, \
 				    int prio); }
-97	AUE_SOCKET	STD	{ int sys_socket(int domain, int type, \
+97	AUE_SOCKET	STD	{ int socket(int domain, int type, \
 				    int protocol); }
-98	AUE_CONNECT	STD	{ int sys_connect(int s, caddr_t name, \
+98	AUE_CONNECT	STD	{ int connect(int s, caddr_t name, \
 				    int namelen); }
 99	AUE_ACCEPT	COMPAT|NOARGS { int accept(int s, caddr_t name, \
 				    int *anamelen); } accept accept_args int
@@ -226,11 +226,11 @@
 				    int flags); }
 103	AUE_SIGRETURN	COMPAT	{ int sigreturn( \
 				    struct osigcontext *sigcntxp); }
-104	AUE_BIND	STD	{ int sys_bind(int s, caddr_t name, \
+104	AUE_BIND	STD	{ int bind(int s, caddr_t name, \
 				    int namelen); }
-105	AUE_SETSOCKOPT	STD	{ int sys_setsockopt(int s, int level, int name, \
+105	AUE_SETSOCKOPT	STD	{ int setsockopt(int s, int level, int name, \
 				    caddr_t val, int valsize); }
-106	AUE_LISTEN	STD	{ int sys_listen(int s, int backlog); }
+106	AUE_LISTEN	STD	{ int listen(int s, int backlog); }
 107	AUE_NULL	OBSOL	vtimes
 108	AUE_NULL	COMPAT	{ int sigvec(int signum, struct sigvec *nsv, \
 				    struct sigvec *osv); }
@@ -250,12 +250,12 @@
 				    struct timezone *tzp); }
 117	AUE_GETRUSAGE	STD	{ int getrusage(int who, \
 				    struct rusage *rusage); }
-118	AUE_GETSOCKOPT	STD	{ int sys_getsockopt(int s, int level, int name, \
+118	AUE_GETSOCKOPT	STD	{ int getsockopt(int s, int level, int name, \
 				    caddr_t val, int *avalsize); }
 119	AUE_NULL	UNIMPL	resuba (BSD/OS 2.x)
-120	AUE_READV	STD	{ int sys_readv(int fd, struct iovec *iovp, \
+120	AUE_READV	STD	{ int readv(int fd, struct iovec *iovp, \
 				    u_int iovcnt); }
-121	AUE_WRITEV	STD	{ int sys_writev(int fd, struct iovec *iovp, \
+121	AUE_WRITEV	STD	{ int writev(int fd, struct iovec *iovp, \
 				    u_int iovcnt); }
 122	AUE_SETTIMEOFDAY	STD	{ int settimeofday(struct timeval *tv, \
 				    struct timezone *tzp); }
@@ -272,10 +272,10 @@
 130	AUE_FTRUNCATE	COMPAT	{ int ftruncate(int fd, long length); }
 131	AUE_FLOCK	STD	{ int flock(int fd, int how); }
 132	AUE_MKFIFO	STD	{ int mkfifo(char *path, int mode); }
-133	AUE_SENDTO	STD	{ int sys_sendto(int s, caddr_t buf, size_t len, \
+133	AUE_SENDTO	STD	{ int sendto(int s, caddr_t buf, size_t len, \
 				    int flags, caddr_t to, int tolen); }
-134	AUE_SHUTDOWN	STD	{ int sys_shutdown(int s, int how); }
-135	AUE_SOCKETPAIR	STD	{ int sys_socketpair(int domain, int type, \
+134	AUE_SHUTDOWN	STD	{ int shutdown(int s, int how); }
+135	AUE_SOCKETPAIR	STD	{ int socketpair(int domain, int type, \
 				    int protocol, int *rsv); }
 136	AUE_MKDIR	STD	{ int mkdir(char *path, int mode); }
 137	AUE_RMDIR	STD	{ int rmdir(char *path); }
@@ -397,7 +397,7 @@
 206	AUE_FUTIMES	STD	{ int futimes(int fd, struct timeval *tptr); }
 207	AUE_GETPGID	STD	{ int getpgid(pid_t pid); }
 208	AUE_NULL	UNIMPL	newreboot (NetBSD)
-209	AUE_POLL	STD	{ int sys_poll(struct pollfd *fds, u_int nfds, \
+209	AUE_POLL	STD	{ int poll(struct pollfd *fds, u_int nfds, \
 				    int timeout); }
 
 ;
@@ -473,9 +473,9 @@
 				    u_int nfds, int timeout); }
 253	AUE_ISSETUGID	STD	{ int issetugid(void); }
 254	AUE_LCHOWN	STD	{ int lchown(char *path, int uid, int gid); }
-255	AUE_NULL	NOSTD	{ int sys_aio_read(struct aiocb *aiocbp); }
-256	AUE_NULL	NOSTD	{ int sys_aio_write(struct aiocb *aiocbp); }
-257	AUE_NULL	NOSTD	{ int sys_lio_listio(int mode, \
+255	AUE_NULL	NOSTD	{ int aio_read(struct aiocb *aiocbp); }
+256	AUE_NULL	NOSTD	{ int aio_write(struct aiocb *aiocbp); }
+257	AUE_NULL	NOSTD	{ int lio_listio(int mode, \
 				    struct aiocb * const *acb_list, \
 				    int nent, struct sigevent *sig); }
 258	AUE_NULL	UNIMPL	nosys
@@ -515,9 +515,9 @@
 287	AUE_NULL	UNIMPL	nosys
 288	AUE_NULL	UNIMPL	nosys
 ; 289 and 290 from NetBSD (OpenBSD: 267 and 268)
-289	AUE_PREADV	STD	{ ssize_t sys_preadv(int fd, struct iovec *iovp, \
+289	AUE_PREADV	STD	{ ssize_t preadv(int fd, struct iovec *iovp, \
 					u_int iovcnt, off_t offset); }
-290	AUE_PWRITEV	STD	{ ssize_t sys_pwritev(int fd, struct iovec *iovp, \
+290	AUE_PWRITEV	STD	{ ssize_t pwritev(int fd, struct iovec *iovp, \
 					u_int iovcnt, off_t offset); }
 291	AUE_NULL	UNIMPL	nosys
 292	AUE_NULL	UNIMPL	nosys
@@ -552,13 +552,13 @@
 312	AUE_SETRESGID	STD	{ int setresgid(gid_t rgid, gid_t egid, \
 				    gid_t sgid); }
 313	AUE_NULL	OBSOL	signanosleep
-314	AUE_NULL	NOSTD	{ int sys_aio_return(struct aiocb *aiocbp); }
-315	AUE_NULL	NOSTD	{ int sys_aio_suspend( \
+314	AUE_NULL	NOSTD	{ int aio_return(struct aiocb *aiocbp); }
+315	AUE_NULL	NOSTD	{ int aio_suspend( \
 				    struct aiocb * const * aiocbp, int nent, \
 				    const struct timespec *timeout); }
-316	AUE_NULL	NOSTD	{ int sys_aio_cancel(int fd, \
+316	AUE_NULL	NOSTD	{ int aio_cancel(int fd, \
 				    struct aiocb *aiocbp); }
-317	AUE_NULL	NOSTD	{ int sys_aio_error(struct aiocb *aiocbp); }
+317	AUE_NULL	NOSTD	{ int aio_error(struct aiocb *aiocbp); }
 318	AUE_NULL	NOSTD	{ int oaio_read(struct oaiocb *aiocbp); }
 319	AUE_NULL	NOSTD	{ int oaio_write(struct oaiocb *aiocbp); }
 320	AUE_NULL	NOSTD	{ int olio_listio(int mode, \
@@ -641,15 +641,15 @@
 358	AUE_EXTATTR_DELETE_FILE	STD	{ int extattr_delete_file(const char *path, \
 				    int attrnamespace, \
 				    const char *attrname); }
-359	AUE_NULL	NOSTD	{ int sys_aio_waitcomplete( \
+359	AUE_NULL	NOSTD	{ int aio_waitcomplete( \
 				    struct aiocb **aiocbp, \
 				    struct timespec *timeout); }
 360	AUE_GETRESUID	STD	{ int getresuid(uid_t *ruid, uid_t *euid, \
 				    uid_t *suid); }
 361	AUE_GETRESGID	STD	{ int getresgid(gid_t *rgid, gid_t *egid, \
 				    gid_t *sgid); }
-362	AUE_KQUEUE	STD	{ int sys_kqueue(void); }
-363	AUE_NULL	STD	{ int sys_kevent(int fd, \
+362	AUE_KQUEUE	STD	{ int kqueue(void); }
+363	AUE_NULL	STD	{ int kevent(int fd, \
 				    struct kevent *changelist, int nchanges, \
 				    struct kevent *eventlist, int nevents, \
 				    const struct timespec *timeout); }
@@ -827,7 +827,7 @@
 462	AUE_NULL	NOSTD	{ int kmq_unlink(const char *path); }
 463	AUE_NULL	STD	{ int abort2(const char *why, int nargs, void **args); }
 464	AUE_NULL	STD	{ int thr_set_name(long id, const char *name); }
-465	AUE_NULL	NOSTD	{ int sys_aio_fsync(int op, struct aiocb *aiocbp); }
+465	AUE_NULL	NOSTD	{ int aio_fsync(int op, struct aiocb *aiocbp); }
 466	AUE_RTPRIO	STD	{ int rtprio_thread(int function, \
 				    lwpid_t lwpid, struct rtprio *rtp); }
 467	AUE_NULL	UNIMPL	nosys
@@ -844,9 +844,9 @@
 474     AUE_NULL        STD    { int sctp_generic_recvmsg(int sd, struct iovec *iov, int iovlen, \
 				    struct sockaddr * from, __socklen_t *fromlenaddr, \
 				    struct sctp_sndrcvinfo *sinfo, int *msg_flags); }
-475	AUE_PREAD	STD	{ ssize_t sys_pread(int fd, void *buf, \
+475	AUE_PREAD	STD	{ ssize_t pread(int fd, void *buf, \
 				    size_t nbyte, off_t offset); }
-476	AUE_PWRITE	STD	{ ssize_t sys_pwrite(int fd, const void *buf, \
+476	AUE_PWRITE	STD	{ ssize_t pwrite(int fd, const void *buf, \
 				    size_t nbyte, off_t offset); }
 477	AUE_MMAP	STD	{ caddr_t mmap(caddr_t addr, size_t len, \
 				    int prot, int flags, int fd, off_t pos); }
@@ -906,7 +906,7 @@
 507	AUE_NULL	STD	{ int jail_set(struct iovec *iovp, \
 				    unsigned int iovcnt, int flags); }
 508	AUE_NULL	STD	{ int jail_remove(int jid); }
-509	AUE_CLOSEFROM	STD	{ int sys_closefrom(int lowfd); }
+509	AUE_CLOSEFROM	STD	{ int closefrom(int lowfd); }
 510	AUE_SEMCTL	NOSTD	{ int __semctl(int semid, int semnum, \
 				    int cmd, union semun *arg); }
 511	AUE_MSGCTL	NOSTD	{ int msgctl(int msqid, int cmd, \
@@ -919,11 +919,11 @@
 				    u_int64_t *rightsp); }
 516	AUE_CAP_ENTER	STD	{ int cap_enter(void); }
 517	AUE_CAP_GETMODE	STD	{ int cap_getmode(u_int *modep); }
-518	AUE_PDFORK	UNIMPL	pdfork
-519	AUE_PDKILL	UNIMPL	pdkill
-520	AUE_PDGETPID	UNIMPL	pdgetpid
-521	AUE_PDWAIT	UNIMPL	pdwait
-522	AUE_SELECT	STD	{ int sys_pselect(int nd, fd_set *in, \
+518	AUE_PDFORK	STD	{ int pdfork(int *fdp, int flags); }
+519	AUE_PDKILL	STD	{ int pdkill(int fd, int signum); }
+520	AUE_PDGETPID	STD	{ int pdgetpid(int fd, pid_t *pidp); }
+521	AUE_PDWAIT	UNIMPL	pdwait4
+522	AUE_SELECT	STD	{ int pselect(int nd, fd_set *in, \
 				    fd_set *ou, fd_set *ex, \
 				    const struct timespec *ts, \
 				    const sigset_t *sm); }

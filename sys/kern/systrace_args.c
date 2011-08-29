@@ -28,18 +28,18 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 0;
 		break;
 	}
-	/* sys_read */
+	/* read */
 	case 3: {
-		struct sys_read_args *p = params;
+		struct read_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = (intptr_t) p->buf; /* void * */
 		uarg[2] = p->nbyte; /* size_t */
 		*n_args = 3;
 		break;
 	}
-	/* sys_write */
+	/* write */
 	case 4: {
-		struct sys_write_args *p = params;
+		struct write_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = (intptr_t) p->buf; /* const void * */
 		uarg[2] = p->nbyte; /* size_t */
@@ -55,9 +55,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 3;
 		break;
 	}
-	/* sys_close */
+	/* close */
 	case 6: {
-		struct sys_close_args *p = params;
+		struct close_args *p = params;
 		iarg[0] = p->fd; /* int */
 		*n_args = 1;
 		break;
@@ -184,27 +184,27 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 4;
 		break;
 	}
-	/* sys_recvmsg */
+	/* recvmsg */
 	case 27: {
-		struct sys_recvmsg_args *p = params;
+		struct recvmsg_args *p = params;
 		iarg[0] = p->s; /* int */
 		uarg[1] = (intptr_t) p->msg; /* struct msghdr * */
 		iarg[2] = p->flags; /* int */
 		*n_args = 3;
 		break;
 	}
-	/* sys_sendmsg */
+	/* sendmsg */
 	case 28: {
-		struct sys_sendmsg_args *p = params;
+		struct sendmsg_args *p = params;
 		iarg[0] = p->s; /* int */
 		uarg[1] = (intptr_t) p->msg; /* struct msghdr * */
 		iarg[2] = p->flags; /* int */
 		*n_args = 3;
 		break;
 	}
-	/* sys_recvfrom */
+	/* recvfrom */
 	case 29: {
-		struct sys_recvfrom_args *p = params;
+		struct recvfrom_args *p = params;
 		iarg[0] = p->s; /* int */
 		uarg[1] = (intptr_t) p->buf; /* caddr_t */
 		uarg[2] = p->len; /* size_t */
@@ -214,27 +214,27 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 6;
 		break;
 	}
-	/* sys_accept */
+	/* accept */
 	case 30: {
-		struct sys_accept_args *p = params;
+		struct accept_args *p = params;
 		iarg[0] = p->s; /* int */
 		uarg[1] = (intptr_t) p->name; /* struct sockaddr *__restrict */
 		uarg[2] = (intptr_t) p->anamelen; /* __socklen_t *__restrict */
 		*n_args = 3;
 		break;
 	}
-	/* sys_getpeername */
+	/* getpeername */
 	case 31: {
-		struct sys_getpeername_args *p = params;
+		struct getpeername_args *p = params;
 		iarg[0] = p->fdes; /* int */
 		uarg[1] = (intptr_t) p->asa; /* struct sockaddr *__restrict */
 		uarg[2] = (intptr_t) p->alen; /* __socklen_t *__restrict */
 		*n_args = 3;
 		break;
 	}
-	/* sys_getsockname */
+	/* getsockname */
 	case 32: {
-		struct sys_getsockname_args *p = params;
+		struct getsockname_args *p = params;
 		iarg[0] = p->fdes; /* int */
 		uarg[1] = (intptr_t) p->asa; /* struct sockaddr *__restrict */
 		uarg[2] = (intptr_t) p->alen; /* __socklen_t *__restrict */
@@ -283,9 +283,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 0;
 		break;
 	}
-	/* sys_dup */
+	/* dup */
 	case 41: {
-		struct sys_dup_args *p = params;
+		struct dup_args *p = params;
 		uarg[0] = p->fd; /* u_int */
 		*n_args = 1;
 		break;
@@ -355,9 +355,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 2;
 		break;
 	}
-	/* sys_ioctl */
+	/* ioctl */
 	case 54: {
-		struct sys_ioctl_args *p = params;
+		struct ioctl_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = p->com; /* u_long */
 		uarg[2] = (intptr_t) p->data; /* caddr_t */
@@ -546,26 +546,26 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 0;
 		break;
 	}
-	/* sys_dup2 */
+	/* dup2 */
 	case 90: {
-		struct sys_dup2_args *p = params;
+		struct dup2_args *p = params;
 		uarg[0] = p->from; /* u_int */
 		uarg[1] = p->to; /* u_int */
 		*n_args = 2;
 		break;
 	}
-	/* sys_fcntl */
+	/* fcntl */
 	case 92: {
-		struct sys_fcntl_args *p = params;
+		struct fcntl_args *p = params;
 		iarg[0] = p->fd; /* int */
 		iarg[1] = p->cmd; /* int */
 		iarg[2] = p->arg; /* long */
 		*n_args = 3;
 		break;
 	}
-	/* sys_select */
+	/* select */
 	case 93: {
-		struct sys_select_args *p = params;
+		struct select_args *p = params;
 		iarg[0] = p->nd; /* int */
 		uarg[1] = (intptr_t) p->in; /* fd_set * */
 		uarg[2] = (intptr_t) p->ou; /* fd_set * */
@@ -590,18 +590,18 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 3;
 		break;
 	}
-	/* sys_socket */
+	/* socket */
 	case 97: {
-		struct sys_socket_args *p = params;
+		struct socket_args *p = params;
 		iarg[0] = p->domain; /* int */
 		iarg[1] = p->type; /* int */
 		iarg[2] = p->protocol; /* int */
 		*n_args = 3;
 		break;
 	}
-	/* sys_connect */
+	/* connect */
 	case 98: {
-		struct sys_connect_args *p = params;
+		struct connect_args *p = params;
 		iarg[0] = p->s; /* int */
 		uarg[1] = (intptr_t) p->name; /* caddr_t */
 		iarg[2] = p->namelen; /* int */
@@ -616,18 +616,18 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 2;
 		break;
 	}
-	/* sys_bind */
+	/* bind */
 	case 104: {
-		struct sys_bind_args *p = params;
+		struct bind_args *p = params;
 		iarg[0] = p->s; /* int */
 		uarg[1] = (intptr_t) p->name; /* caddr_t */
 		iarg[2] = p->namelen; /* int */
 		*n_args = 3;
 		break;
 	}
-	/* sys_setsockopt */
+	/* setsockopt */
 	case 105: {
-		struct sys_setsockopt_args *p = params;
+		struct setsockopt_args *p = params;
 		iarg[0] = p->s; /* int */
 		iarg[1] = p->level; /* int */
 		iarg[2] = p->name; /* int */
@@ -636,9 +636,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 5;
 		break;
 	}
-	/* sys_listen */
+	/* listen */
 	case 106: {
-		struct sys_listen_args *p = params;
+		struct listen_args *p = params;
 		iarg[0] = p->s; /* int */
 		iarg[1] = p->backlog; /* int */
 		*n_args = 2;
@@ -660,9 +660,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 2;
 		break;
 	}
-	/* sys_getsockopt */
+	/* getsockopt */
 	case 118: {
-		struct sys_getsockopt_args *p = params;
+		struct getsockopt_args *p = params;
 		iarg[0] = p->s; /* int */
 		iarg[1] = p->level; /* int */
 		iarg[2] = p->name; /* int */
@@ -671,18 +671,18 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 5;
 		break;
 	}
-	/* sys_readv */
+	/* readv */
 	case 120: {
-		struct sys_readv_args *p = params;
+		struct readv_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = (intptr_t) p->iovp; /* struct iovec * */
 		uarg[2] = p->iovcnt; /* u_int */
 		*n_args = 3;
 		break;
 	}
-	/* sys_writev */
+	/* writev */
 	case 121: {
-		struct sys_writev_args *p = params;
+		struct writev_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = (intptr_t) p->iovp; /* struct iovec * */
 		uarg[2] = p->iovcnt; /* u_int */
@@ -754,9 +754,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 2;
 		break;
 	}
-	/* sys_sendto */
+	/* sendto */
 	case 133: {
-		struct sys_sendto_args *p = params;
+		struct sendto_args *p = params;
 		iarg[0] = p->s; /* int */
 		uarg[1] = (intptr_t) p->buf; /* caddr_t */
 		uarg[2] = p->len; /* size_t */
@@ -766,17 +766,17 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 6;
 		break;
 	}
-	/* sys_shutdown */
+	/* shutdown */
 	case 134: {
-		struct sys_shutdown_args *p = params;
+		struct shutdown_args *p = params;
 		iarg[0] = p->s; /* int */
 		iarg[1] = p->how; /* int */
 		*n_args = 2;
 		break;
 	}
-	/* sys_socketpair */
+	/* socketpair */
 	case 135: {
-		struct sys_socketpair_args *p = params;
+		struct socketpair_args *p = params;
 		iarg[0] = p->domain; /* int */
 		iarg[1] = p->type; /* int */
 		iarg[2] = p->protocol; /* int */
@@ -1133,9 +1133,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 1;
 		break;
 	}
-	/* sys_poll */
+	/* poll */
 	case 209: {
-		struct sys_poll_args *p = params;
+		struct poll_args *p = params;
 		uarg[0] = (intptr_t) p->fds; /* struct pollfd * */
 		uarg[1] = p->nfds; /* u_int */
 		iarg[2] = p->timeout; /* int */
@@ -1383,23 +1383,23 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 3;
 		break;
 	}
-	/* sys_aio_read */
+	/* aio_read */
 	case 255: {
-		struct sys_aio_read_args *p = params;
+		struct aio_read_args *p = params;
 		uarg[0] = (intptr_t) p->aiocbp; /* struct aiocb * */
 		*n_args = 1;
 		break;
 	}
-	/* sys_aio_write */
+	/* aio_write */
 	case 256: {
-		struct sys_aio_write_args *p = params;
+		struct aio_write_args *p = params;
 		uarg[0] = (intptr_t) p->aiocbp; /* struct aiocb * */
 		*n_args = 1;
 		break;
 	}
-	/* sys_lio_listio */
+	/* lio_listio */
 	case 257: {
-		struct sys_lio_listio_args *p = params;
+		struct lio_listio_args *p = params;
 		iarg[0] = p->mode; /* int */
 		uarg[1] = (intptr_t) p->acb_list; /* struct aiocb *const * */
 		iarg[2] = p->nent; /* int */
@@ -1474,9 +1474,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 2;
 		break;
 	}
-	/* sys_preadv */
+	/* preadv */
 	case 289: {
-		struct sys_preadv_args *p = params;
+		struct preadv_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = (intptr_t) p->iovp; /* struct iovec * */
 		uarg[2] = p->iovcnt; /* u_int */
@@ -1484,9 +1484,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 4;
 		break;
 	}
-	/* sys_pwritev */
+	/* pwritev */
 	case 290: {
-		struct sys_pwritev_args *p = params;
+		struct pwritev_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = (intptr_t) p->iovp; /* struct iovec * */
 		uarg[2] = p->iovcnt; /* u_int */
@@ -1607,33 +1607,33 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 3;
 		break;
 	}
-	/* sys_aio_return */
+	/* aio_return */
 	case 314: {
-		struct sys_aio_return_args *p = params;
+		struct aio_return_args *p = params;
 		uarg[0] = (intptr_t) p->aiocbp; /* struct aiocb * */
 		*n_args = 1;
 		break;
 	}
-	/* sys_aio_suspend */
+	/* aio_suspend */
 	case 315: {
-		struct sys_aio_suspend_args *p = params;
+		struct aio_suspend_args *p = params;
 		uarg[0] = (intptr_t) p->aiocbp; /* struct aiocb *const * */
 		iarg[1] = p->nent; /* int */
 		uarg[2] = (intptr_t) p->timeout; /* const struct timespec * */
 		*n_args = 3;
 		break;
 	}
-	/* sys_aio_cancel */
+	/* aio_cancel */
 	case 316: {
-		struct sys_aio_cancel_args *p = params;
+		struct aio_cancel_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = (intptr_t) p->aiocbp; /* struct aiocb * */
 		*n_args = 2;
 		break;
 	}
-	/* sys_aio_error */
+	/* aio_error */
 	case 317: {
-		struct sys_aio_error_args *p = params;
+		struct aio_error_args *p = params;
 		uarg[0] = (intptr_t) p->aiocbp; /* struct aiocb * */
 		*n_args = 1;
 		break;
@@ -1933,9 +1933,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 3;
 		break;
 	}
-	/* sys_aio_waitcomplete */
+	/* aio_waitcomplete */
 	case 359: {
-		struct sys_aio_waitcomplete_args *p = params;
+		struct aio_waitcomplete_args *p = params;
 		uarg[0] = (intptr_t) p->aiocbp; /* struct aiocb ** */
 		uarg[1] = (intptr_t) p->timeout; /* struct timespec * */
 		*n_args = 2;
@@ -1959,14 +1959,14 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 3;
 		break;
 	}
-	/* sys_kqueue */
+	/* kqueue */
 	case 362: {
 		*n_args = 0;
 		break;
 	}
-	/* sys_kevent */
+	/* kevent */
 	case 363: {
-		struct sys_kevent_args *p = params;
+		struct kevent_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = (intptr_t) p->changelist; /* struct kevent * */
 		iarg[2] = p->nchanges; /* int */
@@ -2674,9 +2674,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 2;
 		break;
 	}
-	/* sys_aio_fsync */
+	/* aio_fsync */
 	case 465: {
-		struct sys_aio_fsync_args *p = params;
+		struct aio_fsync_args *p = params;
 		iarg[0] = p->op; /* int */
 		uarg[1] = (intptr_t) p->aiocbp; /* struct aiocb * */
 		*n_args = 2;
@@ -2738,9 +2738,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 7;
 		break;
 	}
-	/* sys_pread */
+	/* pread */
 	case 475: {
-		struct sys_pread_args *p = params;
+		struct pread_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = (intptr_t) p->buf; /* void * */
 		uarg[2] = p->nbyte; /* size_t */
@@ -2748,9 +2748,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 4;
 		break;
 	}
-	/* sys_pwrite */
+	/* pwrite */
 	case 476: {
-		struct sys_pwrite_args *p = params;
+		struct pwrite_args *p = params;
 		iarg[0] = p->fd; /* int */
 		uarg[1] = (intptr_t) p->buf; /* const void * */
 		uarg[2] = p->nbyte; /* size_t */
@@ -3053,9 +3053,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 1;
 		break;
 	}
-	/* sys_closefrom */
+	/* closefrom */
 	case 509: {
-		struct sys_closefrom_args *p = params;
+		struct closefrom_args *p = params;
 		iarg[0] = p->lowfd; /* int */
 		*n_args = 1;
 		break;
@@ -3124,9 +3124,33 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 1;
 		break;
 	}
-	/* sys_pselect */
+	/* pdfork */
+	case 518: {
+		struct pdfork_args *p = params;
+		uarg[0] = (intptr_t) p->fdp; /* int * */
+		iarg[1] = p->flags; /* int */
+		*n_args = 2;
+		break;
+	}
+	/* pdkill */
+	case 519: {
+		struct pdkill_args *p = params;
+		iarg[0] = p->fd; /* int */
+		iarg[1] = p->signum; /* int */
+		*n_args = 2;
+		break;
+	}
+	/* pdgetpid */
+	case 520: {
+		struct pdgetpid_args *p = params;
+		iarg[0] = p->fd; /* int */
+		uarg[1] = (intptr_t) p->pidp; /* pid_t * */
+		*n_args = 2;
+		break;
+	}
+	/* pselect */
 	case 522: {
-		struct sys_pselect_args *p = params;
+		struct pselect_args *p = params;
 		iarg[0] = p->nd; /* int */
 		uarg[1] = (intptr_t) p->in; /* fd_set * */
 		uarg[2] = (intptr_t) p->ou; /* fd_set * */
@@ -3236,7 +3260,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 	/* fork */
 	case 2:
 		break;
-	/* sys_read */
+	/* read */
 	case 3:
 		switch(ndx) {
 		case 0:
@@ -3252,7 +3276,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_write */
+	/* write */
 	case 4:
 		switch(ndx) {
 		case 0:
@@ -3284,7 +3308,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_close */
+	/* close */
 	case 6:
 		switch(ndx) {
 		case 0:
@@ -3481,7 +3505,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_recvmsg */
+	/* recvmsg */
 	case 27:
 		switch(ndx) {
 		case 0:
@@ -3497,7 +3521,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_sendmsg */
+	/* sendmsg */
 	case 28:
 		switch(ndx) {
 		case 0:
@@ -3513,7 +3537,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_recvfrom */
+	/* recvfrom */
 	case 29:
 		switch(ndx) {
 		case 0:
@@ -3538,7 +3562,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_accept */
+	/* accept */
 	case 30:
 		switch(ndx) {
 		case 0:
@@ -3554,7 +3578,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_getpeername */
+	/* getpeername */
 	case 31:
 		switch(ndx) {
 		case 0:
@@ -3570,7 +3594,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_getsockname */
+	/* getsockname */
 	case 32:
 		switch(ndx) {
 		case 0:
@@ -3644,7 +3668,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 	/* getppid */
 	case 39:
 		break;
-	/* sys_dup */
+	/* dup */
 	case 41:
 		switch(ndx) {
 		case 0:
@@ -3747,7 +3771,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_ioctl */
+	/* ioctl */
 	case 54:
 		switch(ndx) {
 		case 0:
@@ -4042,7 +4066,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 	/* getdtablesize */
 	case 89:
 		break;
-	/* sys_dup2 */
+	/* dup2 */
 	case 90:
 		switch(ndx) {
 		case 0:
@@ -4055,7 +4079,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_fcntl */
+	/* fcntl */
 	case 92:
 		switch(ndx) {
 		case 0:
@@ -4071,7 +4095,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_select */
+	/* select */
 	case 93:
 		switch(ndx) {
 		case 0:
@@ -4119,7 +4143,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_socket */
+	/* socket */
 	case 97:
 		switch(ndx) {
 		case 0:
@@ -4135,7 +4159,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_connect */
+	/* connect */
 	case 98:
 		switch(ndx) {
 		case 0:
@@ -4164,7 +4188,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_bind */
+	/* bind */
 	case 104:
 		switch(ndx) {
 		case 0:
@@ -4180,7 +4204,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_setsockopt */
+	/* setsockopt */
 	case 105:
 		switch(ndx) {
 		case 0:
@@ -4202,7 +4226,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_listen */
+	/* listen */
 	case 106:
 		switch(ndx) {
 		case 0:
@@ -4241,7 +4265,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_getsockopt */
+	/* getsockopt */
 	case 118:
 		switch(ndx) {
 		case 0:
@@ -4263,7 +4287,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_readv */
+	/* readv */
 	case 120:
 		switch(ndx) {
 		case 0:
@@ -4279,7 +4303,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_writev */
+	/* writev */
 	case 121:
 		switch(ndx) {
 		case 0:
@@ -4402,7 +4426,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_sendto */
+	/* sendto */
 	case 133:
 		switch(ndx) {
 		case 0:
@@ -4427,7 +4451,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_shutdown */
+	/* shutdown */
 	case 134:
 		switch(ndx) {
 		case 0:
@@ -4440,7 +4464,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_socketpair */
+	/* socketpair */
 	case 135:
 		switch(ndx) {
 		case 0:
@@ -5053,7 +5077,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_poll */
+	/* poll */
 	case 209:
 		switch(ndx) {
 		case 0:
@@ -5418,7 +5442,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_aio_read */
+	/* aio_read */
 	case 255:
 		switch(ndx) {
 		case 0:
@@ -5428,7 +5452,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_aio_write */
+	/* aio_write */
 	case 256:
 		switch(ndx) {
 		case 0:
@@ -5438,7 +5462,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_lio_listio */
+	/* lio_listio */
 	case 257:
 		switch(ndx) {
 		case 0:
@@ -5570,7 +5594,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_preadv */
+	/* preadv */
 	case 289:
 		switch(ndx) {
 		case 0:
@@ -5589,7 +5613,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_pwritev */
+	/* pwritev */
 	case 290:
 		switch(ndx) {
 		case 0:
@@ -5782,7 +5806,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_aio_return */
+	/* aio_return */
 	case 314:
 		switch(ndx) {
 		case 0:
@@ -5792,7 +5816,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_aio_suspend */
+	/* aio_suspend */
 	case 315:
 		switch(ndx) {
 		case 0:
@@ -5808,7 +5832,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_aio_cancel */
+	/* aio_cancel */
 	case 316:
 		switch(ndx) {
 		case 0:
@@ -5821,7 +5845,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_aio_error */
+	/* aio_error */
 	case 317:
 		switch(ndx) {
 		case 0:
@@ -6317,7 +6341,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_aio_waitcomplete */
+	/* aio_waitcomplete */
 	case 359:
 		switch(ndx) {
 		case 0:
@@ -6362,10 +6386,10 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_kqueue */
+	/* kqueue */
 	case 362:
 		break;
-	/* sys_kevent */
+	/* kevent */
 	case 363:
 		switch(ndx) {
 		case 0:
@@ -7571,7 +7595,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_aio_fsync */
+	/* aio_fsync */
 	case 465:
 		switch(ndx) {
 		case 0:
@@ -7697,7 +7721,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_pread */
+	/* pread */
 	case 475:
 		switch(ndx) {
 		case 0:
@@ -7716,7 +7740,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_pwrite */
+	/* pwrite */
 	case 476:
 		switch(ndx) {
 		case 0:
@@ -8268,7 +8292,7 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_closefrom */
+	/* closefrom */
 	case 509:
 		switch(ndx) {
 		case 0:
@@ -8381,7 +8405,46 @@ systrace_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-	/* sys_pselect */
+	/* pdfork */
+	case 518:
+		switch(ndx) {
+		case 0:
+			p = "int *";
+			break;
+		case 1:
+			p = "int";
+			break;
+		default:
+			break;
+		};
+		break;
+	/* pdkill */
+	case 519:
+		switch(ndx) {
+		case 0:
+			p = "int";
+			break;
+		case 1:
+			p = "int";
+			break;
+		default:
+			break;
+		};
+		break;
+	/* pdgetpid */
+	case 520:
+		switch(ndx) {
+		case 0:
+			p = "int";
+			break;
+		case 1:
+			p = "pid_t *";
+			break;
+		default:
+			break;
+		};
+		break;
+	/* pselect */
 	case 522:
 		switch(ndx) {
 		case 0:

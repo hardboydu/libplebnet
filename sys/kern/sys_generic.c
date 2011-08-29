@@ -128,16 +128,16 @@ static uma_zone_t selfd_zone;
 static struct mtx_pool *mtxpool_select;
 
 #ifndef _SYS_SYSPROTO_H_
-struct sys_read_args {
+struct read_args {
 	int	fd;
 	void	*buf;
 	size_t	nbyte;
 };
 #endif
 int
-sys_read(td, uap)
+read(td, uap)
 	struct thread *td;
-	struct sys_read_args *uap;
+	struct read_args *uap;
 {
 	struct uio auio;
 	struct iovec aiov;
@@ -159,7 +159,7 @@ sys_read(td, uap)
  * Positioned read system call
  */
 #ifndef _SYS_SYSPROTO_H_
-struct sys_pread_args {
+struct pread_args {
 	int	fd;
 	void	*buf;
 	size_t	nbyte;
@@ -168,9 +168,9 @@ struct sys_pread_args {
 };
 #endif
 int
-sys_pread(td, uap)
+pread(td, uap)
 	struct thread *td;
-	struct sys_pread_args *uap;
+	struct pread_args *uap;
 {
 	struct uio auio;
 	struct iovec aiov;
@@ -193,27 +193,27 @@ freebsd6_pread(td, uap)
 	struct thread *td;
 	struct freebsd6_pread_args *uap;
 {
-	struct sys_pread_args oargs;
+	struct pread_args oargs;
 
 	oargs.fd = uap->fd;
 	oargs.buf = uap->buf;
 	oargs.nbyte = uap->nbyte;
 	oargs.offset = uap->offset;
-	return (sys_pread(td, &oargs));
+	return (pread(td, &oargs));
 }
 
 /*
  * Scatter read system call.
  */
 #ifndef _SYS_SYSPROTO_H_
-struct sys_readv_args {
+struct readv_args {
 	int	fd;
 	struct	iovec *iovp;
 	u_int	iovcnt;
 };
 #endif
 int
-sys_readv(struct thread *td, struct sys_readv_args *uap)
+readv(struct thread *td, struct readv_args *uap)
 {
 	struct uio *auio;
 	int error;
@@ -244,7 +244,7 @@ kern_readv(struct thread *td, int fd, struct uio *auio)
  * Scatter positioned read system call.
  */
 #ifndef _SYS_SYSPROTO_H_
-struct sys_preadv_args {
+struct preadv_args {
 	int	fd;
 	struct	iovec *iovp;
 	u_int	iovcnt;
@@ -252,7 +252,7 @@ struct sys_preadv_args {
 };
 #endif
 int
-sys_preadv(struct thread *td, struct sys_preadv_args *uap)
+preadv(struct thread *td, struct preadv_args *uap)
 {
 	struct uio *auio;
 	int error;
@@ -337,16 +337,16 @@ dofileread(td, fd, fp, auio, offset, flags)
 }
 
 #ifndef _SYS_SYSPROTO_H_
-struct sys_write_args {
+struct write_args {
 	int	fd;
 	const void *buf;
 	size_t	nbyte;
 };
 #endif
 int
-sys_write(td, uap)
+write(td, uap)
 	struct thread *td;
-	struct sys_write_args *uap;
+	struct write_args *uap;
 {
 	struct uio auio;
 	struct iovec aiov;
@@ -368,7 +368,7 @@ sys_write(td, uap)
  * Positioned write system call.
  */
 #ifndef _SYS_SYSPROTO_H_
-struct sys_pwrite_args {
+struct pwrite_args {
 	int	fd;
 	const void *buf;
 	size_t	nbyte;
@@ -377,9 +377,9 @@ struct sys_pwrite_args {
 };
 #endif
 int
-sys_pwrite(td, uap)
+pwrite(td, uap)
 	struct thread *td;
-	struct sys_pwrite_args *uap;
+	struct pwrite_args *uap;
 {
 	struct uio auio;
 	struct iovec aiov;
@@ -402,27 +402,27 @@ freebsd6_pwrite(td, uap)
 	struct thread *td;
 	struct freebsd6_pwrite_args *uap;
 {
-	struct sys_pwrite_args oargs;
+	struct pwrite_args oargs;
 
 	oargs.fd = uap->fd;
 	oargs.buf = uap->buf;
 	oargs.nbyte = uap->nbyte;
 	oargs.offset = uap->offset;
-	return (sys_pwrite(td, &oargs));
+	return (pwrite(td, &oargs));
 }
 
 /*
  * Gather write system call.
  */
 #ifndef _SYS_SYSPROTO_H_
-struct sys_writev_args {
+struct writev_args {
 	int	fd;
 	struct	iovec *iovp;
 	u_int	iovcnt;
 };
 #endif
 int
-sys_writev(struct thread *td, struct sys_writev_args *uap)
+writev(struct thread *td, struct writev_args *uap)
 {
 	struct uio *auio;
 	int error;
@@ -453,7 +453,7 @@ kern_writev(struct thread *td, int fd, struct uio *auio)
  * Gather positioned write system call.
  */
 #ifndef _SYS_SYSPROTO_H_
-struct sys_pwritev_args {
+struct pwritev_args {
 	int	fd;
 	struct	iovec *iovp;
 	u_int	iovcnt;
@@ -461,7 +461,7 @@ struct sys_pwritev_args {
 };
 #endif
 int
-sys_pwritev(struct thread *td, struct sys_pwritev_args *uap)
+pwritev(struct thread *td, struct pwritev_args *uap)
 {
 	struct uio *auio;
 	int error;
@@ -613,7 +613,7 @@ oftruncate(td, uap)
 #endif /* COMPAT_43 */
 
 #ifndef _SYS_SYSPROTO_H_
-struct sys_ioctl_args {
+struct ioctl_args {
 	int	fd;
 	u_long	com;
 	caddr_t	data;
@@ -621,7 +621,7 @@ struct sys_ioctl_args {
 #endif
 /* ARGSUSED */
 int
-sys_ioctl(struct thread *td, struct sys_ioctl_args *uap)
+ioctl(struct thread *td, struct ioctl_args *uap)
 {
 	u_long com;
 	int arg, error;
@@ -753,7 +753,7 @@ poll_no_poll(int events)
 }
 
 int
-sys_pselect(struct thread *td, struct sys_pselect_args *uap)
+pselect(struct thread *td, struct pselect_args *uap)
 {
 	struct timespec ts;
 	struct timeval tv, *tvp;
@@ -807,14 +807,14 @@ kern_pselect(struct thread *td, int nd, fd_set *in, fd_set *ou, fd_set *ex,
 }
 
 #ifndef _SYS_SYSPROTO_H_
-struct sys_select_args {
+struct select_args {
 	int	nd;
 	fd_set	*in, *ou, *ex;
 	struct	timeval *tv;
 };
 #endif
 int
-sys_select(struct thread *td, struct sys_select_args *uap)
+select(struct thread *td, struct select_args *uap)
 {
 	struct timeval tv, *tvp;
 	int error;
@@ -1136,7 +1136,7 @@ selscan(td, ibits, obits, nfd)
 }
 
 #ifndef _SYS_SYSPROTO_H_
-struct sys_poll_args {
+struct poll_args {
 	struct pollfd *fds;
 	u_int	nfds;
 	int	timeout;
@@ -1144,9 +1144,9 @@ struct sys_poll_args {
 #endif
 
 int
-sys_poll(td, uap)
+poll(td, uap)
 	struct thread *td;
-	struct sys_poll_args *uap;
+	struct poll_args *uap;
 {
 
 	return (kern_poll(td, uap->fds, uap->nfds, uap->timeout));
@@ -1360,7 +1360,7 @@ openbsd_poll(td, uap)
 	register struct thread *td;
 	register struct openbsd_poll_args *uap;
 {
-	return (sys_poll(td, (struct sys_poll_args *)uap));
+	return (poll(td, (struct poll_args *)uap));
 }
 
 /*

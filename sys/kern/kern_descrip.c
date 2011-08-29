@@ -310,14 +310,14 @@ getdtablesize(struct thread *td, struct getdtablesize_args *uap)
  * descriptors from a shared descriptor table (via rfork).
  */
 #ifndef _SYS_SYSPROTO_H_
-struct sys_dup2_args {
+struct dup2_args {
 	u_int	from;
 	u_int	to;
 };
 #endif
 /* ARGSUSED */
 int
-sys_dup2(struct thread *td, struct sys_dup2_args *uap)
+dup2(struct thread *td, struct dup2_args *uap)
 {
 
 	return (do_dup(td, DUP_FIXED, (int)uap->from, (int)uap->to,
@@ -328,13 +328,13 @@ sys_dup2(struct thread *td, struct sys_dup2_args *uap)
  * Duplicate a file descriptor.
  */
 #ifndef _SYS_SYSPROTO_H_
-struct sys_dup_args {
+struct dup_args {
 	u_int	fd;
 };
 #endif
 /* ARGSUSED */
 int
-sys_dup(struct thread *td, struct sys_dup_args *uap)
+dup(struct thread *td, struct dup_args *uap)
 {
 
 	return (do_dup(td, 0, (int)uap->fd, 0, td->td_retval));
@@ -344,7 +344,7 @@ sys_dup(struct thread *td, struct sys_dup_args *uap)
  * The file control system call.
  */
 #ifndef _SYS_SYSPROTO_H_
-struct sys_fcntl_args {
+struct fcntl_args {
 	int	fd;
 	int	cmd;
 	long	arg;
@@ -352,7 +352,7 @@ struct sys_fcntl_args {
 #endif
 /* ARGSUSED */
 int
-sys_fcntl(struct thread *td, struct sys_fcntl_args *uap)
+fcntl(struct thread *td, struct fcntl_args *uap)
 {
 	struct flock fl;
 	struct oflock ofl;
@@ -1140,15 +1140,15 @@ fgetown(sigiop)
  * Close a file descriptor.
  */
 #ifndef _SYS_SYSPROTO_H_
-struct sys_close_args {
+struct close_args {
 	int     fd;
 };
 #endif
 /* ARGSUSED */
 int
-sys_close(td, uap)
+close(td, uap)
 	struct thread *td;
-	struct sys_close_args *uap;
+	struct close_args *uap;
 {
 
 	return (kern_close(td, uap->fd));
@@ -1223,13 +1223,13 @@ kern_close(td, fd)
  * Close open file descriptors.
  */
 #ifndef _SYS_SYSPROTO_H_
-struct sys_closefrom_args {
+struct closefrom_args {
 	int	lowfd;
 };
 #endif
 /* ARGSUSED */
 int
-sys_closefrom(struct thread *td, struct sys_closefrom_args *uap)
+closefrom(struct thread *td, struct closefrom_args *uap)
 {
 	struct filedesc *fdp;
 	int fd;
