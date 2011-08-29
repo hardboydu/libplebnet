@@ -1531,7 +1531,7 @@ struct sysctl_args {
 };
 #endif
 int
-__sysctl(struct thread *td, struct sysctl_args *uap)
+sys___sysctl(struct thread *td, struct sysctl_args *uap)
 {
 	int error, i, name[CTL_MAXNAME];
 	size_t j;

@@ -784,7 +784,7 @@ struct sigaction_args {
 };
 #endif
 int
-sigaction(td, uap)
+sys_sigaction(td, uap)
 	struct thread *td;
 	register struct sigaction_args *uap;
 {
@@ -1035,7 +1035,7 @@ struct sigprocmask_args {
 };
 #endif
 int
-sigprocmask(td, uap)
+sys_sigprocmask(td, uap)
 	register struct thread *td;
 	struct sigprocmask_args *uap;
 {
@@ -1080,7 +1080,7 @@ osigprocmask(td, uap)
 #endif /* COMPAT_43 */
 
 int
-sigwait(struct thread *td, struct sigwait_args *uap)
+sys_sigwait(struct thread *td, struct sigwait_args *uap)
 {
 	ksiginfo_t ksi;
 	sigset_t set;
@@ -1106,7 +1106,7 @@ sigwait(struct thread *td, struct sigwait_args *uap)
 }
 
 int
-sigtimedwait(struct thread *td, struct sigtimedwait_args *uap)
+sys_sigtimedwait(struct thread *td, struct sigtimedwait_args *uap)
 {
 	struct timespec ts;
 	struct timespec *timeout;
@@ -1140,7 +1140,7 @@ sigtimedwait(struct thread *td, struct sigtimedwait_args *uap)
 }
 
 int
-sigwaitinfo(struct thread *td, struct sigwaitinfo_args *uap)
+sys_sigwaitinfo(struct thread *td, struct sigwaitinfo_args *uap)
 {
 	ksiginfo_t ksi;
 	sigset_t set;
@@ -1282,7 +1282,7 @@ struct sigpending_args {
 };
 #endif
 int
-sigpending(td, uap)
+sys_sigpending(td, uap)
 	struct thread *td;
 	struct sigpending_args *uap;
 {
@@ -1414,7 +1414,7 @@ struct sigsuspend_args {
 #endif
 /* ARGSUSED */
 int
-sigsuspend(td, uap)
+sys_sigsuspend(td, uap)
 	struct thread *td;
 	struct sigsuspend_args *uap;
 {
@@ -1533,7 +1533,7 @@ struct sigaltstack_args {
 #endif
 /* ARGSUSED */
 int
-sigaltstack(td, uap)
+sys_sigaltstack(td, uap)
 	struct thread *td;
 	register struct sigaltstack_args *uap;
 {
@@ -1660,7 +1660,7 @@ struct kill_args {
 #endif
 /* ARGSUSED */
 int
-kill(struct thread *td, struct kill_args *uap)
+sys_kill(struct thread *td, struct kill_args *uap)
 {
 	ksiginfo_t ksi;
 	struct proc *p;
@@ -1702,7 +1702,7 @@ kill(struct thread *td, struct kill_args *uap)
 }
 
 int
-pdkill(td, uap)
+sys_pdkill(td, uap)
 	struct thread *td;
 	struct pdkill_args *uap;
 {
@@ -1764,7 +1764,7 @@ struct sigqueue_args {
 };
 #endif
 int
-sigqueue(struct thread *td, struct sigqueue_args *uap)
+sys_sigqueue(struct thread *td, struct sigqueue_args *uap)
 {
 	ksiginfo_t ksi;
 	struct proc *p;

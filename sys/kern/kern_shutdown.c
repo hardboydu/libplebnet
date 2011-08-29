@@ -164,7 +164,7 @@ SYSINIT(shutdown_conf, SI_SUB_INTRINSIC, SI_ORDER_ANY, shutdown_conf, NULL);
  */
 /* ARGSUSED */
 int
-reboot(struct thread *td, struct reboot_args *uap)
+sys_reboot(struct thread *td, struct reboot_args *uap)
 {
 	int error;
 
@@ -319,7 +319,7 @@ kern_reboot(int howto)
 #ifdef SW_WATCHDOG
 		wdog_kern_pat(WD_LASTVAL);
 #endif
-		sync(curthread, NULL);
+		sys_sync(curthread, NULL);
 
 		/*
 		 * With soft updates, some buffers that are
@@ -347,7 +347,7 @@ kern_reboot(int howto)
 #ifdef SW_WATCHDOG
 			wdog_kern_pat(WD_LASTVAL);
 #endif
-			sync(curthread, NULL);
+			sys_sync(curthread, NULL);
 
 #ifdef PREEMPTION
 			/*

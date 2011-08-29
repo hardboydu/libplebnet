@@ -1231,7 +1231,7 @@ rctl_racct_to_sbuf(struct racct *racct, int sloppy)
 }
 
 int
-rctl_get_racct(struct thread *td, struct rctl_get_racct_args *uap)
+sys_rctl_get_racct(struct thread *td, struct rctl_get_racct_args *uap)
 {
 	int error;
 	char *inputstr;
@@ -1327,7 +1327,7 @@ rctl_get_rules_callback(struct racct *racct, void *arg2, void *arg3)
 }
 
 int
-rctl_get_rules(struct thread *td, struct rctl_get_rules_args *uap)
+sys_rctl_get_rules(struct thread *td, struct rctl_get_rules_args *uap)
 {
 	int error;
 	size_t bufsize = RCTL_DEFAULT_BUFSIZE;
@@ -1402,7 +1402,7 @@ again:
 }
 
 int
-rctl_get_limits(struct thread *td, struct rctl_get_limits_args *uap)
+sys_rctl_get_limits(struct thread *td, struct rctl_get_limits_args *uap)
 {
 	int error;
 	size_t bufsize = RCTL_DEFAULT_BUFSIZE;
@@ -1476,7 +1476,7 @@ again:
 }
 
 int
-rctl_add_rule(struct thread *td, struct rctl_add_rule_args *uap)
+sys_rctl_add_rule(struct thread *td, struct rctl_add_rule_args *uap)
 {
 	int error;
 	struct rctl_rule *rule;
@@ -1518,7 +1518,7 @@ out:
 }
 
 int
-rctl_remove_rule(struct thread *td, struct rctl_remove_rule_args *uap)
+sys_rctl_remove_rule(struct thread *td, struct rctl_remove_rule_args *uap)
 {
 	int error;
 	struct rctl_rule *filter;
@@ -1790,35 +1790,35 @@ rctl_init(void)
 #else /* !RCTL */
 
 int
-rctl_get_racct(struct thread *td, struct rctl_get_racct_args *uap)
+sys_rctl_get_racct(struct thread *td, struct rctl_get_racct_args *uap)
 {
 	
 	return (ENOSYS);
 }
 
 int
-rctl_get_rules(struct thread *td, struct rctl_get_rules_args *uap)
+sys_rctl_get_rules(struct thread *td, struct rctl_get_rules_args *uap)
 {
 	
 	return (ENOSYS);
 }
 
 int
-rctl_get_limits(struct thread *td, struct rctl_get_limits_args *uap)
+sys_rctl_get_limits(struct thread *td, struct rctl_get_limits_args *uap)
 {
 	
 	return (ENOSYS);
 }
 
 int
-rctl_add_rule(struct thread *td, struct rctl_add_rule_args *uap)
+sys_rctl_add_rule(struct thread *td, struct rctl_add_rule_args *uap)
 {
 	
 	return (ENOSYS);
 }
 
 int
-rctl_remove_rule(struct thread *td, struct rctl_remove_rule_args *uap)
+sys_rctl_remove_rule(struct thread *td, struct rctl_remove_rule_args *uap)
 {
 	
 	return (ENOSYS);

@@ -104,7 +104,7 @@ void (*nlminfo_release_p)(struct proc *p);
  * exit -- death of process.
  */
 void
-sys_exit(struct thread *td, struct sys_exit_args *uap)
+sys_sys_exit(struct thread *td, struct sys_exit_args *uap)
 {
 
 	exit1(td, W_EXITCODE(uap->rval, 0));
@@ -568,7 +568,7 @@ struct abort2_args {
 #endif
 
 int
-abort2(struct thread *td, struct abort2_args *uap)
+sys_abort2(struct thread *td, struct abort2_args *uap)
 {
 	struct proc *p = td->td_proc;
 	struct sbuf *sb;
@@ -656,7 +656,7 @@ owait(struct thread *td, struct owait_args *uap __unused)
  * The dirty work is handled by kern_wait().
  */
 int
-wait4(struct thread *td, struct wait_args *uap)
+sys_wait4(struct thread *td, struct wait_args *uap)
 {
 	struct rusage ru, *rup;
 	int error, status;

@@ -206,7 +206,7 @@ out:
  * System call to return the pid of a process given its process descriptor.
  */
 int
-pdgetpid(struct thread *td, struct pdgetpid_args *uap)
+sys_pdgetpid(struct thread *td, struct pdgetpid_args *uap)
 {
 	pid_t pid;
 	int error;
@@ -515,7 +515,7 @@ procdesc_chown(struct file *fp, uid_t uid, gid_t gid, struct ucred *active_cred,
 #else /* !PROCDESC */
 
 int
-pdgetpid(struct thread *td, struct pdgetpid_args *uap)
+sys_pdgetpid(struct thread *td, struct pdgetpid_args *uap)
 {
 
 	return (ENOSYS);

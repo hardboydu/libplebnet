@@ -515,7 +515,7 @@ struct ptrace_args {
 #define	COPYOUT(k, u, s)	copyout(k, u, s)
 #endif
 int
-ptrace(struct thread *td, struct ptrace_args *uap)
+sys_ptrace(struct thread *td, struct ptrace_args *uap)
 {
 	/*
 	 * XXX this obfuscation is to reduce stack usage, but the register

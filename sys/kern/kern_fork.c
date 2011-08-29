@@ -102,7 +102,7 @@ struct fork_args {
 
 /* ARGSUSED */
 int
-fork(struct thread *td, struct fork_args *uap)
+sys_fork(struct thread *td, struct fork_args *uap)
 {
 	int error;
 	struct proc *p2;
@@ -117,7 +117,7 @@ fork(struct thread *td, struct fork_args *uap)
 
 /* ARGUSED */
 int
-pdfork(td, uap)
+sys_pdfork(td, uap)
 	struct thread *td;
 	struct pdfork_args *uap;
 {
@@ -145,7 +145,7 @@ pdfork(td, uap)
 
 /* ARGSUSED */
 int
-vfork(struct thread *td, struct vfork_args *uap)
+sys_vfork(struct thread *td, struct vfork_args *uap)
 {
 	int error, flags;
 	struct proc *p2;
@@ -164,7 +164,7 @@ vfork(struct thread *td, struct vfork_args *uap)
 }
 
 int
-rfork(struct thread *td, struct rfork_args *uap)
+sys_rfork(struct thread *td, struct rfork_args *uap)
 {
 	struct proc *p2;
 	int error;
