@@ -1006,6 +1006,7 @@ shutdown_resettodr(void *arg __unused, int howto __unused)
 	}
 }
 
+#ifndef PLEBNET
 static int
 sysctl_resettodr_period(SYSCTL_HANDLER_ARGS)
 {
@@ -1026,6 +1027,7 @@ SYSCTL_PROC(_machdep, OID_AUTO, rtc_save_period, CTLTYPE_INT|CTLFLAG_RW,
 	&resettodr_period, 1800, sysctl_resettodr_period, "I",
 	"Save system time to RTC with this period (in seconds)");
 TUNABLE_INT("machdep.rtc_save_period", &resettodr_period);
+#endif
 
 static void
 start_periodic_resettodr(void *arg __unused)
