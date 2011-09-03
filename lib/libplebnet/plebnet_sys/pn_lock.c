@@ -58,6 +58,24 @@ assert_mtx(struct lock_object *lock, int what)
 	mtx_assert((struct mtx *)lock, what);
 }
 
+void
+lock_mtx(struct lock_object *lock, int how)
+{
+
+	mtx_lock((struct mtx *)lock);
+}
+
+int
+unlock_mtx(struct lock_object *lock)
+{
+	struct mtx *m;
+
+	m = (struct mtx *)lock;
+	mtx_assert(m, MA_OWNED | MA_NOTRECURSED);
+	mtx_unlock(m);
+	return (0);
+}
+
 /*
  * Lock classes for sleep and spin mutexes.
  */
@@ -65,6 +83,8 @@ struct lock_class lock_class_mtx_sleep = {
 	.lc_name = "sleep mutex",
 	.lc_flags = LC_SLEEPLOCK | LC_RECURSABLE,
 	.lc_assert = assert_mtx,
+	.lc_lock = lock_mtx,
+	.lc_unlock = unlock_mtx,
 #ifdef DDB
 	.lc_ddb_show = db_show_mtx,
 #endif
