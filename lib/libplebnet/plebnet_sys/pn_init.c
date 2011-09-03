@@ -40,17 +40,19 @@
 extern void mi_startup(void);
 extern void uma_startup(void *, int);
 extern void uma_startup2(void);
-caddr_t kern_timeout_callwheel_alloc(caddr_t v);
-void kern_timeout_callwheel_init(void);
+
+
 extern int ncallout;
 
-extern void pn_init_thread0(void);
 
 struct sx proctree_lock;
-
 struct pcpu *pcpup;
 
+extern caddr_t kern_timeout_callwheel_alloc(caddr_t v);
+extern void kern_timeout_callwheel_init(void);
+extern void pn_init_thread0(void);
 extern int pn_veth_attach(void);
+extern void mutex_init(void);
 
 static int pn_init(void) __attribute__((constructor));
 
@@ -71,6 +73,7 @@ pn_init(void)
 	/* XXX fix this magic 64 to something a bit more dynamic & sensible */
 	uma_page_slab_hash = malloc(sizeof(struct uma_page)*64, M_DEVBUF, M_ZERO);
 	uma_page_mask = 64-1;
+	mutex_init();
         mi_startup();
 	sx_init(&proctree_lock, "proctree");
 	td = curthread;

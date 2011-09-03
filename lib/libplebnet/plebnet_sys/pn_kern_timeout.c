@@ -42,6 +42,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/bus.h>
 #include <sys/callout.h>
 #include <sys/condvar.h>
+#include <sys/event.h>
 #include <sys/interrupt.h>
 #include <sys/kernel.h>
 #include <sys/ktr.h>
@@ -52,9 +53,18 @@ __FBSDID("$FreeBSD$");
 #include <sys/sdt.h>
 #include <sys/sysctl.h>
 #include <sys/smp.h>
-
+#include <sys/timetc.h>
 
 #include <pthread.h>
+
+static void *timer_intr(void *arg);
+
+int     _kqueue(void);
+
+int     _kevent(int kq, const struct kevent *changelist, int nchanges,
+         struct kevent *eventlist, int nevents,
+         const struct timespec *timeout);
+
 
 static int avg_depth;
 SYSCTL_INT(_debug, OID_AUTO, to_avg_depth, CTLFLAG_RD, &avg_depth, 0,
@@ -163,9 +173,9 @@ callout_cpu_init(struct callout_cpu *cc)
 
 	pthread_mutex_init(&cc->cc_lock, NULL);
 	SLIST_INIT(&cc->cc_callfree);
-	for (i = 0; i < callwheelsize; i++) {
+	for (i = 0; i < callwheelsize; i++)
 		TAILQ_INIT(&cc->cc_callwheel[i]);
-	}
+
 	if (cc->cc_callout == NULL)
 		return;
 	for (i = 0; i < ncallout; i++) {
@@ -186,6 +196,7 @@ callout_cpu_init(struct callout_cpu *cc)
 void
 kern_timeout_callwheel_init(void)
 {
+	
 	callout_cpu_init(CC_CPU(timeout_cpu));
 }
 
@@ -202,10 +213,17 @@ start_softclock(void *dummy)
 	int cpu;
 #endif
 	cc = CC_CPU(timeout_cpu);
+#if 0
 	if (swi_add(&clk_intr_event, "clock", softclock, cc, SWI_CLOCK,
 	    INTR_MPSAFE, &softclock_ih))
 		panic("died while creating standard software ithreads");
+#endif
+
+	if (pthread_create((pthread_t *)&softclock_ih, NULL, timer_intr, cc))
+		panic("died while creating standard software ithreads");
+
 	cc->cc_cookie = softclock_ih;
+
 #ifdef SMP
 	for (cpu = 0; cpu <= mp_maxid; cpu++) {
 		if (cpu == timeout_cpu)
@@ -254,7 +272,7 @@ callout_tick(void)
 	 * with cc_lock held; incorrect locking order.
 	 */
 	if (need_softclock)
-		swi_sched(cc->cc_cookie, 0);
+		softclock(cc);
 }
 
 static struct callout_cpu *
@@ -769,3 +787,40 @@ _callout_init_lock(c, lock, flags)
 	c->c_cpu = timeout_cpu;
 }
 
+/*
+ * The real-time timer, interrupting hz times per second.
+ */
+void
+pn_hardclock(void)
+{
+
+	atomic_add_int((volatile int *)&ticks, 1);
+	callout_tick();
+	tc_ticktock(1);
+	cpu_tick_calibration();
+
+#ifdef DEVICE_POLLING
+	hardclock_device_poll();	/* this is very short and quick */
+#endif /* DEVICE_POLLING */
+}
+
+static void *
+timer_intr(void *arg)
+{
+	int kevid;
+	struct kevent ktimer, kresult;
+	int delaytime;
+	struct timespec ts;
+
+	delaytime = max((int)(1.0/(float)hz)*1000, 1);
+	EV_SET(&ktimer, 0xbeef, EVFILT_TIMER, EV_ADD|EV_ENABLE, 0, 
+	    delaytime, &ktimer);
+	ts.tv_sec = 0;
+	ts.tv_nsec = delaytime*1000;
+	kevid = _kqueue();
+	_kevent(kevid, &ktimer, 1, NULL, 0, NULL);
+	while (1) {
+		_kevent(kevid, NULL, 0, &kresult, 1, &ts);
+		pn_hardclock();
+	}
+}

@@ -92,9 +92,7 @@ MALLOC_DEFINE(M_IP6NDP, "ip6ndp", "IPv6 Neighbor Discovery");
 extern void abort(void);
 
 int	ticks;
-
-time_t time_second = 1;
-time_t time_uptime = 1;
+int	cpu_disable_deep_sleep;
 
 /* This is used in modules that need to work in both SMP and UP. */
 cpuset_t all_cpus;
@@ -882,8 +880,8 @@ DELAY(int delay)
 }
 
 void
-microtime(struct timeval *tv)
+mutex_init(void)
 {
-	printf("implement me!!!!");
-	abort();
+
+	mtx_init(&Giant, "Giant", NULL, MTX_DEF | MTX_RECURSE);
 }

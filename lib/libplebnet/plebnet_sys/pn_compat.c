@@ -113,36 +113,19 @@ panic(const char *fmt, ...)
 	abort();
 }
 
-void
-bintime(struct bintime *bt)
-{
-	struct timeval tv;
-
-	gettimeofday(&tv, NULL);
-	timeval2bintime(&tv, bt);
-}
-	
-void
-getmicrouptime(struct timeval *tvp)
-{
-	struct timeval tv;
-
-	gettimeofday(&tv, NULL);
-}
-
-void
-getmicrotime(struct timeval *tvp)
-{
-	struct timeval tv;
-
-	gettimeofday(&tv, NULL);
-}
-
+#if 0
 void
 nanotime(struct timespec *ts)
 {
 
 	clock_gettime(CLOCK_REALTIME_PRECISE, ts);
+}
+#endif
+
+void
+resettodr(void)
+{
+	
 }
 
 void

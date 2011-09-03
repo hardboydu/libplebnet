@@ -12,8 +12,10 @@ PN_KERN_COMMON_OBJS +=		\
 	kern_mbuf.o		\
 	kern_module.o		\
 	kern_mtxpool.o		\
+	kern_ntptime.o		\
 	kern_osd.o		\
 	kern_sysctl.o		\
+	kern_tc.o		\
 	md5c.o			\
 	subr_eventhandler.o	\
 	subr_kobj.o		\
@@ -178,6 +180,7 @@ PN_OPT_FILES = 			\
 	opt_mrouting.h		\
 	opt_msgbuf.h		\
 	opt_netgraph.h		\
+	opt_ntp.h		\
 	opt_ofed.h		\
 	opt_param.h		\
 	opt_pcbgroup.h		\
