@@ -277,8 +277,10 @@ _rw_try_upgrade(struct rwlock *rw, const char *file, int line)
 void
 _rw_downgrade(struct rwlock *rw, const char *file, int line)
 {
-	
-	panic("downgrade not supported");
+
+	pthread_rwlock_unlock(&rw->rw_lock);
+	/* XXX */
+	pthread_rwlock_rdlock(&rw->rw_lock);
 }
 
 
