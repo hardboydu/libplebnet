@@ -2206,7 +2206,7 @@ prison_remove_one(struct prison *pr)
 		PROC_LOCK(p);
 		if (p->p_state != PRS_NEW && p->p_ucred &&
 		    p->p_ucred->cr_prison == pr)
-			psignal(p, SIGKILL);
+			kern_psignal(p, SIGKILL);
 		PROC_UNLOCK(p);
 	}
 	sx_sunlock(&allproc_lock);

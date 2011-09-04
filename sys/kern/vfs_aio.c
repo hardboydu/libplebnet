@@ -950,7 +950,7 @@ aio_process(struct aiocblist *aiocbe)
 			}
 			if (sigpipe) {
 				PROC_LOCK(aiocbe->userproc);
-				psignal(aiocbe->userproc, SIGPIPE);
+				kern_psignal(aiocbe->userproc, SIGPIPE);
 				PROC_UNLOCK(aiocbe->userproc);
 			}
 		}

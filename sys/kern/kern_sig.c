@@ -1721,7 +1721,7 @@ sys_pdkill(td, uap)
 	AUDIT_ARG_PROCESS(p);
 	error = p_cansignal(td, p, uap->signum);
 	if (error == 0 && uap->signum)
-		psignal(p, uap->signum);
+		kern_psignal(p, uap->signum);
 	PROC_UNLOCK(p);
 	return (error);
 #else
@@ -1952,7 +1952,7 @@ sigtd(struct proc *p, int sig, int prop)
  * side effects of this unwise possibility.
  */
 void
-psignal(struct proc *p, int sig)
+kern_psignal(struct proc *p, int sig)
 {
 	ksiginfo_t ksi;
 
@@ -2826,7 +2826,7 @@ killproc(p, why)
 	log(LOG_ERR, "pid %d (%s), uid %d, was killed: %s\n", p->p_pid, p->p_comm,
 		p->p_ucred ? p->p_ucred->cr_uid : -1, why);
 	p->p_flag |= P_WKILLED;
-	psignal(p, SIGKILL);
+	kern_psignal(p, SIGKILL);
 }
 
 /*
@@ -3309,7 +3309,7 @@ nosys(td, args)
 	struct proc *p = td->td_proc;
 
 	PROC_LOCK(p);
-	psignal(p, SIGSYS);
+	kern_psignal(p, SIGSYS);
 	PROC_UNLOCK(p);
 	return (ENOSYS);
 }
@@ -3339,7 +3339,7 @@ pgsigio(sigiop, sig, checkctty)
 	if (sigio->sio_pgid > 0) {
 		PROC_LOCK(sigio->sio_proc);
 		if (CANSIGIO(sigio->sio_ucred, sigio->sio_proc->p_ucred))
-			psignal(sigio->sio_proc, sig);
+			kern_psignal(sigio->sio_proc, sig);
 		PROC_UNLOCK(sigio->sio_proc);
 	} else if (sigio->sio_pgid < 0) {
 		struct proc *p;
@@ -3350,7 +3350,7 @@ pgsigio(sigiop, sig, checkctty)
 			if (p->p_state == PRS_NORMAL &&
 			    CANSIGIO(sigio->sio_ucred, p->p_ucred) &&
 			    (checkctty == 0 || (p->p_flag & P_CONTROLT)))
-				psignal(p, sig);
+				kern_psignal(p, sig);
 			PROC_UNLOCK(p);
 		}
 		PGRP_UNLOCK(sigio->sio_pgrp);

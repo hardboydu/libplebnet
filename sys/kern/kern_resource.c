@@ -632,7 +632,7 @@ lim_cb(void *arg)
 		} else {
 			if (p->p_cpulimit < rlim.rlim_max)
 				p->p_cpulimit += 5;
-			psignal(p, SIGXCPU);
+			kern_psignal(p, SIGXCPU);
 		}
 	}
 	if ((p->p_flag & P_WEXIT) == 0)

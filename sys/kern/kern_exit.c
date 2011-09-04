@@ -224,7 +224,7 @@ exit1(struct thread *td, int rv)
 		q = p->p_peers;
 		while (q != NULL) {
 			PROC_LOCK(q);
-			psignal(q, SIGKILL);
+			kern_psignal(q, SIGKILL);
 			PROC_UNLOCK(q);
 			q = q->p_peers;
 		}
@@ -421,7 +421,7 @@ exit1(struct thread *td, int rv)
 			q->p_flag &= ~(P_TRACED | P_STOPPED_TRACE);
 			FOREACH_THREAD_IN_PROC(q, temp)
 				temp->td_dbgflags &= ~TDB_SUSPEND;
-			psignal(q, SIGKILL);
+			kern_psignal(q, SIGKILL);
 		}
 		PROC_UNLOCK(q);
 	}
@@ -501,12 +501,12 @@ exit1(struct thread *td, int rv)
 			mtx_unlock(&p->p_pptr->p_sigacts->ps_mtx);
 
 		if (p->p_pptr == initproc)
-			psignal(p->p_pptr, SIGCHLD);
+			kern_psignal(p->p_pptr, SIGCHLD);
 		else if (p->p_sigparent != 0) {
 			if (p->p_sigparent == SIGCHLD)
 				childproc_exited(p);
 			else	/* LINUX thread */
-				psignal(p->p_pptr, p->p_sigparent);
+				kern_psignal(p->p_pptr, p->p_sigparent);
 		}
 #ifdef PROCDESC
 	} else

@@ -559,7 +559,7 @@ do_fork(struct thread *td, int flags, struct proc *p2, struct thread *td2,
 			 * to commit suicide.
 			 */
 			PROC_LOCK(p2);
-			psignal(p2, SIGKILL);
+			kern_psignal(p2, SIGKILL);
 			PROC_UNLOCK(p2);
 		} else
 			PROC_UNLOCK(p1->p_leader);

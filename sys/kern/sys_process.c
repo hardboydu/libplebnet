@@ -972,7 +972,7 @@ kern_ptrace(struct thread *td, int req, pid_t pid, void *addr, int data)
 			PROC_SUNLOCK(p);
 		} else {
 			if (data)
-				psignal(p, data);
+				kern_psignal(p, data);
 		}
 		break;
 

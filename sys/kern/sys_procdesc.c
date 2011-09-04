@@ -387,7 +387,7 @@ procdesc_close(struct file *fp, struct thread *td)
 		p->p_sigparent = SIGCHLD;
 		proc_reparent(p, initproc);
 		if ((pd->pd_flags & PD_DAEMON) == 0)
-			psignal(p, SIGKILL);
+			kern_psignal(p, SIGKILL);
 		PROC_UNLOCK(p);
 		sx_xunlock(&proctree_lock);
 	}

@@ -366,7 +366,7 @@ rctl_enforce(struct proc *p, int resource, uint64_t amount)
 			 * We're using the fact that RCTL_ACTION_SIG* values
 			 * are equal to their counterparts from sys/signal.h.
 			 */
-			psignal(p, rule->rr_action);
+			kern_psignal(p, rule->rr_action);
 			link->rrl_exceeded = 1;
 			continue;
 		}
