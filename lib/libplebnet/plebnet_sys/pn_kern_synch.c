@@ -24,10 +24,15 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#undef _KERNEL
+#include <errno.h>
+#define _KERNEL
+
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
 #include <sys/param.h>
+
 #include <sys/systm.h>
 #include <sys/condvar.h>
 #include <sys/kdb.h>
@@ -50,7 +55,10 @@ __FBSDID("$FreeBSD$");
 #include <sys/ktrace.h>
 #endif
 
+
 #include <pthread.h>
+
+
 
 int	hogticks;
 
@@ -86,15 +94,16 @@ sleep_entry_t
 se_alloc(void *chan, const char *wmesg)
 {
 	sleep_entry_t se;
-	pthread_condattr_t attr;
-	struct se_head *hash_list;	
+	struct se_head *hash_list;
+	int rv;
 
 	se = malloc(sizeof(*se), M_DEVBUF, 0);
 	se->chan = chan;
 	se->wmesg = wmesg;
 	se->waiters = 1;
-	pthread_condattr_init(&attr);
-	pthread_cond_init(&se->cond, &attr);
+	rv = pthread_cond_init(&se->cond, NULL);
+	if (rv)
+		printf("pthread_cond_init failed error=%d\n", rv);
 
 	/* insert in hash table */
 	hash_list = &se_active[SE_HASH(chan)];
@@ -127,7 +136,6 @@ se_free(sleep_entry_t se)
 		free(se, M_DEVBUF);
 	}
 }
-		
 
 /*
  * General sleep call.  Suspends the current thread until a wakeup is
@@ -149,10 +157,11 @@ _sleep(void *ident, struct lock_object *lock, int priority,
     const char *wmesg, int timo)
 {
 	sleep_entry_t se;
-	int rv;
+	int rv, tick_s;
 	struct timespec ts;
-	pthread_mutex_t *plock = (pthread_mutex_t *)&lock;
+	pthread_mutex_t *plock;
 
+	plock = &((struct mtx *)lock)->mtx_lock;
 	pthread_mutex_lock(&synch_lock);
 	if ((se = se_lookup(ident)) != NULL)
 		se->waiters++;
@@ -160,9 +169,12 @@ _sleep(void *ident, struct lock_object *lock, int priority,
 		se = se_alloc(ident, wmesg);
 	pthread_mutex_unlock(&synch_lock);
 
-	if (timo)
+	if (timo) {
+		tick_s = ts.tv_sec = timo/hz;
+		ts.tv_nsec = (timo - (tick_s*hz))*(1000000000ULL/hz);
 		rv = pthread_cond_timedwait(&se->cond, plock, &ts);
-	else
+
+	} else
 		rv = pthread_cond_wait(&se->cond, plock);
 
 	pthread_mutex_lock(&synch_lock);

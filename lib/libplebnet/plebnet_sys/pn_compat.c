@@ -34,10 +34,15 @@
 #include <sys/ucred.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <sys/proc.h>
 #include <sys/stdint.h>
 #include <sys/uio.h>
 
+#define _KERNEL
+#include <sys/proc.h>
+#include <sys/lock.h>
+#include <sys/mutex.h>
+#include <sys/sx.h>
+#undef _KERNEL
 #include <signal.h>
 #include <unistd.h>
 #include <string.h>
@@ -46,7 +51,6 @@
 struct malloc_type;
 __thread struct thread *pcurthread;
 
-LIST_HEAD(proclist, proc);
 TAILQ_HEAD(prisonlist, prison);
 
 struct cdev;
@@ -162,46 +166,65 @@ pthread_start_routine(void *arg)
  */
 int
 kproc_kthread_add(void (*start_routine)(void *), void *arg,
-    struct proc **p,  struct thread **td,
+    struct proc **p,  struct thread **tdp,
     int flags, int pages,
     char * procname, const char *str, ...)
 {
 	int error;
 	pthread_t thread;
+	struct thread *td;
 	pthread_attr_t attr;
 	struct pthread_start_args *psa;
+	struct mtx *lock;
+	pthread_cond_t *cond; 
 
-	*td = malloc(sizeof(struct thread));
+	*tdp = td = malloc(sizeof(struct thread));
 	psa = malloc(sizeof(struct pthread_start_args));
+	lock = malloc(sizeof(struct mtx));
+	cond = malloc(sizeof(pthread_cond_t));
+	pthread_cond_init(cond, NULL);
+	mtx_init(lock, "thread_lock", NULL, MTX_DEF);
+	td->td_lock = lock;
+	td->td_sleepqueue = (void *)cond;
 	psa->psa_start_routine = start_routine;
 	psa->psa_arg = arg;
-	psa->psa_td = *td;
+	psa->psa_td = td;
 	
 	pthread_attr_init(&attr); 
 	error = _pthread_create(&thread, &attr, pthread_start_routine, psa);
-
+	td->td_wchan = thread;
 	return (error);
 }
 
 int
 kthread_add(void (*start_routine)(void *), void *arg, struct proc *p,  
-    struct thread **td, int flags, int pages,
+    struct thread **tdp, int flags, int pages,
     const char *str, ...)
 {
 	int error;
 	pthread_t thread;
 	pthread_attr_t attr;
 	struct pthread_start_args *psa;
+	struct thread *td;
+	struct mtx *lock;
+	pthread_cond_t *cond; 
 
-	*td = malloc(sizeof(struct thread));
+	*tdp = td = malloc(sizeof(struct thread));
 	psa = malloc(sizeof(struct pthread_start_args));
+	lock = malloc(sizeof(struct mtx));
+	cond = malloc(sizeof(pthread_cond_t));
+	pthread_cond_init(cond, NULL);
+	mtx_init(lock, "thread_lock", NULL, MTX_DEF);
+	td->td_lock = lock;
+	td->td_sleepqueue = (void *)cond;
+
 	psa->psa_start_routine = start_routine;
 	psa->psa_arg = arg;
-	psa->psa_td = *td;
+	psa->psa_td = td;
 	
 	pthread_attr_init(&attr); 
 	error = _pthread_create(&thread, &attr, pthread_start_routine, psa);
-
+	td->td_wchan = thread;
 	return (error);
 }
 
@@ -215,7 +238,7 @@ void
 tdsignal(struct thread *td, int sig)
 {
 
-	kill(getpid(), sig);
+	pthread_kill(td->td_wchan, sig);
 }
 
 dev_t

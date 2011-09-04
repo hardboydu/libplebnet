@@ -174,6 +174,13 @@ struct lock_class lock_class_rw = {
 };
 
 void
+_thread_lock_flags(struct thread *td, int opts, const char *file, int line)
+{
+
+	mtx_lock(td->td_lock);
+}
+
+void
 rw_sysinit(void *arg)
 {
 	struct rw_args *args = arg;

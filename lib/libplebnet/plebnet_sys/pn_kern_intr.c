@@ -679,20 +679,12 @@ intr_event_schedule_thread(struct intr_event *ie)
 	 * put it on the runqueue.
 	 */
 	it->it_need = 1;
-#ifdef notyet
-	/* XXX */
 	thread_lock(td);
 	if (TD_AWAITING_INTR(td)) {
-		CTR3(KTR_INTR, "%s: schedule pid %d (%s)", __func__, p->p_pid,
-		    td->td_name);
 		TD_CLR_IWAIT(td);
-		sched_add(td, SRQ_INTR);
-	} else {
-		CTR5(KTR_INTR, "%s: pid %d (%s): it_need %d, state %d",
-		    __func__, p->p_pid, td->td_name, it->it_need, td->td_state);
+		pthread_cond_signal((pthread_cond_t *)td->td_sleepqueue);
 	}
 	thread_unlock(td);
-#endif
 	return (0);
 }
 #else
@@ -856,18 +848,9 @@ swi_add(struct intr_event **eventp, const char *name, driver_intr_t handler,
 	}
 	error = intr_event_add_handler(ie, name, NULL, handler, arg,
 	    (pri * RQ_PPQ) + PI_SOFT, flags, cookiep);
-	if (error)
-		return (error);
-#if 0
-	if (pri == SWI_CLOCK) {
-		struct proc *p;
-		p = ie->ie_thread->it_thread->td_proc;
-		PROC_LOCK(p);
-		p->p_flag |= P_NOLOAD;
-		PROC_UNLOCK(p);
-	}
-#endif	
-	return (0);
+	
+	
+	return (error);
 }
 
 /*
@@ -1098,16 +1081,15 @@ ithread_loop(void *arg)
 		 * lock.  This may take a while and it_need may get
 		 * set again, so we have to check it again.
 		 */
-#ifdef notyet
 		/* XXX */
 		thread_lock(td);
 		if (!ithd->it_need && !(ithd->it_flags & IT_DEAD)) {
 			TD_SET_IWAIT(td);
 			ie->ie_count = 0;
-			mi_switch(SW_VOL | SWT_IWAIT, NULL);
+			pthread_cond_wait((pthread_cond_t *)td->td_sleepqueue, 
+					  &td->td_lock->mtx_lock);
 		}
 		thread_unlock(td);
-#endif		
 	}
 }
 
