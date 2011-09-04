@@ -235,7 +235,7 @@ shutdown(int fd, int how)
 ssize_t
 write(int fd, const void *buf, size_t nbytes)
 {
-	struct iovec iov[2];
+	struct iovec iov[4];
 	struct call_msg cm;
 	struct write_call_msg wcm;
 	int size, err;
@@ -244,7 +244,7 @@ write(int fd, const void *buf, size_t nbytes)
 	/*
 	 * XXX Evil HACK
 	 */
-	if (fd < 4)
+	if (fd < 16)
 		return (_write(fd, buf, nbytes));
 
 	cm.cm_size = sizeof(struct write_call_msg) + nbytes;
