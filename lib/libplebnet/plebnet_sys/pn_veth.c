@@ -110,13 +110,12 @@ pnv_decap(void *arg)
 	struct pnv_softc *sc = arg;
 	struct ifnet *ifp = sc->ifp;
 	struct mbuf *m;
-	caddr_t data;
 	int size;
 
 	while (1) {
 		m = m_getjcl(M_WAITOK, MT_DATA,
 		    M_PKTHDR, MCLBYTES);
-		size = read(sc->fd, data, MCLBYTES);
+		size = read(sc->fd, mtod(m, void *), MCLBYTES);
 		m->m_pkthdr.len = m->m_len = size;
 		m->m_pkthdr.rcvif = ifp;
 		ifp->if_input(ifp, m);
