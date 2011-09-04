@@ -206,8 +206,15 @@ SYSDIR=	${_dir}
 PREFIX= ${SYSDIR}
 .PATH: ${PREFIX}/crypto
 .PATH: ${PREFIX}/kern
-# XXX
+
+.if ${MACHINE_CPUARCH} == "i386" 
+.PATH: ${PREFIX}/i386/i386
+.endif 
+
+.if ${MACHINE_CPUARCH} == "amd64"
 .PATH: ${PREFIX}/amd64/amd64
+.endif
+
 .PATH: ${PREFIX}/net
 .PATH: ${PREFIX}/netinet
 .PATH: ${PREFIX}/netinet6
