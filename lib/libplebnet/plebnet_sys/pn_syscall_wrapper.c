@@ -676,11 +676,10 @@ kern_fail:
 int
 connect(int s, const struct sockaddr *name, socklen_t namelen)
 {
-	struct sockaddr *sa;
 	int rc;
 
 	if (user_fdisused(s)) {
-		if ((rc = kern_connect(curthread, s, sa)))
+		if ((rc = kern_connect(curthread, s, __DECONST(struct sockaddr *, name))))
 			goto kern_fail;
 		rc = curthread->td_retval[0];
 	} else
