@@ -1,7 +1,4 @@
-
 Functional completeness:
-- handling swi_add probably for the general case
-	- verify taskqueue and netisr correctness
 - aio support
 
 Robustness:
