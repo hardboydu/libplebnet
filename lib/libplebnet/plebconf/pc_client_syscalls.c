@@ -652,3 +652,14 @@ sysctl(const int *name, u_int namelen, void *oldp, size_t *oldlenp,
 
 	return (sysctl_internal(name, namelen, oldp, oldlenp, newp, newlen));
 }
+
+/*
+ * Route and friends think that they know better than us,
+ * don't let them interfere.
+ */
+uid_t
+geteuid(void)
+{
+	
+	return (0);
+}
