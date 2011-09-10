@@ -1910,8 +1910,6 @@ bpf_mtap(struct bpf_if *bp, struct mbuf *m)
 #endif
 				catchpacket(d, (u_char *)m, pktlen, slen,
 				    bpf_append_mbuf, &bt);
-			if (BD_DROPMATCH(d))
-				markpromisc = 1;
 		}
 		BPFD_UNLOCK(d);
 	}
