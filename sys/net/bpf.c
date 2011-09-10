@@ -214,6 +214,67 @@ static struct filterops bpfread_filtops = {
 	.f_event = filt_bpfread,
 };
 
+struct bpf_insn ip_recv_insns_template[] = {
+	BPF_STMT(BPF_LD+BPF_H+BPF_ABS, 12),
+	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, ETHERTYPE_ARP, 5 /* match */, 0),
+	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, ETHERTYPE_IP, 0, 3 /* no match */),
+	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, 30 /* ip_dst */),
+	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, 0/* host address */, 1, 0/* no match */),
+	BPF_STMT(BPF_RET+BPF_K, (u_int)-1),
+	BPF_STMT(BPF_RET+BPF_K, 0),
+     };
+
+
+struct bpf_insn ip_send_insns_template[] = {
+	BPF_STMT(BPF_LD+BPF_H+BPF_ABS, 12),
+	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, ETHERTYPE_ARP, 
+	    0 /* match*/, 3 /* ip check */),
+
+	/* ARP spoofing check - check that we're only sending responses with our IP as sender */
+	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, 12+sizeof(struct arphdr)+ETHER_ADDR_LEN/* spa */),
+	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, 0 /* host address */, 5 /* match */,  4/* no match */),
+
+	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, ETHERTYPE_IP, 0, 3 /* no match */),
+	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, 26 /* ip_src */),
+	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, 0/* host address */, 1, 0/* no match */),
+	BPF_STMT(BPF_RET+BPF_K, (u_int)-1),
+	BPF_STMT(BPF_RET+BPF_K, 0),
+     };
+
+static int
+bpf_setipf(struct bpf_d *d, struct sockaddr_in *sin)
+{
+	struct bpf_program *wf, *rf;
+	int error;
+
+	/* XXX - need to check that we aren't setting to the localhost's IP */
+	wf = malloc(sizeof(struct bpf_program)+ sizeof(ip_send_insns_template), M_BPF, M_WAITOK);
+	rf = malloc(sizeof(struct bpf_program)+ sizeof(ip_recv_insns_template), M_BPF, M_WAITOK);
+
+	wf->bf_insns = (struct bpf_insn *)(wf + 1);
+	rf->bf_insns = (struct bpf_insn *)(rf + 1);
+
+	wf->bf_len = sizeof(ip_send_insns_template)/sizeof(struct bpf_insn);
+	rf->bf_len = sizeof(ip_recv_insns_template)/sizeof(struct bpf_insn);
+
+	rf->bf_insns[4].k = sin->sin_addr.s_addr;
+	rf->bf_insns[3].k = sin->sin_addr.s_addr;
+	rf->bf_insns[6].k = sin->sin_addr.s_addr;
+	
+	if ((error = bpf_setf(d, wf, BIOCSETWF))) {
+		printf("failed to set write filter\n");
+		goto done;
+	}
+	if ((error = bpf_setf(d, rf, BIOCSETFNR)))
+		printf("failed to set read filter\n");
+
+done:
+	free(wf, M_BPF);
+	free(rf, M_BPF);
+
+	return (error);
+}
+
 /*
  * Wrapper functions for various buffering methods.  If the set of buffer
  * modes expands, we will probably want to introduce a switch data structure
@@ -1116,6 +1177,8 @@ bpfioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags,
 		case TIOCGPGRP:
 		case BIOCROTZBUF:
 			break;
+		case SIOCGIFADDR:
+		case BIOCSBLEN:
 		case BIOCDROPMATCH:
 		case BIOCSETIF:
 		case BIOCSADDR_INET:
@@ -1150,6 +1213,11 @@ bpfioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags,
 		error = EINVAL;
 		break;
 
+	case BIOCSADDR_INET:
+		error = bpf_setipf(d, (struct sockaddr_in *)addr);
+		if (error == 0)
+			d->bd_flags |= (BPFF_FILTSET|BPFF_DROPMATCH);
+		break;
 	/*
 	 * Check for read packet available.
 	 */
@@ -1619,8 +1687,10 @@ bpf_setf(struct bpf_d *d, struct bpf_program *fp, u_long cmd)
 #endif
 	}
 	if (fp->bf_insns == NULL) {
-		if (fp->bf_len != 0)
+		if (fp->bf_len != 0) {
+			printf("instruction length is zero\n");
 			return (EINVAL);
+		}
 		BPFD_LOCK(d);
 		if (wfilter)
 			d->bd_wfilter = NULL;
@@ -1642,8 +1712,10 @@ bpf_setf(struct bpf_d *d, struct bpf_program *fp, u_long cmd)
 		return (0);
 	}
 	flen = fp->bf_len;
-	if (flen > bpf_maxinsns)
+	if (flen > bpf_maxinsns) {
+		printf("instruction count too large\n");
 		return (EINVAL);
+	}
 
 	size = flen * sizeof(*fp->bf_insns);
 	fcode = (struct bpf_insn *)malloc(size, M_BPF, M_WAITOK);
@@ -1977,6 +2049,7 @@ bpf_mtap(struct bpf_if *bp, struct mbuf *m)
 	/* tell host stack to ignore this packet */
 	if (markpromisc && !(m->m_flags & (M_BCAST|M_MCAST)))
 		m->m_flags |= M_PROMISC;
+
 }
 
 /*
@@ -2441,9 +2514,10 @@ bpf_drvinit(void *unused)
 	LIST_INIT(&bpf_iflist);
 
 	dev = make_dev(&bpf_cdevsw, 0, UID_ROOT, GID_WHEEL, 0600, "bpf");
-	dev = make_dev(&ubpf_cdevsw, 0, UID_ROOT, GID_WHEEL, 0666, "ubpf");
 	/* For compatibility */
 	make_dev_alias(dev, "bpf0");
+	make_dev(&ubpf_cdevsw, 0, UID_ROOT, GID_WHEEL, 0666, "ubpf");
+
 }
 
 /*
