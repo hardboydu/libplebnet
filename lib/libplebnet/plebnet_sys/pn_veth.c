@@ -24,6 +24,9 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#undef _KERNEL
+#include <errno.h>
+#define _KERNEL
 #include <sys/param.h>
 #include <sys/time.h>
 #include <sys/socket.h>
@@ -41,18 +44,19 @@
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/uio.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <pthread.h>
 
+#include <fcntl.h>
+#include <pthread.h>
 
 ssize_t     read(int d, void *buf, size_t nbytes);
 extern void perror(const char *string);
+uid_t	geteuid(void);
 
 
 struct pnv_softc {
 	struct ifnet *ifp;
 	int fd;
+	uid_t euid;
 	uint8_t addr[6];
 	struct mtx lock;
 };
@@ -66,16 +70,21 @@ pn_veth_attach(void)
 	struct ifreq ifr;
 	int fd, error, val;
 	char *ifname = "em0"; /* get from environment */
+	char *fdev = "/dev/ubpf";
 
 	sc = malloc(sizeof(struct pnv_softc), M_DEVBUF, M_WAITOK);
-	fd = open("/dev/ubpf", O_RDWR);
+	sc->euid = geteuid();
+	if (sc->euid == 0)
+		fdev = "/dev/bpf";
+
+	fd = open(fdev, O_RDWR);
 	if (fd < 0) {
 		perror("ubpf open failed");
 		return (ENXIO);
 	}
 	bzero(&ifr, sizeof(ifr));
 	memcpy(&ifr.ifr_name, ifname, strlen(ifname));
-	val = 256*1024;
+	val = MCLBYTES;
 	if ((error = ioctl(fd, BIOCSBLEN, &val))) {
 		perror("BIOCSBLEN:");
 		return (ENXIO);
@@ -143,7 +152,7 @@ pnv_decap(void *arg)
 	struct mbuf *m;
 	struct ifnet *ifp;
 	struct bpf_xhdr *xhdr;
-	int size;
+	int size, error;
 
 	ifp = sc->ifp;
 	while (1) {
@@ -152,8 +161,10 @@ pnv_decap(void *arg)
 		data = mtod(m, caddr_t);
 	retry:
 		size = read(sc->fd, data, MCLBYTES);
-		if (size <= 0) 
+		if (size <= 0) {
+			error = errno;
 			goto retry;
+		}
 		xhdr = (struct bpf_xhdr *)data;		
 		m->m_pkthdr.len = m->m_len = xhdr->bh_caplen + xhdr->bh_hdrlen;
 		m->m_pkthdr.rcvif = ifp;
@@ -204,7 +215,7 @@ pnv_ioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
 		ifr = (struct ifreq *)data;
 		sin = (struct sockaddr_in *)&ifr->ifr_addr;
 		/* set IP on bpf */
-	if ((error = ioctl(sc->fd, BIOCSADDR_INET, sin))) {
+	if (sc->euid != 0 && (error = ioctl(sc->fd, BIOCSADDR_INET, sin))) {
 		perror("BIOCSADDR_INET:");
 		return (ENXIO);
 	}
