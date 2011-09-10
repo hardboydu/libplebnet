@@ -76,14 +76,12 @@ struct bpf_d {
 	u_int64_t	bd_rcount;	/* number of packets received */
 	u_int64_t	bd_dcount;	/* number of packets dropped */
 
-	u_char		bd_promisc;	/* true if listening promiscuously */
 	u_char		bd_state;	/* idle, waiting, or timed out */
-	u_char		bd_immediate;	/* true to return on packet arrival */
+	int		bd_flags;	/* bpf device options */
 	int		bd_hdrcmplt;	/* false to fill in src lladdr automatically */
 	int		bd_direction;	/* select packet direction */
 	int		bd_tstamp;	/* select time stamping function */
-	int		bd_feedback;	/* true to feed back sent packets */
-	int		bd_async;	/* non-zero if packet reception should generate signal */
+
 	int		bd_sig;		/* signal to send upon packet reception */
 	struct sigio *	bd_sigio;	/* information for async I/O */
 	struct selinfo	bd_sel;		/* bsd select info */
@@ -92,14 +90,29 @@ struct bpf_d {
 	struct label	*bd_label;	/* MAC label for descriptor */
 	u_int64_t	bd_fcount;	/* number of packets which matched filter */
 	pid_t		bd_pid;		/* PID which created descriptor */
-	int		bd_locked;	/* true if descriptor is locked */
 	u_int		bd_bufmode;	/* Current buffer mode. */
 	u_int64_t	bd_wcount;	/* number of packets written */
 	u_int64_t	bd_wfcount;	/* number of packets that matched write filter */
 	u_int64_t	bd_wdcount;	/* number of packets dropped during a write */
 	u_int64_t	bd_zcopy;	/* number of zero copy operations */
-	u_char		bd_compat32;	/* 32-bit stream on LP64 system */
 };
+
+#define	BPFF_ASYNC	0x0001		/* packet reception should generate signal */
+#define	BPFF_FEEDBACK	0x0002		/* feed back sent packets */
+#define	BPFF_IMMEDIATE	0x0004		/* return on packet arrival */
+#define	BPFF_PROMISC	0x0008		/* listening promiscuously */
+#define	BPFF_COMPAT32	0x0010		/* 32-bit stream on LP64 system */
+#define	BPFF_LOCKED	0x0020		/* descriptor is locked */
+#define	BPFF_DROPMATCH	0x0040		/* don't pass matching packets on to host */
+
+#define BD_ASYNC(d)	(!!((d)->bd_flags & BPFF_ASYNC))
+#define BD_FEEDBACK(d)	(!!((d)->bd_flags & BPFF_FEEDBACK))
+#define BD_IMMEDIATE(d)	(!!((d)->bd_flags & BPFF_IMMEDIATE))
+#define BD_PROMISC(d)	(!!((d)->bd_flags & BPFF_PROMISC))
+#define BD_COMPAT32(d)	(!!((d)->bd_flags & BPFF_COMPAT32))
+#define BD_LOCKED(d)	(!!((d)->bd_flags & BPFF_LOCKED))
+#define BD_DROPMATCH(d)	(!!((d)->bd_flags & BPFF_DROPMATCH))
+
 
 /* Values for bd_state */
 #define BPF_IDLE	0		/* no select in progress */

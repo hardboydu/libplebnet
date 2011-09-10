@@ -615,8 +615,8 @@ bpf_detachd(struct bpf_d *d)
 	 * Check if this descriptor had requested promiscuous mode.
 	 * If so, turn it off.
 	 */
-	if (d->bd_promisc) {
-		d->bd_promisc = 0;
+	if (BD_PROMISC(d)) {
+		d->bd_flags &= ~BPFF_PROMISC;
 		CURVNET_SET(ifp->if_vnet);
 		error = ifpromisc(ifp, 0);
 		CURVNET_RESTORE();
@@ -746,7 +746,7 @@ bpfread(struct cdev *dev, struct uio *uio, int ioflag)
 			 * A packet(s) either arrived since the previous
 			 * read or arrived while we were asleep.
 			 */
-			if (d->bd_immediate || non_block || timed_out) {
+			if (BD_IMMEDIATE(d) || non_block || timed_out) {
 				/*
 				 * Rotate the buffers and return what's here
 				 * if we are in immediate mode, non-blocking
@@ -839,7 +839,7 @@ bpf_wakeup(struct bpf_d *d)
 		d->bd_state = BPF_IDLE;
 	}
 	wakeup(d);
-	if (d->bd_async && d->bd_sig && d->bd_sigio)
+	if ((d->bd_flags & BPFF_ASYNC) && d->bd_sig && d->bd_sigio)
 		pgsigio(&d->bd_sigio, d->bd_sig, 0);
 
 	selwakeuppri(&d->bd_sel, PRINET);
@@ -870,7 +870,7 @@ bpf_ready(struct bpf_d *d)
 
 	if (!bpf_canfreebuf(d) && d->bd_hlen != 0)
 		return (1);
-	if ((d->bd_immediate || d->bd_state == BPF_TIMED_OUT) &&
+	if ((BD_IMMEDIATE(d) || d->bd_state == BPF_TIMED_OUT) &&
 	    d->bd_slen != 0)
 		return (1);
 	return (0);
@@ -921,7 +921,7 @@ bpfwrite(struct cdev *dev, struct uio *uio, int ioflag)
 	if (d->bd_hdrcmplt)
 		dst.sa_family = pseudo_AF_HDRCMPLT;
 
-	if (d->bd_feedback) {
+	if (BD_FEEDBACK(d)) {
 		mc = m_dup(m, M_DONTWAIT);
 		if (mc != NULL)
 			mc->m_pkthdr.rcvif = ifp;
@@ -1044,7 +1044,7 @@ bpfioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags,
 	d->bd_state = BPF_IDLE;
 	BPFD_UNLOCK(d);
 
-	if (d->bd_locked == 1) {
+	if (BD_LOCKED(d)) {
 		switch (cmd) {
 		case BIOCGBLEN:
 		case BIOCFLUSH:
@@ -1090,7 +1090,7 @@ bpfioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags,
 	case BIOCGDLTLIST32:
 	case BIOCGRTIMEOUT32:
 	case BIOCSRTIMEOUT32:
-		d->bd_compat32 = 1;
+		d->bd_flags |= BPFF_COMPAT32;
 	}
 #endif
 
@@ -1179,10 +1179,10 @@ bpfioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags,
 			error = EINVAL;
 			break;
 		}
-		if (d->bd_promisc == 0) {
+		if (BD_PROMISC(d) == 0) {
 			error = ifpromisc(d->bd_bif->bif_ifp, 1);
 			if (error == 0)
-				d->bd_promisc = 1;
+				d->bd_flags |= BPFF_PROMISC;
 		}
 		break;
 
@@ -1338,7 +1338,10 @@ bpfioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags,
 	 * Set immediate mode.
 	 */
 	case BIOCIMMEDIATE:
-		d->bd_immediate = *(u_int *)addr;
+		if (*(u_int *)addr)
+			d->bd_flags |= BPFF_IMMEDIATE;
+		else
+			d->bd_flags &= ~BPFF_IMMEDIATE;
 		break;
 
 	case BIOCVERSION:
@@ -1414,18 +1417,24 @@ bpfioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags,
 		break;
 
 	case BIOCFEEDBACK:
-		d->bd_feedback = *(u_int *)addr;
+		if (*(u_int *)addr)
+			d->bd_flags |= BPFF_FEEDBACK;
+		else
+			d->bd_flags &= ~BPFF_FEEDBACK;
 		break;
 
 	case BIOCLOCK:
-		d->bd_locked = 1;
+		d->bd_flags |= BPFF_LOCKED;
 		break;
 
 	case FIONBIO:		/* Non-blocking I/O */
 		break;
 
 	case FIOASYNC:		/* Send signal on receive packets */
-		d->bd_async = *(int *)addr;
+		if (*(int *)addr)
+			d->bd_flags |= BPFF_ASYNC;
+		else
+			d->bd_flags &= ~BPFF_ASYNC;
 		break;
 
 	case FIOSETOWN:
@@ -1901,6 +1910,8 @@ bpf_mtap(struct bpf_if *bp, struct mbuf *m)
 #endif
 				catchpacket(d, (u_char *)m, pktlen, slen,
 				    bpf_append_mbuf, &bt);
+			if (BD_DROPMATCH(d))
+				markpromisc = 1;
 		}
 		BPFD_UNLOCK(d);
 	}
@@ -1977,7 +1988,7 @@ bpf_hdrlen(struct bpf_d *d)
 	if (d->bd_tstamp == BPF_T_NONE ||
 	    BPF_T_FORMAT(d->bd_tstamp) == BPF_T_MICROTIME)
 #ifdef COMPAT_FREEBSD32
-		if (d->bd_compat32)
+		if (BD_COMPAT32(d))
 			hdrlen += SIZEOF_BPF_HDR(struct bpf_hdr32);
 		else
 #endif
@@ -1986,7 +1997,7 @@ bpf_hdrlen(struct bpf_d *d)
 #endif
 		hdrlen += SIZEOF_BPF_HDR(struct bpf_xhdr);
 #ifdef COMPAT_FREEBSD32
-	if (d->bd_compat32)
+	if (BD_COMPAT32(d))
 		hdrlen = BPF_WORDALIGN32(hdrlen);
 	else
 #endif
@@ -2085,7 +2096,7 @@ catchpacket(struct bpf_d *d, u_char *pkt, u_int pktlen, u_int snaplen,
 	 * the buffer and wakeup pending processes.
 	 */
 #ifdef COMPAT_FREEBSD32
-	if (d->bd_compat32)
+	if (BD_COMPAT32(d))
 		curlen = BPF_WORDALIGN32(d->bd_slen);
 	else
 #endif
@@ -2104,7 +2115,7 @@ catchpacket(struct bpf_d *d, u_char *pkt, u_int pktlen, u_int snaplen,
 		ROTATE_BUFFERS(d);
 		do_wakeup = 1;
 		curlen = 0;
-	} else if (d->bd_immediate || d->bd_state == BPF_TIMED_OUT)
+	} else if (BD_IMMEDIATE(d) || d->bd_state == BPF_TIMED_OUT)
 		/*
 		 * Immediate mode is set, or the read timeout has already
 		 * expired during a select call.  A packet arrived, so the
@@ -2120,7 +2131,7 @@ catchpacket(struct bpf_d *d, u_char *pkt, u_int pktlen, u_int snaplen,
 		if (do_timestamp)
 			bpf_bintime2ts(bt, &ts, tstype);
 #ifdef COMPAT_FREEBSD32
-		if (d->bd_compat32) {
+		if (BD_COMPAT32(d)) {
 			bzero(&hdr32_old, sizeof(hdr32_old));
 			if (do_timestamp) {
 				hdr32_old.bh_tstamp.tv_sec = ts.bt_sec;
@@ -2334,7 +2345,7 @@ bpf_setdlt(struct bpf_d *d, u_int dlt)
 	}
 	mtx_unlock(&bpf_mtx);
 	if (bp != NULL) {
-		opromisc = d->bd_promisc;
+		opromisc = BD_PROMISC(d);
 		bpf_detachd(d);
 		bpf_attachd(d, bp);
 		BPFD_LOCK(d);
@@ -2347,7 +2358,7 @@ bpf_setdlt(struct bpf_d *d, u_int dlt)
 					"bpf_setdlt: ifpromisc failed (%d)\n",
 					error);
 			else
-				d->bd_promisc = 1;
+				d->bd_flags |= BPFF_PROMISC;
 		}
 	}
 	return (bp == NULL ? EINVAL : 0);
@@ -2402,12 +2413,12 @@ bpfstats_fill_xbpf(struct xbpf_d *d, struct bpf_d *bd)
 	bzero(d, sizeof(*d));
 	BPFD_LOCK_ASSERT(bd);
 	d->bd_structsize = sizeof(*d);
-	d->bd_immediate = bd->bd_immediate;
-	d->bd_promisc = bd->bd_promisc;
+	d->bd_immediate = BD_IMMEDIATE(bd);
+	d->bd_promisc = BD_PROMISC(bd);
 	d->bd_hdrcmplt = bd->bd_hdrcmplt;
 	d->bd_direction = bd->bd_direction;
-	d->bd_feedback = bd->bd_feedback;
-	d->bd_async = bd->bd_async;
+	d->bd_feedback = BD_FEEDBACK(bd);
+	d->bd_async = BD_ASYNC(bd);
 	d->bd_rcount = bd->bd_rcount;
 	d->bd_dcount = bd->bd_dcount;
 	d->bd_fcount = bd->bd_fcount;
@@ -2418,7 +2429,7 @@ bpfstats_fill_xbpf(struct xbpf_d *d, struct bpf_d *bd)
 	d->bd_pid = bd->bd_pid;
 	strlcpy(d->bd_ifname,
 	    bd->bd_bif->bif_ifp->if_xname, IFNAMSIZ);
-	d->bd_locked = bd->bd_locked;
+	d->bd_locked = BD_LOCKED(bd);
 	d->bd_wcount = bd->bd_wcount;
 	d->bd_wdcount = bd->bd_wdcount;
 	d->bd_wfcount = bd->bd_wfcount;
