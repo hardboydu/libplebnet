@@ -174,6 +174,7 @@ SYSCTL_NODE(_net_bpf, OID_AUTO, stats, CTLFLAG_MPSAFE | CTLFLAG_RW,
     bpf_stats_sysctl, "bpf statistics portal");
 
 static	d_open_t	bpfopen;
+static	d_open_t	ubpfopen;
 static	d_read_t	bpfread;
 static	d_write_t	bpfwrite;
 static	d_ioctl_t	bpfioctl;
@@ -188,6 +189,18 @@ static struct cdevsw bpf_cdevsw = {
 	.d_ioctl =	bpfioctl,
 	.d_poll =	bpfpoll,
 	.d_name =	"bpf",
+	.d_kqfilter =	bpfkqfilter,
+};
+
+
+static struct cdevsw ubpf_cdevsw = {
+	.d_version =	D_VERSION,
+	.d_open =	ubpfopen,
+	.d_read =	bpfread,
+	.d_write =	bpfwrite,
+	.d_ioctl =	bpfioctl,
+	.d_poll =	bpfpoll,
+	.d_name =	"ubpf",
 	.d_kqfilter =	bpfkqfilter,
 };
 
@@ -701,6 +714,23 @@ bpfopen(struct cdev *dev, int flags, int fmt, struct thread *td)
 	return (0);
 }
 
+static	int
+ubpfopen(struct cdev *dev, int flags, int fmt, struct thread *td)
+{
+	int error;
+	struct bpf_d *d;
+
+	if ((error = bpfopen(dev, flags, fmt, td)))
+		return (error);
+
+	error = devfs_get_cdevpriv((void **)&d);
+	if (error != 0)
+		return (error);
+
+	d->bd_flags |= BPFF_NOPRIVS;
+	return (0);
+}
+
 /*
  *  bpfread - read next chunk of packets from buffers
  */
@@ -715,6 +745,9 @@ bpfread(struct cdev *dev, struct uio *uio, int ioflag)
 	error = devfs_get_cdevpriv((void **)&d);
 	if (error != 0)
 		return (error);
+
+	if (UBPF_UNCONFIGURED(d))
+		return (EPERM);
 
 	/*
 	 * Restrict application to use a buffer the same size as
@@ -889,6 +922,9 @@ bpfwrite(struct cdev *dev, struct uio *uio, int ioflag)
 	if (error != 0)
 		return (error);
 
+	if (UBPF_UNCONFIGURED(d))
+		return (EPERM);
+
 	d->bd_pid = curthread->td_proc->p_pid;
 	d->bd_wcount++;
 	if (d->bd_bif == NULL) {
@@ -1044,6 +1080,17 @@ bpfioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags,
 	d->bd_state = BPF_IDLE;
 	BPFD_UNLOCK(d);
 
+	if (BD_NOPRIVS(d)) {
+		switch (cmd) {
+		case BIOCSETIF:
+		case BIOCGETIF:
+		case BIOCSADDR_INET:
+		case BIOCSADDR_INET6:
+			break;
+		default:
+			return (EPERM);
+		}
+	}
 	if (BD_LOCKED(d)) {
 		switch (cmd) {
 		case BIOCGBLEN:
@@ -2392,6 +2439,7 @@ bpf_drvinit(void *unused)
 	LIST_INIT(&bpf_iflist);
 
 	dev = make_dev(&bpf_cdevsw, 0, UID_ROOT, GID_WHEEL, 0600, "bpf");
+	dev = make_dev(&ubpf_cdevsw, 0, UID_ROOT, GID_WHEEL, 0666, "ubpf");
 	/* For compatibility */
 	make_dev_alias(dev, "bpf0");
 }

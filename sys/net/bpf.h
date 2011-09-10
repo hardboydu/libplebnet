@@ -149,6 +149,9 @@ struct bpf_zbuf {
 #define	BIOCSTSTAMP	_IOW('B', 132, u_int)
 #define	BIOCDROPMATCH	_IOW('B', 133, u_int)
 
+#define	BIOCSADDR_INET	_IOW('B', 134, struct sockaddr)
+#define	BIOCSADDR_INET6	_IOW('B', 135, struct sockaddr_in6)
+
 /* Obsolete */
 #define	BIOCGSEESENT	BIOCGDIRECTION
 #define	BIOCSSEESENT	BIOCSDIRECTION

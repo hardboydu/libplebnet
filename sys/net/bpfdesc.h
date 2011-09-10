@@ -104,14 +104,21 @@ struct bpf_d {
 #define	BPFF_COMPAT32	0x0010		/* 32-bit stream on LP64 system */
 #define	BPFF_LOCKED	0x0020		/* descriptor is locked */
 #define	BPFF_DROPMATCH	0x0040		/* don't pass matching packets on to host */
+#define	BPFF_NOPRIVS	0x0080
+#define	BPFF_FILTSET	0x0100
 
-#define BD_ASYNC(d)	(!!((d)->bd_flags & BPFF_ASYNC))
-#define BD_FEEDBACK(d)	(!!((d)->bd_flags & BPFF_FEEDBACK))
-#define BD_IMMEDIATE(d)	(!!((d)->bd_flags & BPFF_IMMEDIATE))
-#define BD_PROMISC(d)	(!!((d)->bd_flags & BPFF_PROMISC))
-#define BD_COMPAT32(d)	(!!((d)->bd_flags & BPFF_COMPAT32))
-#define BD_LOCKED(d)	(!!((d)->bd_flags & BPFF_LOCKED))
-#define BD_DROPMATCH(d)	(!!((d)->bd_flags & BPFF_DROPMATCH))
+#define	BD_ASYNC(d)	(!!((d)->bd_flags & BPFF_ASYNC))
+#define	BD_FEEDBACK(d)	(!!((d)->bd_flags & BPFF_FEEDBACK))
+#define	BD_IMMEDIATE(d)	(!!((d)->bd_flags & BPFF_IMMEDIATE))
+#define	BD_PROMISC(d)	(!!((d)->bd_flags & BPFF_PROMISC))
+#define	BD_COMPAT32(d)	(!!((d)->bd_flags & BPFF_COMPAT32))
+#define	BD_LOCKED(d)	(!!((d)->bd_flags & BPFF_LOCKED))
+#define	BD_DROPMATCH(d)	(!!((d)->bd_flags & BPFF_DROPMATCH))
+#define	BD_NOPRIVS(d)	(!!((d)->bd_flags & BPFF_NOPRIVS))
+
+#define	UBPF_UNCONFIGURED(d)					\
+	(((d)->bd_flags & (BPFF_NOPRIVS|BPFF_FILTSET)) == BPFF_NOPRIVS)
+
 
 
 /* Values for bd_state */
