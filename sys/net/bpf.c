@@ -1086,18 +1086,7 @@ bpfioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags,
 	d->bd_state = BPF_IDLE;
 	BPFD_UNLOCK(d);
 
-	if (BD_NOPRIVS(d)) {
-		switch (cmd) {
-		case BIOCSETIF:
-		case BIOCGETIF:
-		case BIOCSADDR_INET:
-		case BIOCSADDR_INET6:
-			break;
-		default:
-			return (EPERM);
-		}
-	}
-	if (BD_LOCKED(d)) {
+	if (BD_LOCKED(d) || BD_NOPRIVS(d)) {
 		switch (cmd) {
 		case BIOCGBLEN:
 		case BIOCFLUSH:
@@ -1126,6 +1115,13 @@ bpfioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags,
 		case BIOCIMMEDIATE:
 		case TIOCGPGRP:
 		case BIOCROTZBUF:
+			break;
+		case BIOCDROPMATCH:
+		case BIOCSETIF:
+		case BIOCSADDR_INET:
+		case BIOCSADDR_INET6:
+			if (BD_LOCKED(d))
+				return (EPERM);
 			break;
 		default:
 			return (EPERM);
