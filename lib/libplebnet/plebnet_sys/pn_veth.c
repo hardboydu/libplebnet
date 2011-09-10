@@ -34,6 +34,7 @@
 #include <net/ethernet.h>
 #include <net/if_arp.h>
 #include <net/if_tap.h>
+#include <net/if_dl.h>
 #undef _KERNEL
 #undef gets
 #undef pause
@@ -62,16 +63,46 @@ int
 pn_veth_attach(void)
 {
 	struct pnv_softc *sc;
-	int fd;
+	struct ifreq ifr;
+	int fd, error, val;
+	char *ifname = "em0"; /* get from environment */
 
 	sc = malloc(sizeof(struct pnv_softc), M_DEVBUF, M_WAITOK);
-	fd = open("/dev/tap0", O_RDWR);
+	fd = open("/dev/ubpf", O_RDWR);
 	if (fd < 0) {
-		perror("tap open failed");
+		perror("ubpf open failed");
 		return (ENXIO);
 	}
-
-	ioctl(fd, SIOCGIFADDR, &sc->addr);
+	bzero(&ifr, sizeof(ifr));
+	memcpy(&ifr.ifr_name, ifname, strlen(ifname));
+	val = 256*1024;
+	if ((error = ioctl(fd, BIOCSBLEN, &val))) {
+		perror("BIOCSBLEN:");
+		return (ENXIO);
+	}
+	if ((error = ioctl(fd, BIOCSETIF, &ifr))) {
+		perror("BIOCSETIF:");
+		return (ENXIO);
+	}
+	bzero(&ifr.ifr_name, strlen(ifname));
+	if ((error = ioctl(fd, BIOCGETIF, &ifr))) {
+		perror("BIOCSETIF:");
+		return (ENXIO);
+	}
+	if ((error = ioctl(fd, SIOCGIFADDR, &ifr))) {
+		perror("SIOCGIFADDR:");
+		return (ENXIO);
+	}
+	memcpy(sc->addr, &ifr.ifr_addr.sa_data[0], ETHER_ADDR_LEN);
+	val = 1;
+	if ((error = ioctl(fd, BIOCIMMEDIATE, &val))) {
+		perror("BIOCIMMEDIATE:");
+		return (ENXIO);
+	}
+	if ((error = ioctl(fd, BIOCFEEDBACK, &val))) {
+		perror("BIOCFEEDBACK:");
+		return (ENXIO);
+	}
 	sc->fd = fd;
 	return (pnv_setup_interface(sc));
 }
@@ -108,16 +139,25 @@ static void *
 pnv_decap(void *arg)
 {
 	struct pnv_softc *sc = arg;
-	struct ifnet *ifp = sc->ifp;
+	caddr_t data;
 	struct mbuf *m;
+	struct ifnet *ifp;
+	struct bpf_xhdr *xhdr;
 	int size;
 
+	ifp = sc->ifp;
 	while (1) {
 		m = m_getjcl(M_WAITOK, MT_DATA,
 		    M_PKTHDR, MCLBYTES);
-		size = read(sc->fd, mtod(m, void *), MCLBYTES);
-		m->m_pkthdr.len = m->m_len = size;
+		data = mtod(m, caddr_t);
+	retry:
+		size = read(sc->fd, data, MCLBYTES);
+		if (size <= 0) 
+			goto retry;
+		xhdr = (struct bpf_xhdr *)data;		
+		m->m_pkthdr.len = m->m_len = xhdr->bh_caplen + xhdr->bh_hdrlen;
 		m->m_pkthdr.rcvif = ifp;
+		m_adj(m, xhdr->bh_hdrlen);
 		ifp->if_input(ifp, m);
 	}
 	
@@ -150,6 +190,8 @@ pnv_ioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
 {
 	int error = 0;
 	struct pnv_softc *sc = ifp->if_softc;
+	struct ifreq *ifr;
+	struct sockaddr_in *sin;
 
 	switch (cmd) {
 	case SIOCSIFFLAGS:
@@ -158,6 +200,14 @@ pnv_ioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
 		else if (ifp->if_drv_flags & IFF_DRV_RUNNING)
 			pnv_stop(sc);
 		break;
+	case SIOCSIFADDR:
+		ifr = (struct ifreq *)data;
+		sin = (struct sockaddr_in *)&ifr->ifr_addr;
+		/* set IP on bpf */
+	if ((error = ioctl(sc->fd, BIOCSADDR_INET, sin))) {
+		perror("BIOCSADDR_INET:");
+		return (ENXIO);
+	}
 	default:
 		error = ether_ioctl(ifp, cmd, data);
 		break;
