@@ -170,6 +170,10 @@ SYSCTL_INT(_net_bpf, OID_AUTO, maxinsns, CTLFLAG_RW,
 static int bpf_zerocopy_enable = 0;
 SYSCTL_INT(_net_bpf, OID_AUTO, zerocopy_enable, CTLFLAG_RW,
     &bpf_zerocopy_enable, 0, "Enable new zero-copy BPF buffer sessions");
+static int bpf_noprivs_enable = 0;
+SYSCTL_INT(_net_bpf, OID_AUTO, unprivileged_enable, CTLFLAG_RW,
+    &bpf_noprivs_enable, 0, "Enable new unprivileged ubpf");
+
 SYSCTL_NODE(_net_bpf, OID_AUTO, stats, CTLFLAG_MPSAFE | CTLFLAG_RW,
     bpf_stats_sysctl, "bpf statistics portal");
 
@@ -720,6 +724,8 @@ ubpfopen(struct cdev *dev, int flags, int fmt, struct thread *td)
 	int error;
 	struct bpf_d *d;
 
+	if (bpf_noprivs_enable == 0)
+		return (EPERM);
 	if ((error = bpfopen(dev, flags, fmt, td)))
 		return (error);
 
