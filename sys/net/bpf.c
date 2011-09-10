@@ -1423,6 +1423,13 @@ bpfioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags,
 			d->bd_flags &= ~BPFF_FEEDBACK;
 		break;
 
+	case BIOCDROPMATCH:
+		if (*(u_int *)addr)
+			d->bd_flags |= BPFF_DROPMATCH;
+		else
+			d->bd_flags &= ~BPFF_DROPMATCH;
+		break;
+
 	case BIOCLOCK:
 		d->bd_flags |= BPFF_LOCKED;
 		break;
@@ -1876,7 +1883,7 @@ bpf_mtap(struct bpf_if *bp, struct mbuf *m)
 	bpf_jit_filter *bf;
 #endif
 	u_int pktlen, slen;
-	int gottime;
+	int gottime, markpromisc;
 
 	/* Skip outgoing duplicate packets. */
 	if ((m->m_flags & M_PROMISC) != 0 && m->m_pkthdr.rcvif == NULL) {
@@ -1887,6 +1894,7 @@ bpf_mtap(struct bpf_if *bp, struct mbuf *m)
 	pktlen = m_length(m, NULL);
 
 	gottime = BPF_TSTAMP_NONE;
+	markpromisc = 0;
 	BPFIF_LOCK(bp);
 	LIST_FOREACH(d, &bp->bif_dlist, bd_next) {
 		if (BPF_CHECK_DIRECTION(d, m->m_pkthdr.rcvif, bp->bif_ifp))
@@ -1910,10 +1918,16 @@ bpf_mtap(struct bpf_if *bp, struct mbuf *m)
 #endif
 				catchpacket(d, (u_char *)m, pktlen, slen,
 				    bpf_append_mbuf, &bt);
+			if (BD_DROPMATCH(d))
+				markpromisc = 1;
 		}
 		BPFD_UNLOCK(d);
 	}
 	BPFIF_UNLOCK(bp);
+
+	/* tell host stack to ignore this packet */
+	if (markpromisc && !(m->m_flags & (M_BCAST|M_MCAST)))
+		m->m_flags |= M_PROMISC;
 }
 
 /*
@@ -1927,7 +1941,7 @@ bpf_mtap2(struct bpf_if *bp, void *data, u_int dlen, struct mbuf *m)
 	struct mbuf mb;
 	struct bpf_d *d;
 	u_int pktlen, slen;
-	int gottime;
+	int gottime, markpromisc;
 
 	/* Skip outgoing duplicate packets. */
 	if ((m->m_flags & M_PROMISC) != 0 && m->m_pkthdr.rcvif == NULL) {
@@ -1947,6 +1961,7 @@ bpf_mtap2(struct bpf_if *bp, void *data, u_int dlen, struct mbuf *m)
 	pktlen += dlen;
 
 	gottime = BPF_TSTAMP_NONE;
+	markpromisc = 0;
 	BPFIF_LOCK(bp);
 	LIST_FOREACH(d, &bp->bif_dlist, bd_next) {
 		if (BPF_CHECK_DIRECTION(d, m->m_pkthdr.rcvif, bp->bif_ifp))
@@ -1963,10 +1978,16 @@ bpf_mtap2(struct bpf_if *bp, void *data, u_int dlen, struct mbuf *m)
 #endif
 				catchpacket(d, (u_char *)&mb, pktlen, slen,
 				    bpf_append_mbuf, &bt);
+
+			if (BD_DROPMATCH(d))
+				markpromisc = 1;
 		}
 		BPFD_UNLOCK(d);
 	}
 	BPFIF_UNLOCK(bp);
+	/* tell host stack to ignore this packet */
+	if (markpromisc && !(m->m_flags & (M_BCAST|M_MCAST)))
+		m->m_flags |= M_PROMISC;
 }
 
 #undef	BPF_CHECK_DIRECTION
