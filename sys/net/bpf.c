@@ -155,7 +155,8 @@ static void	catchpacket(struct bpf_d *, u_char *, u_int, u_int,
 		    void (*)(struct bpf_d *, caddr_t, u_int, void *, u_int),
 		    struct bintime *);
 static void	reset_d(struct bpf_d *);
-static int	 bpf_setf(struct bpf_d *, struct bpf_program *, u_long cmd);
+static int	bpf_setf(struct bpf_d *, struct bpf_program *, u_long cmd);
+static int	bpf_setf_kernel(struct bpf_d *, struct bpf_program *, u_long cmd);
 static int	bpf_getdltlist(struct bpf_d *, struct bpf_dltlist *);
 static int	bpf_setdlt(struct bpf_d *, u_int);
 static void	filt_bpfdetach(struct knote *);
@@ -251,21 +252,25 @@ bpf_setipf(struct bpf_d *d, struct sockaddr_in *sin)
 	wf = malloc(sizeof(struct bpf_program)+ sizeof(ip_send_insns_template), M_BPF, M_WAITOK);
 	rf = malloc(sizeof(struct bpf_program)+ sizeof(ip_recv_insns_template), M_BPF, M_WAITOK);
 
-	wf->bf_insns = (struct bpf_insn *)(wf + 1);
-	rf->bf_insns = (struct bpf_insn *)(rf + 1);
+	wf->bf_insns = (struct bpf_insn *)((caddr_t)wf + sizeof(struct bpf_program));
+	rf->bf_insns = (struct bpf_insn *)((caddr_t)rf + sizeof(struct bpf_program));
+
+	printf("rf=%p wf=%p rf->bf_insns=%p wf->bf_insns=%p\n", rf, wf, rf->bf_insns, wf->bf_insns);
 
 	wf->bf_len = sizeof(ip_send_insns_template)/sizeof(struct bpf_insn);
 	rf->bf_len = sizeof(ip_recv_insns_template)/sizeof(struct bpf_insn);
 
+	bcopy(ip_recv_insns_template, rf->bf_insns, sizeof(ip_recv_insns_template));
+	bcopy(ip_send_insns_template, wf->bf_insns, sizeof(ip_send_insns_template));
 	rf->bf_insns[4].k = sin->sin_addr.s_addr;
 	rf->bf_insns[3].k = sin->sin_addr.s_addr;
 	rf->bf_insns[6].k = sin->sin_addr.s_addr;
 	
-	if ((error = bpf_setf(d, wf, BIOCSETWF))) {
+	if ((error = bpf_setf_kernel(d, wf, BIOCSETWF))) {
 		printf("failed to set write filter\n");
 		goto done;
 	}
-	if ((error = bpf_setf(d, rf, BIOCSETFNR)))
+	if ((error = bpf_setf_kernel(d, rf, BIOCSETFNR)))
 		printf("failed to set read filter\n");
 
 done:
@@ -1653,7 +1658,8 @@ bpfioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags,
  * free it and replace it.  Returns EINVAL for bogus requests.
  */
 static int
-bpf_setf(struct bpf_d *d, struct bpf_program *fp, u_long cmd)
+bpf_setf_internal(struct bpf_d *d, struct bpf_program *fp, u_long cmd,
+		  int (*cpfun)(const void *, void *, size_t))
 {
 	struct bpf_insn *fcode, *old;
 	u_int wfilter, flen, size;
@@ -1719,7 +1725,7 @@ bpf_setf(struct bpf_d *d, struct bpf_program *fp, u_long cmd)
 
 	size = flen * sizeof(*fp->bf_insns);
 	fcode = (struct bpf_insn *)malloc(size, M_BPF, M_WAITOK);
-	if (copyin((caddr_t)fp->bf_insns, (caddr_t)fcode, size) == 0 &&
+	if (cpfun((caddr_t)fp->bf_insns, (caddr_t)fcode, size) == 0 &&
 	    bpf_validate(fcode, (int)flen)) {
 		BPFD_LOCK(d);
 		if (wfilter)
@@ -1745,6 +1751,29 @@ bpf_setf(struct bpf_d *d, struct bpf_program *fp, u_long cmd)
 	free((caddr_t)fcode, M_BPF);
 	return (EINVAL);
 }
+
+static int 
+bpf_setf(struct bpf_d *d, struct bpf_program *fp, u_long cmd)
+{
+
+	return (bpf_setf_internal(d, fp, cmd, copyin));
+}
+
+static int
+kcopyin(const void *src, void *dst, size_t len)
+{
+
+	bcopy(src, dst, len);
+	return (0);
+}
+
+static int 
+bpf_setf_kernel(struct bpf_d *d, struct bpf_program *fp, u_long cmd)
+{
+
+	return (bpf_setf_internal(d, fp, cmd, kcopyin));
+}
+
 
 /*
  * Detach a file from its current interface (if attached at all) and attach
