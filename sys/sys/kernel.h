@@ -291,7 +291,7 @@ struct tunable_int {
 	    SI_SUB_TUNABLES, SI_ORDER_MIDDLE, tunable_int_init,	\
 	    &__CONCAT(__tunable_int_, __LINE__))
 
-#define	TUNABLE_INT_FETCH(path, var)	getenv_int((path), (var))
+#define	TUNABLE_INT_FETCH(path, var)	kern_getenv_int((path), (var))
 
 /*
  * long
@@ -310,7 +310,7 @@ struct tunable_long {
 	    SI_SUB_TUNABLES, SI_ORDER_MIDDLE, tunable_long_init,\
 	    &__CONCAT(__tunable_long_, __LINE__))
 
-#define	TUNABLE_LONG_FETCH(path, var)	getenv_long((path), (var))
+#define	TUNABLE_LONG_FETCH(path, var)	kern_getenv_long((path), (var))
 
 /*
  * unsigned long
@@ -329,7 +329,7 @@ struct tunable_ulong {
 	    SI_SUB_TUNABLES, SI_ORDER_MIDDLE, tunable_ulong_init, \
 	    &__CONCAT(__tunable_ulong_, __LINE__))
 
-#define	TUNABLE_ULONG_FETCH(path, var)	getenv_ulong((path), (var))
+#define	TUNABLE_ULONG_FETCH(path, var)	kern_getenv_ulong((path), (var))
 
 /*
  * quad
@@ -348,7 +348,7 @@ struct tunable_quad {
 	    SI_SUB_TUNABLES, SI_ORDER_MIDDLE, tunable_quad_init, \
 	    &__CONCAT(__tunable_quad_, __LINE__))
 
-#define	TUNABLE_QUAD_FETCH(path, var)	getenv_quad((path), (var))
+#define	TUNABLE_QUAD_FETCH(path, var)	kern_getenv_quad((path), (var))
 
 extern void tunable_str_init(void *);
 struct tunable_str {
@@ -367,7 +367,7 @@ struct tunable_str {
 	    &__CONCAT(__tunable_str_, __LINE__))
 
 #define	TUNABLE_STR_FETCH(path, var, size)			\
-	getenv_string((path), (var), (size))
+	kern_getenv_string((path), (var), (size))
 
 struct intr_config_hook {
 	TAILQ_ENTRY(intr_config_hook) ich_links;

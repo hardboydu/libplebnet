@@ -156,7 +156,7 @@ sys_kenv(td, uap)
 		if (error)
 			goto done;
 #endif
-		value = getenv(name);
+		value = kern_getenv(name);
 		if (value == NULL) {
 			error = ENOENT;
 			goto done;
@@ -265,7 +265,7 @@ freeenv(char *env)
  * Internal functions for string lookup.
  */
 static char *
-_getenv_dynamic(const char *name, int *idx)
+_kern_getenv_dynamic(const char *name, int *idx)
 {
 	char *cp;
 	int len, i;
@@ -284,7 +284,7 @@ _getenv_dynamic(const char *name, int *idx)
 }
 
 static char *
-_getenv_static(const char *name)
+_kern_getenv_static(const char *name)
 {
 	char *cp, *ep;
 	int len;
@@ -309,7 +309,7 @@ _getenv_static(const char *name)
  * after use.
  */
 char *
-getenv(const char *name)
+kern_getenv(const char *name)
 {
 	char buf[KENV_MNAMELEN + 1 + KENV_MVALLEN + 1];
 	char *ret, *cp;
@@ -317,7 +317,7 @@ getenv(const char *name)
 
 	if (dynamic_kenv) {
 		mtx_lock(&kenv_lock);
-		cp = _getenv_dynamic(name, NULL);
+		cp = _kern_getenv_dynamic(name, NULL);
 		if (cp != NULL) {
 			strcpy(buf, cp);
 			mtx_unlock(&kenv_lock);
@@ -328,10 +328,10 @@ getenv(const char *name)
 			mtx_unlock(&kenv_lock);
 			ret = NULL;
 			WITNESS_WARN(WARN_GIANTOK | WARN_SLEEPOK, NULL,
-			    "getenv");
+			    "kern_getenv");
 		}
 	} else
-		ret = _getenv_static(name);
+		ret = _kern_getenv_static(name);
 	return (ret);
 }
 
@@ -345,10 +345,10 @@ testenv(const char *name)
 
 	if (dynamic_kenv) {
 		mtx_lock(&kenv_lock);
-		cp = _getenv_dynamic(name, NULL);
+		cp = _kern_getenv_dynamic(name, NULL);
 		mtx_unlock(&kenv_lock);
 	} else
-		cp = _getenv_static(name);
+		cp = _kern_getenv_static(name);
 	if (cp != NULL)
 		return (1);
 	return (0);
@@ -398,7 +398,7 @@ setenv(const char *name, const char *value)
 	sprintf(buf, "%s=%s", name, value);
 
 	mtx_lock(&kenv_lock);
-	cp = _getenv_dynamic(name, &i);
+	cp = _kern_getenv_dynamic(name, &i);
 	if (cp != NULL) {
 		oldenv = kenvp[i];
 		kenvp[i] = buf;
@@ -435,7 +435,7 @@ unsetenv(const char *name)
 	KENV_CHECK;
 
 	mtx_lock(&kenv_lock);
-	cp = _getenv_dynamic(name, &i);
+	cp = _kern_getenv_dynamic(name, &i);
 	if (cp != NULL) {
 		oldenv = kenvp[i];
 		for (j = i + 1; kenvp[j] != NULL; j++)
@@ -453,11 +453,11 @@ unsetenv(const char *name)
  * Return a string value from an environment variable.
  */
 int
-getenv_string(const char *name, char *data, int size)
+kern_getenv_string(const char *name, char *data, int size)
 {
 	char *tmp;
 
-	tmp = getenv(name);
+	tmp = kern_getenv(name);
 	if (tmp != NULL) {
 		strlcpy(data, tmp, size);
 		freeenv(tmp);
@@ -470,12 +470,12 @@ getenv_string(const char *name, char *data, int size)
  * Return an integer value from an environment variable.
  */
 int
-getenv_int(const char *name, int *data)
+kern_getenv_int(const char *name, int *data)
 {
 	quad_t tmp;
 	int rval;
 
-	rval = getenv_quad(name, &tmp);
+	rval = kern_getenv_quad(name, &tmp);
 	if (rval)
 		*data = (int) tmp;
 	return (rval);
@@ -485,12 +485,12 @@ getenv_int(const char *name, int *data)
  * Return an unsigned integer value from an environment variable.
  */
 int
-getenv_uint(const char *name, unsigned int *data)
+kern_getenv_uint(const char *name, unsigned int *data)
 {
 	quad_t tmp;
 	int rval;
 
-	rval = getenv_quad(name, &tmp);
+	rval = kern_getenv_quad(name, &tmp);
 	if (rval)
 		*data = (unsigned int) tmp;
 	return (rval);
@@ -500,12 +500,12 @@ getenv_uint(const char *name, unsigned int *data)
  * Return a long value from an environment variable.
  */
 int
-getenv_long(const char *name, long *data)
+kern_getenv_long(const char *name, long *data)
 {
 	quad_t tmp;
 	int rval;
 
-	rval = getenv_quad(name, &tmp);
+	rval = kern_getenv_quad(name, &tmp);
 	if (rval)
 		*data = (long) tmp;
 	return (rval);
@@ -515,12 +515,12 @@ getenv_long(const char *name, long *data)
  * Return an unsigned long value from an environment variable.
  */
 int
-getenv_ulong(const char *name, unsigned long *data)
+kern_getenv_ulong(const char *name, unsigned long *data)
 {
 	quad_t tmp;
 	int rval;
 
-	rval = getenv_quad(name, &tmp);
+	rval = kern_getenv_quad(name, &tmp);
 	if (rval)
 		*data = (unsigned long) tmp;
 	return (rval);
@@ -530,13 +530,13 @@ getenv_ulong(const char *name, unsigned long *data)
  * Return a quad_t value from an environment variable.
  */
 int
-getenv_quad(const char *name, quad_t *data)
+kern_getenv_quad(const char *name, quad_t *data)
 {
 	char	*value;
 	char	*vtp;
 	quad_t	iv;
 
-	value = getenv(name);
+	value = kern_getenv(name);
 	if (value == NULL)
 		return (0);
 	iv = strtoq(value, &vtp, 0);
