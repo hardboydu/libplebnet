@@ -681,6 +681,7 @@ filt_usertouch(struct knote *kn, struct kevent *kev, u_long type)
 int
 sys_kqueue(struct thread *td, struct kqueue_args *uap)
 {
+
 	return (kern_kqueue(td));
 }
 

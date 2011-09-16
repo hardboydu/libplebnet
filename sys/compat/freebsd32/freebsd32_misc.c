@@ -425,7 +425,7 @@ freebsd32_mmap_partial(struct thread *td, vm_offset_t start, vm_offset_t end,
 		r.buf = (void *) start;
 		r.nbyte = end - start;
 		r.offset = pos;
-		return (pread(td, &r));
+		return (sys_pread(td, &r));
 	} else {
 		while (start < end) {
 			subyte((void *) start, 0);
@@ -500,7 +500,7 @@ freebsd32_mmap(struct thread *td, struct freebsd32_mmap_args *uap)
 			r.buf = (void *) start;
 			r.nbyte = end - start;
 			r.offset = pos;
-			error = pread(td, &r);
+			error = sys_pread(td, &r);
 			if (error)
 				return (error);
 

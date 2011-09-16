@@ -82,7 +82,8 @@ FEATURE(security_capability_mode, "Capsicum Capability Mode");
  * System call to enter capability mode for the process.
  */
 int
-sys_cap_enter(struct thread *td, struct cap_enter_args *uap){
+sys_cap_enter(struct thread *td, struct cap_enter_args *uap)
+{
 	struct ucred *newcred, *oldcred;
 	struct proc *p;
 
