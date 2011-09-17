@@ -51,6 +51,7 @@
 ssize_t     read(int d, void *buf, size_t nbytes);
 extern void perror(const char *string);
 uid_t	geteuid(void);
+char *     getenv(const char *name);
 
 
 struct pnv_softc {
@@ -69,9 +70,15 @@ pn_veth_attach(void)
 	struct pnv_softc *sc;
 	struct ifreq ifr;
 	int fd, error, val;
-	char *ifname = "em0"; /* get from environment */
+	char *ifname; /* get from environment */
 	char *fdev = "/dev/ubpf";
 
+	ifname = getenv("BPFIF");
+
+	if (ifname == NULL || strlen(ifname) < 3) {
+		printf("BPFIF needs to be set to determine interface to use %s\n", ifname);
+		return (ENXIO);
+	}
 	sc = malloc(sizeof(struct pnv_softc), M_DEVBUF, M_WAITOK);
 	sc->euid = geteuid();
 	if (sc->euid == 0)
@@ -174,9 +181,6 @@ pnv_decap(void *arg)
 	
 	return (NULL);
 }
-	
-
-
 
 static void
 pnv_init(void *arg)
