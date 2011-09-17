@@ -54,6 +54,8 @@ uid_t	geteuid(void);
 char *     getenv(const char *name);
 
 
+static int bpfbufsize = 256*1024;
+
 struct pnv_softc {
 	struct ifnet *ifp;
 	int fd;
@@ -91,7 +93,7 @@ pn_veth_attach(void)
 	}
 	bzero(&ifr, sizeof(ifr));
 	memcpy(&ifr.ifr_name, ifname, strlen(ifname));
-	val = MCLBYTES;
+	val = bpfbufsize;
 	if ((error = ioctl(fd, BIOCSBLEN, &val))) {
 		perror("BIOCSBLEN:");
 		return (ENXIO);
@@ -148,35 +150,71 @@ pnv_start(struct ifnet *ifp)
 		
 		m_free(m_head);
 	}
-
 }
+
+static void
+pnv_free(void *arg1, void *arg2)
+{
+
+	free(arg1, M_DEVBUF);
+}
+
 
 static void *
 pnv_decap(void *arg)
 {
 	struct pnv_softc *sc = arg;
 	caddr_t data;
-	struct mbuf *m;
+	u_int *refcnt;
+	struct mbuf *m, *tail, *head;
 	struct ifnet *ifp;
 	struct bpf_xhdr *xhdr;
-	int size, error;
+	int size;
 
 	ifp = sc->ifp;
 	while (1) {
-		m = m_getjcl(M_WAITOK, MT_DATA,
-		    M_PKTHDR, MCLBYTES);
-		data = mtod(m, caddr_t);
-	retry:
-		size = read(sc->fd, data, MCLBYTES);
-		if (size <= 0) {
-			error = errno;
-			goto retry;
+		tail = head = NULL;
+		refcnt = malloc(bpfbufsize + sizeof(u_int), M_DEVBUF, 0);
+		data = (caddr_t)(refcnt + 1);
+		size = read(sc->fd, data, bpfbufsize);
+		xhdr = (struct bpf_xhdr *)data;
+		if (xhdr->bh_datalen > size) {
+			free(data, M_DEVBUF);
+			continue;
 		}
-		xhdr = (struct bpf_xhdr *)data;		
-		m->m_pkthdr.len = m->m_len = xhdr->bh_caplen + xhdr->bh_hdrlen;
-		m->m_pkthdr.rcvif = ifp;
-		m_adj(m, xhdr->bh_hdrlen);
-		ifp->if_input(ifp, m);
+		*refcnt = 0;
+		while (size > 0 && size >= xhdr->bh_datalen + xhdr->bh_hdrlen) {
+			data = ((caddr_t)xhdr) + xhdr->bh_hdrlen;
+			m = m_gethdr(M_NOWAIT, MT_DATA);
+			if (m == NULL) 
+				break;
+			size -= (xhdr->bh_datalen + xhdr->bh_hdrlen);
+			m->m_data = data;
+			m->m_pkthdr.len = m->m_len = 
+				xhdr->bh_caplen + xhdr->bh_hdrlen;
+			m->m_pkthdr.rcvif = ifp;
+			m->m_flags |= M_EXT;
+			m->m_ext.ext_buf = (void *)refcnt; /* start of buffer */
+			m->m_ext.ext_free = pnv_free;
+			m->m_ext.ext_arg1 = refcnt;
+			m->m_ext.ext_size = bpfbufsize;
+			m->m_ext.ref_cnt = refcnt;
+			m->m_ext.ext_type = EXT_EXTREF;
+			(*refcnt)++;
+
+			if (tail)
+				tail->m_nextpkt = m;
+			else
+				head = tail = m;
+
+			xhdr = (struct bpf_xhdr *)(data + xhdr->bh_datalen);
+		}
+		while (head != NULL) {
+			m = head;
+			head = head->m_nextpkt;
+			m->m_nextpkt = NULL;
+			ifp->if_input(ifp, m);
+		}
 	}
 	
 	return (NULL);
