@@ -35,7 +35,7 @@ struct pthread_rwlock;
  */
 struct rwlock {
 	struct lock_object	lock_object;
-	pthread_rwlock_t	rw_lock;
+	pthread_mutex_t		rw_lock;
 };
 
 #endif	/* _SYS__RWLOCK_H_ */

@@ -180,6 +180,7 @@ _thread_lock_flags(struct thread *td, int opts, const char *file, int line)
 	mtx_lock(td->td_lock);
 }
 
+
 void
 rw_sysinit(void *arg)
 {
@@ -188,6 +189,7 @@ rw_sysinit(void *arg)
 	rw_init(args->ra_rw, args->ra_desc);
 }
 
+#ifdef notyet
 void
 rw_init_flags(struct rwlock *rw, const char *name, int opts)
 {
@@ -283,6 +285,99 @@ _rw_downgrade(struct rwlock *rw, const char *file, int line)
 	pthread_rwlock_rdlock(&rw->rw_lock);
 }
 
+#endif
+
+void
+rw_init_flags(struct rwlock *rw, const char *name, int opts)
+{
+	pthread_mutexattr_t attr;
+	int flags;
+
+	MPASS((opts & ~(RW_DUPOK | RW_NOPROFILE | RW_NOWITNESS | RW_QUIET |
+	    RW_RECURSE)) == 0);
+	ASSERT_ATOMIC_LOAD_PTR(rw->rw_lock,
+	    ("%s: rw_lock not aligned for %s: %p", __func__, name,
+	    &rw->rw_lock));
+
+	flags = LO_UPGRADABLE;
+	if (opts & RW_DUPOK)
+		flags |= LO_DUPOK;
+	if (opts & RW_NOPROFILE)
+		flags |= LO_NOPROFILE;
+	if (!(opts & RW_NOWITNESS))
+		flags |= LO_WITNESS;
+	if (opts & RW_RECURSE)
+		flags |= LO_RECURSABLE;
+	if (opts & RW_QUIET)
+		flags |= LO_QUIET;
+
+	lock_init(&rw->lock_object, &lock_class_rw, name, NULL, flags);
+	pthread_mutexattr_init(&attr);
+	pthread_mutex_init(&rw->rw_lock, &attr);
+}
+
+
+void
+rw_destroy(struct rwlock *rw)
+{
+	
+	pthread_mutex_destroy(&rw->rw_lock);
+}
+
+void
+_rw_wlock(struct rwlock *rw, const char *file, int line)
+{
+
+	pthread_mutex_lock(&rw->rw_lock);
+}
+
+int
+_rw_try_wlock(struct rwlock *rw, const char *file, int line)
+{
+
+	return (!pthread_mutex_trylock(&rw->rw_lock));
+}
+
+void
+_rw_wunlock(struct rwlock *rw, const char *file, int line)
+{
+	
+	pthread_mutex_unlock(&rw->rw_lock);
+}
+
+void
+_rw_rlock(struct rwlock *rw, const char *file, int line)
+{
+	
+	pthread_mutex_lock(&rw->rw_lock);
+}
+
+int
+_rw_try_rlock(struct rwlock *rw, const char *file, int line)
+{
+	
+	return (!pthread_mutex_trylock(&rw->rw_lock));
+}
+
+void
+_rw_runlock(struct rwlock *rw, const char *file, int line)
+{
+	
+	pthread_mutex_unlock(&rw->rw_lock);
+}
+
+int
+_rw_try_upgrade(struct rwlock *rw, const char *file, int line)
+{
+	
+	return (0);
+}
+
+void
+_rw_downgrade(struct rwlock *rw, const char *file, int line)
+{
+
+}
 
 
 static void
