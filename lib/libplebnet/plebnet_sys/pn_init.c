@@ -37,7 +37,7 @@
 #include <vm/uma.h>
 #include <vm/uma_int.h>
 #include <pthread.h>
-
+#include <spawn.h>
 
 char *     getenv(const char *name);
 pid_t     getpid(void);
@@ -76,10 +76,9 @@ pn_init(void)
 	struct thread *td;
 	int needconfig, error;
 	char *plebconf, *rcconf;
-	pid_t targetpid;
 	char buf[512];
 	char *envp[3];
-	char *argv[2];
+	char *argv[3];
 
         /* vm_init bits */
         ncallout = 64;
@@ -90,7 +89,7 @@ pn_init(void)
 	if (plebconf == NULL || rcconf == NULL ||
 	    strlen(plebconf) == 0 || strlen(rcconf) == 0) {
 		printf("WARNING: PLEBCONF_PATH and RC_CONF need "
-		    "to be set to configure the virtual interface\n");
+		    "to be set to configure the virtual interface automatically\n");
 		needconfig = 0;
 	}
         pcpup = malloc(sizeof(struct pcpu), M_DEVBUF, M_ZERO);
@@ -113,6 +112,9 @@ pn_init(void)
 	pn_veth_attach();
 	start_server_syscalls();
 	if (needconfig) {
+		posix_spawnattr_t pattr;
+		pid_t targetpid, shpid;
+
 		pthread_mutex_lock(&init_lock);
 		pthread_cond_wait(&init_cond, &init_lock);
 		pthread_mutex_unlock(&init_lock);
@@ -125,18 +127,14 @@ pn_init(void)
 		envp[1] = strndup(buf, 128);
 		envp[2] = NULL;
 
-		argv[0] = rcconf;
-		argv[1] = NULL;
-		if (fork() == 0) {
-			if (fork() == 0) {
-				error = execve("/bin/sh", argv, envp);
-				printf("configuration run");
-				if (error)
-					printf("configuration error encountered system returned %d\n", error);
-				exit(0);
-			}
-			exit(0);
-		}
+		argv[0] = "/bin/sh";
+		argv[1] = rcconf;
+		argv[2] = NULL;
+		posix_spawnattr_init(&pattr);
+		posix_spawnattr_setflags(&pattr, POSIX_SPAWN_SETPGROUP);
+		error = posix_spawn(&shpid, "/bin/sh", NULL, &pattr, argv, envp);
+		if (error)
+			printf("posix_spawn failed %d\n", error);
 	}
 	return (0);
 }
