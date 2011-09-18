@@ -218,14 +218,30 @@ dispatch(struct thread *td, int fd)
 	return (rc);
 }
 
+static struct thread tds;
+
+void *
+dispatch_server(void *arg)
+{
+	int fd;
+	struct thread *td;
+
+	fd = (uintptr_t)arg;
+	td = &tds;
+	while (dispatch(td, fd) == 0)
+			;
+
+	return (NULL);
+}
+
 void *
 syscall_server(void *arg)
 {
 	int fd;
 	struct sockaddr_un addr;
 	int len;
-	struct thread tds, *td;
-
+	struct thread *td;
+	pthread_t handler;
 
 	target_bind();
 
@@ -245,10 +261,10 @@ syscall_server(void *arg)
 	pthread_mutex_unlock(&init_lock);
 	while (1) {
 		fd = accept(target_fd, (struct sockaddr *)&addr, &len);
-		while (dispatch(td, fd) == 0)
-			;
-		
+		pthread_create(&handler, NULL, dispatch_server, (void *)(uintptr_t)fd);
 	}
+	
+	return (NULL);
 }
 
 void
