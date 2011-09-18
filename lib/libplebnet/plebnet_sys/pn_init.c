@@ -27,15 +27,27 @@
 #include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/pcpu.h>
+#include <sys/systm.h>
 #include <sys/proc.h>
 #include <sys/lock.h>
 #include <sys/sx.h>
-#include <string.h>
 
 #include <pn_private.h>
 
 #include <vm/uma.h>
 #include <vm/uma_int.h>
+#include <pthread.h>
+
+
+char *     getenv(const char *name);
+pid_t     getpid(void);
+int     system(const char *string);
+void     exit(int status);
+pid_t     fork(void);
+char *strndup(const char *str, size_t len);
+int     execve(const char *path, char *const argv[], char *const envp[]);
+
+
 
 extern void mi_startup(void);
 extern void uma_startup(void *, int);
@@ -55,14 +67,32 @@ extern int pn_veth_attach(void);
 extern void mutex_init(void);
 
 static int pn_init(void) __attribute__((constructor));
+pthread_mutex_t init_lock;
+pthread_cond_t init_cond;
 
 static int
 pn_init(void)
 {
 	struct thread *td;
+	int needconfig, error;
+	char *plebconf, *rcconf;
+	pid_t targetpid;
+	char buf[512];
+	char *envp[3];
+	char *argv[2];
 
         /* vm_init bits */
         ncallout = 64;
+	plebconf = getenv("PLEBCONF_PATH");
+	rcconf = getenv("RC_CONF");
+	
+	needconfig = 1;
+	if (plebconf == NULL || rcconf == NULL ||
+	    strlen(plebconf) == 0 || strlen(rcconf) == 0) {
+		printf("WARNING: PLEBCONF_PATH and RC_CONF need "
+		    "to be set to configure the virtual interface\n");
+		needconfig = 0;
+	}
         pcpup = malloc(sizeof(struct pcpu), M_DEVBUF, M_ZERO);
         pcpu_init(pcpup, 0, sizeof(struct pcpu));
         kern_timeout_callwheel_alloc(malloc(512*1024, M_DEVBUF, M_ZERO));
@@ -73,6 +103,8 @@ pn_init(void)
 	/* XXX fix this magic 64 to something a bit more dynamic & sensible */
 	uma_page_slab_hash = malloc(sizeof(struct uma_page)*64, M_DEVBUF, M_ZERO);
 	uma_page_mask = 64-1;
+	pthread_mutex_init(&init_lock, NULL);
+	pthread_cond_init(&init_cond, NULL);
 	mutex_init();
         mi_startup();
 	sx_init(&proctree_lock, "proctree");
@@ -80,6 +112,31 @@ pn_init(void)
 	fdused_range(td->td_proc->p_fd, 16);
 	pn_veth_attach();
 	start_server_syscalls();
+	if (needconfig) {
+		pthread_mutex_lock(&init_lock);
+		pthread_cond_wait(&init_cond, &init_lock);
+		pthread_mutex_unlock(&init_lock);
+		targetpid = getpid();
+		sprintf(buf, "TARGET_PID=%d", targetpid);
+		printf("targetpid=%d\n", targetpid);
+		envp[0] = strndup(buf, 128);
+		sprintf(buf, "PLEBCONF_PATH=%s", plebconf);
+		printf("plebconf=%s rc.conf=%s\n", plebconf, rcconf);
+		envp[1] = strndup(buf, 128);
+		envp[2] = NULL;
 
+		argv[0] = rcconf;
+		argv[1] = NULL;
+		if (fork() == 0) {
+			if (fork() == 0) {
+				error = execve("/bin/sh", argv, envp);
+				printf("configuration run");
+				if (error)
+					printf("configuration error encountered system returned %d\n", error);
+				exit(0);
+			}
+			exit(0);
+		}
+	}
 	return (0);
 }

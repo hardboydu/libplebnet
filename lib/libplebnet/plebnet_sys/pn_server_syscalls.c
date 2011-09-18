@@ -62,6 +62,9 @@
 #include <sys/pcpu.h> /* curthread */
 #include <pn_private.h>
 
+extern pthread_mutex_t init_lock;
+extern pthread_cond_t init_cond;
+
 
 #define BYTES_RECEIVED
 
@@ -237,6 +240,9 @@ syscall_server(void *arg)
 	td->td_proc->p_fdtol = NULL;
 	fdused_range(td->td_proc->p_fd, 32);
 	len = sizeof(addr);
+	pthread_mutex_lock(&init_lock);
+	pthread_cond_signal(&init_cond);
+	pthread_mutex_unlock(&init_lock);
 	while (1) {
 		fd = accept(target_fd, (struct sockaddr *)&addr, &len);
 		while (dispatch(td, fd) == 0)
