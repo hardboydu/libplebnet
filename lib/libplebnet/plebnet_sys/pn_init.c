@@ -120,10 +120,8 @@ pn_init(void)
 		pthread_mutex_unlock(&init_lock);
 		targetpid = getpid();
 		sprintf(buf, "TARGET_PID=%d", targetpid);
-		printf("targetpid=%d\n", targetpid);
 		envp[0] = strndup(buf, 128);
-		sprintf(buf, "PLEBCONF_PATH=%s", plebconf);
-		printf("plebconf=%s rc.conf=%s\n", plebconf, rcconf);
+		sprintf(buf, "LD_PRELOAD=%s/libplebconf.so", plebconf);
 		envp[1] = strndup(buf, 128);
 		envp[2] = NULL;
 
