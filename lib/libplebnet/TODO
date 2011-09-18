@@ -5,6 +5,10 @@ Robustness:
 - tracking kernel file descriptors
 - properly handling mixed descriptors in kqueue, poll, and select
 
+Performance:
+- create user level rwlocks that support full kernel rwlock semantics 
+  (recursive write acquisition, downgrade, etc)
+
 Generality of use:
 - handling fork
 - conditional compilation of ipv4 and ipv6
@@ -13,6 +17,6 @@ Generality of use:
 - libnetstat for providing netstat interface to stack
 
 open issues:
-- connecting to the IP address of the kernel stack
+- connecting to the IP address of the kernel stack (use tap device)
 - signal I/O notifications
 - efficiently handling mixed kernel / user descriptors in select, kqueue, and poll

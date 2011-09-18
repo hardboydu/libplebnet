@@ -1,0 +1,4 @@
+export BPFIF=em0
+export LD_LIBRARY_PATH=`pwd`
+export PLEBCONF_PATH=`pwd`/plebconf
+export RC_CONF=`pwd`/myrc.conf
