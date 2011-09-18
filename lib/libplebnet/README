@@ -1,4 +1,20 @@
-environment variables:
-PLEBCONF_PATH
-RC_CONF
-BPFIF
+In spite of its name implying a lack of privilege, libplebnet currently relies
+on bpf for its virtual ethernet interface, programs linked against libplebnet 
+need to be run as root. Work on ubpf (user / unprivileged bpf) is in progress,
+but the read / write filters still need to be debugged.
+
+The following environment variables need to be set:
+PLEBCONF_PATH: the path to libplebconf.so
+RC_CONF: the fully qualified path including the name of the file to be used 
+	for configuring the virtual interface and route
+BPFIF: the interface that the virtual ethernet should bind to for sending and
+	receiving packets (BPF interface)
+
+The file "config" provides an example of how these are set in my environment
+inside vmware player. The file "myrc.conf" is the rc.conf file that I use for
+testing.
+
+regression/test.c tests that the stack gets started.
+
+regression/tcpconnect.c is the same file taken from tools, but linked against
+libplebnet. 
