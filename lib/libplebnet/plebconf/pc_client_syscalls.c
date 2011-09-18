@@ -87,6 +87,7 @@ int user_sysctl(const int *name, u_int namelen, void *oldp, size_t *oldlenp,
     const void *newp, size_t newlen);
 int _socket(int domain, int type, int protocol);
 ssize_t _write(int fd, const void *buf, size_t nbytes);
+int _ioctl(int d, unsigned long request, ...);
 
 #define BYTES_SENT
 #define DEBUG_SYSCTL
@@ -563,6 +564,9 @@ ioctl(int d, unsigned long request, ...)
 
 	argp = va_arg(ap, uintptr_t);
 	va_end(ap);
+
+	if (d < 3)
+		return _ioctl(d, request, argp);
 
 	err = ioctl_internal(d, request, (void *)argp);
 	if (err) {
