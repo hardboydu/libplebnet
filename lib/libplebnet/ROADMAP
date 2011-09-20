@@ -1,0 +1,6 @@
+
+- kld support (load kernel modules)		IN PROGRESS
+- netmap support				
+- ubpf (running unprivileged)			needs filter templates 
+- robust descriptor handling 
+  (avoid collisions between user and kernel)
