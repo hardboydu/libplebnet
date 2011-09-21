@@ -46,8 +46,12 @@
 #include <signal.h>
 #include <unistd.h>
 #include <string.h>
-
+#include <stdio.h>
 #include <pthread.h>
+
+#include <machine/elf.h>
+#include <machine/md_var.h>
+
 struct malloc_type;
 __thread struct thread *pcurthread;
 
@@ -61,6 +65,10 @@ struct proclist allproc;
 struct sx allproc_lock;
 struct	sx allprison_lock;
 struct	prisonlist allprison;
+typedef void *linker_file_t;
+typedef Elf_Addr elf_lookup_fn(linker_file_t, Elf_Size, int);
+
+
 int async_io_version;
 
 #define	M_ZERO		0x0100		/* bzero the allocation */
@@ -289,4 +297,43 @@ void
 devfs_fpdrop(struct file *fp)
 {
 	;
+}
+/* Process one elf relocation with addend. */
+static int
+elf_reloc_internal(linker_file_t lf, Elf_Addr relocbase, const void *data,
+    int type, int local, elf_lookup_fn lookup)
+{
+
+	printf("can't handle relocations yet\n");
+	return (0);
+}
+
+int
+elf_reloc(linker_file_t lf, Elf_Addr relocbase, const void *data, int type,
+    elf_lookup_fn lookup)
+{
+
+	return (elf_reloc_internal(lf, relocbase, data, type, 0, lookup));
+}
+
+int
+elf_reloc_local(linker_file_t lf, Elf_Addr relocbase, const void *data,
+    int type, elf_lookup_fn lookup)
+{
+
+	return (elf_reloc_internal(lf, relocbase, data, type, 1, lookup));
+}
+
+int
+elf_cpu_load_file(linker_file_t lf __unused)
+{
+
+	return (0);
+}
+
+int
+elf_cpu_unload_file(linker_file_t lf __unused)
+{
+
+	return (0);
 }

@@ -885,3 +885,10 @@ mutex_init(void)
 
 	mtx_init(&Giant, "Giant", NULL, MTX_DEF | MTX_RECURSE);
 }
+
+void
+NDFREE(struct nameidata *ndp, const u_int flags)
+{
+
+}
+
