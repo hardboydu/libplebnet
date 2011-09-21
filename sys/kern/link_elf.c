@@ -299,7 +299,11 @@ link_elf_init(void* arg)
 
 	linker_add_class(&link_elf_class);
 
+#ifdef PLEBNET
+	dp = NULL;
+#else
 	dp = (Elf_Dyn *)&_DYNAMIC;
+#endif
 	modname = NULL;
 	modptr = preload_search_by_type("elf" __XSTRING(__ELF_WORD_SIZE) " kernel");
 	if (modptr == NULL)
