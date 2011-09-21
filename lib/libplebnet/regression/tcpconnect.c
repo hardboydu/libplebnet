@@ -107,7 +107,6 @@ tcpconnect_client(int argc, char *argv[])
 			md5enable = 1;
 	}
 
-	sleep(45);
 	bzero(&sin, sizeof(sin));
 	sin.sin_len = sizeof(sin);
 	sin.sin_family = AF_INET;
