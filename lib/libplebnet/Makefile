@@ -9,6 +9,7 @@ PN_KERN_COMMON_OBJS +=		\
 	kern_fail.o		\
 	kern_khelp.o		\
 	kern_hhook.o		\
+	kern_linker.o		\
 	kern_mbuf.o		\
 	kern_module.o		\
 	kern_mtxpool.o		\
@@ -16,6 +17,7 @@ PN_KERN_COMMON_OBJS +=		\
 	kern_osd.o		\
 	kern_sysctl.o		\
 	kern_tc.o		\
+	link_elf.o		\
 	md5c.o			\
 	subr_eventhandler.o	\
 	subr_kobj.o		\
@@ -136,7 +138,6 @@ PN_SYS_COMMON_OBJS = 		\
 	pn_init_main.o		\
 	pn_kern_condvar.o	\
 	pn_kern_intr.o		\
-	pn_kern_linker.o	\
 	pn_kern_subr.o		\
 	pn_kern_synch.o		\
 	pn_kern_timeout.o	\
@@ -165,6 +166,7 @@ PN_OPT_FILES = 			\
 	opt_device_polling.h	\
 	opt_ddb.h		\
 	opt_gdb.h		\
+	opt_hwpmc_hooks.h	\
 	opt_inet.h		\
 	opt_inet6.h		\
 	opt_ipfw.h		\
