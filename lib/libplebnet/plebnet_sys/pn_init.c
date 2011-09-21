@@ -41,11 +41,8 @@
 
 char *     getenv(const char *name);
 pid_t     getpid(void);
-int     system(const char *string);
-void     exit(int status);
-pid_t     fork(void);
 char *strndup(const char *str, size_t len);
-int     execve(const char *path, char *const argv[], char *const envp[]);
+unsigned int     sleep(unsigned int seconds);
 
 
 
@@ -134,5 +131,9 @@ pn_init(void)
 		if (error)
 			printf("posix_spawn failed %d\n", error);
 	}
+	/* give all configuration threads time to complete initialization
+	 * before continuing
+	 */
+	sleep(1);
 	return (0);
 }
