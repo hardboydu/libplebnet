@@ -125,3 +125,17 @@ struct shutdown_call_msg {
 	int scm_fd;
 	int scm_how;
 }__attribute__((packed));
+
+
+struct kldid_msg {
+	int kim_fileid;
+}__attribute__((packed));
+
+struct kldstat_return_msg {
+	struct kld_file_stat ks_stat;
+}__attribute__((packed));
+
+struct kldunloadf_call_msg {
+	int kucm_fileid;
+	int kucm_flags;
+}__attribute__((packed));

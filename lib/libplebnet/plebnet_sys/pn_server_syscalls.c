@@ -33,7 +33,7 @@
 #include <sys/syscall.h>
 
 #include <sys/proc.h>
-
+#include <sys/linker.h>
 
 #include <sys/ioctl.h>
 #include <net/if.h>
