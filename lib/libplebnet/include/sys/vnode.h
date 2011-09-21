@@ -26,12 +26,19 @@
 
 #ifndef	_SYS_VNODE_H_
 #define _SYS_VNODE_H_
+
+#include <sys/uio.h>
+#include <sys/namei.h>
+
 /*
  * Vnode types.  VNON means no type.
  */
 enum vtype	{ VNON, VREG, VDIR, VBLK, VCHR, VLNK, VSOCK, VFIFO, VBAD,
 		  VMARKER };
 
+
+struct nameidata;
+struct stat;
 struct nstat;
 struct vnode {
 	enum vtype v_type;
@@ -93,10 +100,14 @@ struct vattr {
 	enum vtype	va_type;	/* vnode type (for create) */
 	u_short		va_mode;	/* files access mode and type */
 	dev_t		va_fsid;	/* filesystem id */
+	struct timespec	va_mtime;
 	dev_t		va_rdev;	/* device the special file represents */
 	u_quad_t	va_size;	/* file size in bytes */
 	long		va_fileid;	/* file id */
 };
+
+#define	IO_NODELOCKED	0x0008		/* underlying node already locked */
+
 
 #define	VNOVAL	(-1)
 
@@ -126,5 +137,30 @@ VOP_GETATTR(struct vnode *vp, struct vattr *vap, struct ucred *cred)
 	return (0);
 }
 
+static __inline int	
+vn_open(struct nameidata *ndp, int *flagp, int cmode, struct file *fp)
+{
 
+	return (0);
+}
+
+
+static __inline int	
+vn_close(struct vnode *vp,
+	    int flags, struct ucred *file_cred, struct thread *td)
+{
+	return (0);
+}
+
+static __inline int	
+vn_rdwr(enum uio_rw rw, struct vnode *vp, void *base,
+	    int len, off_t offset, enum uio_seg segflg, int ioflg,
+	    struct ucred *active_cred, struct ucred *file_cred, int *aresid,
+	    struct thread *td)
+{
+
+	return (0);
+}
+
+	
 #endif	/* _SYS_VNODE_H_ */
