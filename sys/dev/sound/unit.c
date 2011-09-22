@@ -172,7 +172,7 @@ snd_unit_init(void)
 
 	snd_unit_initialized = 1;
 
-	if (getenv_int("hw.snd.maxunit", &i) != 0) {
+	if (kern_getenv_int("hw.snd.maxunit", &i) != 0) {
 		if (i < SND_UNIT_UMIN)
 			i = SND_UNIT_UMIN;
 		else if (i > SND_UNIT_UMAX)

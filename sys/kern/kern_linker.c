@@ -1142,12 +1142,13 @@ sys_kldunloadf(struct thread *td, struct kldunloadf_args *uap)
 }
 
 int
-kern_kldfind(struct thread *td, char *pathname)
+kern_kldfind(struct thread *td, const char *pathname)
 {
 	const char *filename;
 	linker_file_t lf;
 	int error;
 
+	error = 0;
 	filename = linker_basename(pathname);
 	KLD_LOCK();
 	lf = linker_find_file_by_name(filename);
@@ -1156,7 +1157,7 @@ kern_kldfind(struct thread *td, char *pathname)
 	else
 		error = ENOENT;
 	KLD_UNLOCK();
-
+	return (error);
 }
 
 int

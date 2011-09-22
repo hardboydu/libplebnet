@@ -953,7 +953,7 @@ acpi_pci_link_choose_irq(device_t dev, struct link *link)
 	    sizeof(link_name)))) {
 		snprintf(tunable_buffer, sizeof(tunable_buffer),
 		    "hw.pci.link.%s.%d.irq", link_name, link->l_res_index);
-		if (getenv_int(tunable_buffer, &i) && PCI_INTERRUPT_VALID(i)) {
+		if (kern_getenv_int(tunable_buffer, &i) && PCI_INTERRUPT_VALID(i)) {
 			if (!link_valid_irq(link, i))
 				device_printf(dev,
 				    "Warning, IRQ %d is not listed as valid\n",
@@ -962,7 +962,7 @@ acpi_pci_link_choose_irq(device_t dev, struct link *link)
 		}
 		snprintf(tunable_buffer, sizeof(tunable_buffer),
 		    "hw.pci.link.%s.irq", link_name);
-		if (getenv_int(tunable_buffer, &i) && PCI_INTERRUPT_VALID(i)) {
+		if (kern_getenv_int(tunable_buffer, &i) && PCI_INTERRUPT_VALID(i)) {
 			if (!link_valid_irq(link, i))
 				device_printf(dev,
 				    "Warning, IRQ %d is not listed as valid\n",

@@ -185,7 +185,7 @@ g_dev_taste(struct g_class *mp, struct g_provider *pp, int insist __unused)
 	for (len = MIN(strlen(gp->name), sizeof(buf) - 15); len > 0; len--) {
 		snprintf(buf, sizeof(buf), "kern.devalias.%s", gp->name);
 		buf[14 + len] = 0;
-		val = getenv(buf);
+		val = kern_getenv(buf);
 		if (val != NULL) {
 			snprintf(buf, sizeof(buf), "%s%s",
 			    val, gp->name + len);

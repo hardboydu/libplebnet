@@ -279,8 +279,8 @@ dcons_drv_init(int stage)
 	dg.size = DCONS_BUF_SIZE;
 
 #if defined(__i386__) || defined(__amd64__)
-	if (getenv_quad("dcons.addr", &addr) > 0 &&
-	    getenv_quad("dcons.size", &size) > 0) {
+	if (kern_getenv_quad("dcons.addr", &addr) > 0 &&
+	    kern_getenv_quad("dcons.size", &size) > 0) {
 #ifdef __i386__
 		vm_paddr_t pa;
 		/*
@@ -436,7 +436,7 @@ dcons_dbg_probe(void)
 {
 	int dcons_gdb;
 
-	if (getenv_int("dcons_gdb", &dcons_gdb) == 0)
+	if (kern_getenv_int("dcons_gdb", &dcons_gdb) == 0)
 		return (-1);
 	return (dcons_gdb);
 }

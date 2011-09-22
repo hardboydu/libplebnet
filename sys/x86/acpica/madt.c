@@ -417,7 +417,7 @@ madt_parse_interrupt_override(ACPI_MADT_INTERRUPT_OVERRIDE *intr)
 	 */
 	if (intr->SourceIrq == AcpiGbl_FADT.SciInterrupt) {
 		madt_found_sci_override = 1;
-		if (getenv_string("hw.acpi.sci.trigger", buf, sizeof(buf))) {
+		if (kern_getenv_string("hw.acpi.sci.trigger", buf, sizeof(buf))) {
 			if (tolower(buf[0]) == 'e')
 				trig = INTR_TRIGGER_EDGE;
 			else if (tolower(buf[0]) == 'l')
@@ -429,7 +429,7 @@ madt_parse_interrupt_override(ACPI_MADT_INTERRUPT_OVERRIDE *intr)
 			printf("MADT: Forcing SCI to %s trigger\n",
 			    trig == INTR_TRIGGER_EDGE ? "edge" : "level");
 		}
-		if (getenv_string("hw.acpi.sci.polarity", buf, sizeof(buf))) {
+		if (kern_getenv_string("hw.acpi.sci.polarity", buf, sizeof(buf))) {
 			if (tolower(buf[0]) == 'h')
 				pol = INTR_POLARITY_HIGH;
 			else if (tolower(buf[0]) == 'l')

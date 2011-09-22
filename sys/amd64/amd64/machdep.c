@@ -221,7 +221,7 @@ cpu_startup(dummy)
 	 * We do this by disabling a bit in the SMI_EN (SMI Control and
 	 * Enable register) of the Intel ICH LPC Interface Bridge. 
 	 */
-	sysenv = getenv("smbios.system.product");
+	sysenv = kern_getenv("smbios.system.product");
 	if (sysenv != NULL) {
 		if (strncmp(sysenv, "MacBook1,1", 10) == 0 ||
 		    strncmp(sysenv, "MacBook3,1", 10) == 0 ||
@@ -252,7 +252,7 @@ cpu_startup(dummy)
 	 * Display physical memory if SMBIOS reports reasonable amount.
 	 */
 	memsize = 0;
-	sysenv = getenv("smbios.memory.enabled");
+	sysenv = kern_getenv("smbios.memory.enabled");
 	if (sysenv != NULL) {
 		memsize = (uintmax_t)strtoul(sysenv, (char **)NULL, 10) << 10;
 		freeenv(sysenv);
@@ -1406,8 +1406,8 @@ getmemsize(caddr_t kmdp, u_int64_t first)
 	/*
 	 * Get dcons buffer address
 	 */
-	if (getenv_quad("dcons.addr", &dcons_addr) == 0 ||
-	    getenv_quad("dcons.size", &dcons_size) == 0)
+	if (kern_getenv_quad("dcons.addr", &dcons_addr) == 0 ||
+	    kern_getenv_quad("dcons.size", &dcons_size) == 0)
 		dcons_addr = 0;
 
 	/*
@@ -1770,7 +1770,7 @@ hammer_time(u_int64_t modulep, u_int64_t physfree)
 	thread0.td_pcb->pcb_cr3 = KPML4phys;
 	thread0.td_frame = &proc0_tf;
 
-        env = getenv("kernelname");
+        env = kern_getenv("kernelname");
 	if (env != NULL)
 		strlcpy(kernelname, env, sizeof(kernelname));
 
