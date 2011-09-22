@@ -41,6 +41,13 @@ int kern_poll(struct thread *td, struct pollfd *fds, u_int	nfds,
 int kern_listen(struct thread *td, int s, int backlog);
 int sys_fcntl(struct thread *td, int fd, int cmd, intptr_t arg);
 int kern_shutdown(struct thread *td, int s, int how);
+int kern_kldload(struct thread *td, const char *, int *fileid);
+int kern_kldfind(struct thread *td, const char *);
+int kern_kldunload(struct thread *td, int fileid, int flags);
+int kern_kldnext(struct thread *td, int fileid);
+int kern_kldstat(struct thread *td, int fileid, struct kld_file_stat *);
+int sys_kldnext(struct thread *td, int *fileid);
+
 
 struct file {
 	void		*f_data;	/* file descriptor specific data */

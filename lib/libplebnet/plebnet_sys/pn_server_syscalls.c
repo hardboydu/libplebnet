@@ -77,15 +77,16 @@ extern struct proc proc0;
 
 static int dispatch_table_size = SYS_MAXSYSCALL;
 
-typedef int (*dispatch_func)(struct thread *, int, int);
+typedef int (*dispatch_func)(struct thread *, int, int, int);
 
-static int dispatch_socket(struct thread *td, int fd, int size);
-static int dispatch_ioctl(struct thread *td, int fd, int size);
-static int dispatch_sysctl(struct thread *td, int fd, int size);
-static int dispatch_write(struct thread *td, int fd, int size);
-static int dispatch_shutdown(struct thread *td, int fd, int size);
+static int dispatch_socket(struct thread *td, int fd, int size, int id);
+static int dispatch_ioctl(struct thread *td, int fd, int size, int id);
+static int dispatch_sysctl(struct thread *td, int fd, int size, int id);
+static int dispatch_write(struct thread *td, int fd, int size, int id);
+static int dispatch_shutdown(struct thread *td, int fd, int size, int id);
+static int dispatch_kldhandler(struct thread *td, int fd, int size, int id);
+
 static struct proc server_proc;
-
 dispatch_func dispatch_table[SYS_MAXSYSCALL];
 
 static void
@@ -94,6 +95,7 @@ cleanup(void)
 	char buffer[16];
 
 	sprintf(buffer, "/tmp/%d", getpid());
+	close(target_fd);
 	unlink(buffer);
 }
 
@@ -120,6 +122,14 @@ target_bind(void)
 	dispatch_table[SYS_write] = dispatch_write;
 	dispatch_table[SYS_shutdown] = dispatch_shutdown;
 	dispatch_table[SYS___sysctl] = dispatch_sysctl;
+
+	dispatch_table[SYS_kldload] = dispatch_kldhandler;
+	dispatch_table[SYS_kldunload] = dispatch_kldhandler;
+	dispatch_table[SYS_kldfind] = dispatch_kldhandler;
+	dispatch_table[SYS_kldnext] = dispatch_kldhandler;
+	dispatch_table[SYS_kldstat] = dispatch_kldhandler;
+	dispatch_table[SYS_kldunloadf] = dispatch_kldhandler;
+
 	listen(target_fd, 10);
 	printf("listening\n");
 }
@@ -210,7 +220,7 @@ dispatch(struct thread *td, int fd)
 	
 	orig = pcurthread;
 	pcurthread = td;
-	rc = dispatch_table[funcid](td, fd, size);
+	rc = dispatch_table[funcid](td, fd, size, funcid);
 	pcurthread = orig;
 	/* check rc for closed socket */
 	if (rc != 0)
@@ -276,7 +286,7 @@ start_server_syscalls(void)
 }
 
 static int
-dispatch_socket(struct thread *td, int fd, int size)
+dispatch_socket(struct thread *td, int fd, int size, int id)
 {
 	int err, rc, osize, newfd;
 	struct socket_call_msg scm;
@@ -306,7 +316,7 @@ dispatch_socket(struct thread *td, int fd, int size)
 }
 
 static int
-dispatch_shutdown(struct thread *td, int fd, int size)
+dispatch_shutdown(struct thread *td, int fd, int size, int id)
 {
 	int err, rc;
 	struct shutdown_call_msg scm;
@@ -326,7 +336,7 @@ dispatch_shutdown(struct thread *td, int fd, int size)
 }
 
 static int
-dispatch_write(struct thread *td, int fd, int size)
+dispatch_write(struct thread *td, int fd, int size, int id)
 {
 	int err, rc, osize;
 	size_t bytes_written;
@@ -354,7 +364,7 @@ dispatch_write(struct thread *td, int fd, int size)
 
 
 static int
-dispatch_sysctl(struct thread *td, int fd, int msgsize)
+dispatch_sysctl(struct thread *td, int fd, int msgsize, int id)
 {
 	int i, err, rc, iovcnt, size;
 	size_t oldlen;
@@ -428,7 +438,7 @@ dispatch_sysctl(struct thread *td, int fd, int msgsize)
 }
 
 static int
-dispatch_ioctl(struct thread *td, int fd, int msgsize)
+dispatch_ioctl(struct thread *td, int fd, int msgsize, int id)
 {
 	int err, rc, iovcnt, size;
 	void *argp, *datap = NULL, *msgp = NULL;
@@ -620,5 +630,90 @@ dispatch_ioctl(struct thread *td, int fd, int msgsize)
 
 	return (0);
 }
-	
 
+static int 
+dispatch_kldhandler(struct thread *td, int fd, int size, int id)
+{
+	char *file;
+	int err, fileid, *fileidp;
+	struct kldunloadf_call_msg *kucm;
+	struct kld_file_stat stat;
+
+	file = NULL;
+	kucm = NULL;
+	switch (id) {
+	case SYS_kldload:
+	case SYS_kldfind:
+		if ((err = recv_client_msg(fd, (void **)&file, size)))
+			return (err);
+		break;
+	case SYS_kldunload:
+	case SYS_kldnext:
+	case SYS_kldstat:
+		fileidp = &fileid;
+		if ((err = recv_client_msg(fd, (void **)&fileidp, size)))
+			return (err);
+		break;
+	case SYS_kldunloadf:
+		if ((err = recv_client_msg(fd, (void **)&kucm, size)))
+			return (err);
+		break;
+	default:
+		send_return_msg(fd, ENOSYS, 0);
+		return (0);
+		break;
+	}
+
+	switch (id) {
+	case SYS_kldload:
+		err = kern_kldload(td, file, &fileid);
+		td->td_retval[0] = fileid;
+		break;
+	case SYS_kldfind:
+		err = kern_kldfind(td, file);
+		break;
+	case SYS_kldunload:
+		err = kern_kldunload(td, fileid, 0);
+		break;
+	case SYS_kldnext:
+		err = sys_kldnext(td, &fileid);
+		break;
+	case SYS_kldstat:
+		err = kern_kldstat(td, fileid, &stat);
+		break;
+	case SYS_kldunloadf:
+		err = kern_kldunload(td, kucm->kucm_fileid, kucm->kucm_flags);
+		break;
+	default:
+		break;
+	}
+
+	if (err)
+		size = 0;
+	send_return_msg(fd, err, size);
+	if (size == 0)
+		goto out;
+		
+	switch (id) {
+	case SYS_kldload:
+	case SYS_kldfind:
+	case SYS_kldnext:
+		if ((err = write(fd, &fileid, sizeof(fileid))) < 0)
+			return (errno);
+		break;
+	case SYS_kldstat:
+		if ((err = write(fd, &stat, sizeof(stat))) < 0)
+			return (errno);
+		break;
+	default:
+		break;
+	}
+
+out:
+	if (file != NULL)
+		free(file);
+	if (kucm != NULL)
+		free(kucm);
+
+	return (0);
+}
