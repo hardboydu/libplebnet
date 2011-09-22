@@ -371,26 +371,36 @@ struct module_stat_v1 {
 };
 
 int
-sys_modstat(struct thread *td, struct modstat_args *uap)
+kern_modstat(int modid, struct module_stat *stat)
 {
 	module_t mod;
-	modspecific_t data;
-	int error = 0;
-	int id, namelen, refs, version;
-	struct module_stat *stat;
-	char *name;
 
 	MOD_SLOCK;
-	mod = module_lookupbyid(uap->modid);
+	mod = module_lookupbyid(modid);
 	if (mod == NULL) {
 		MOD_SUNLOCK;
 		return (ENOENT);
 	}
-	id = mod->id;
-	refs = mod->refs;
-	name = mod->name;
-	data = mod->data;
+	stat->id = mod->id;
+	stat->refs = mod->refs;
+	strncpy(&stat->name[0], mod->name, MAXMODNAME);
+	memcpy(&stat->data, &mod->data, sizeof(modspecific_t));
 	MOD_SUNLOCK;
+	return (0);
+}
+
+int
+sys_modstat(struct thread *td, struct modstat_args *uap)
+{
+	module_t mod;
+	int error = 0;
+	int namelen, version;
+	struct module_stat mstat, *stat;
+
+
+	if ((error = kern_modstat(uap->modid, &mstat)))
+		return (error);
+	
 	stat = uap->stat;
 
 	/*
@@ -404,21 +414,13 @@ sys_modstat(struct thread *td, struct modstat_args *uap)
 	namelen = strlen(mod->name) + 1;
 	if (namelen > MAXMODNAME)
 		namelen = MAXMODNAME;
-	if ((error = copyout(name, &stat->name[0], namelen)) != 0)
+	if (version == sizeof(struct module_stat) &&
+	    (error = copyout(&mstat, stat, sizeof(mstat))) != 0)
+		return (error);
+	else if ((error = copyout(&mstat, stat, sizeof(mstat) - 
+		    sizeof(modspecific_t))) != 0)
 		return (error);
 
-	if ((error = copyout(&refs, &stat->refs, sizeof(int))) != 0)
-		return (error);
-	if ((error = copyout(&id, &stat->id, sizeof(int))) != 0)
-		return (error);
-
-	/*
-	 * >v1 stat includes module data.
-	 */
-	if (version == sizeof(struct module_stat))
-		if ((error = copyout(&data, &stat->data, 
-		    sizeof(data))) != 0)
-			return (error);
 	td->td_retval[0] = 0;
 	return (error);
 }
