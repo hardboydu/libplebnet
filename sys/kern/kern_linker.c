@@ -1142,11 +1142,27 @@ sys_kldunloadf(struct thread *td, struct kldunloadf_args *uap)
 }
 
 int
+kern_kldfind(struct thread *td, char *pathname)
+{
+	const char *filename;
+	linker_file_t lf;
+	int error;
+
+	filename = linker_basename(pathname);
+	KLD_LOCK();
+	lf = linker_find_file_by_name(filename);
+	if (lf)
+		td->td_retval[0] = lf->id;
+	else
+		error = ENOENT;
+	KLD_UNLOCK();
+
+}
+
+int
 sys_kldfind(struct thread *td, struct kldfind_args *uap)
 {
 	char *pathname;
-	const char *filename;
-	linker_file_t lf;
 	int error;
 
 #ifdef MAC
@@ -1161,14 +1177,7 @@ sys_kldfind(struct thread *td, struct kldfind_args *uap)
 	if ((error = copyinstr(uap->file, pathname, MAXPATHLEN, NULL)) != 0)
 		goto out;
 
-	filename = linker_basename(pathname);
-	KLD_LOCK();
-	lf = linker_find_file_by_name(filename);
-	if (lf)
-		td->td_retval[0] = lf->id;
-	else
-		error = ENOENT;
-	KLD_UNLOCK();
+	error = kern_kldfind(td, pathname);
 out:
 	free(pathname, M_TEMP);
 	return (error);
