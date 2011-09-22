@@ -1,16 +1,7 @@
 #!/usr/bin/env bash
 
-
 pid=$1
 export TARGET_PID=$pid
 export LD_PRELOAD=`/bin/pwd`/libplebconf.so
-
-
-err()	{ echo >&2 "$*"; }
-log()	{ err  "$me: $*"; }
-vlog()	{ $verbose && log "$*"; }
-fail()	{ log "$*"; exit 1; }
-rawecho() { echo -E "x$*" | sed 's/^x//'; }
-prefix()  { sed "s/^/$me: /"; }
 
 /sbin/sysctl $2 $3 $4 $5 $6
