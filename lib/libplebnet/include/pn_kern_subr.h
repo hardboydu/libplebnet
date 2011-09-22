@@ -47,6 +47,10 @@ int kern_kldunload(struct thread *td, int fileid, int flags);
 int kern_kldnext(struct thread *td, int fileid);
 int kern_kldstat(struct thread *td, int fileid, struct kld_file_stat *);
 int sys_kldnext(struct thread *td, int *fileid);
+int sys_kldfirstmod(struct thread *td, int *fileid);
+int sys_modnext(struct thread *td, int *modid);
+int sys_modfnext(struct thread *td, int *modid);
+int kern_modstat(int modid, struct module_stat *stat);
 
 
 struct file {

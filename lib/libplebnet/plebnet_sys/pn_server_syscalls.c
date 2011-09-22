@@ -34,6 +34,7 @@
 
 #include <sys/proc.h>
 #include <sys/linker.h>
+#include <sys/module.h>
 
 #include <sys/ioctl.h>
 #include <net/if.h>
@@ -47,6 +48,7 @@
 
 #include <sys/uio.h>
 #include <sys/sysctl.h>
+#include <sys/module.h>
 
 
 #define _WITH_DPRINTF
@@ -129,6 +131,10 @@ target_bind(void)
 	dispatch_table[SYS_kldnext] = dispatch_kldhandler;
 	dispatch_table[SYS_kldstat] = dispatch_kldhandler;
 	dispatch_table[SYS_kldunloadf] = dispatch_kldhandler;
+	dispatch_table[SYS_modnext] = dispatch_kldhandler;
+	dispatch_table[SYS_modfnext] = dispatch_kldhandler;
+	dispatch_table[SYS_modstat] = dispatch_kldhandler;
+	dispatch_table[SYS_kldfirstmod] = dispatch_kldhandler;
 
 	listen(target_fd, 10);
 	printf("listening\n");
@@ -228,7 +234,7 @@ dispatch(struct thread *td, int fd)
 	return (rc);
 }
 
-static struct thread tds;
+
 
 void *
 dispatch_server(void *arg)
@@ -237,7 +243,11 @@ dispatch_server(void *arg)
 	struct thread *td;
 
 	fd = (uintptr_t)arg;
-	td = &tds;
+	td = curthread;
+	td->td_ucred = crhold(server_proc.p_ucred);
+	td->td_proc->p_fd = fdinit(NULL);
+	td->td_proc->p_fdtol = NULL;
+
 	while (dispatch(td, fd) == 0)
 			;
 
@@ -255,7 +265,7 @@ syscall_server(void *arg)
 
 	target_bind();
 
-	td = &tds;
+	td = curthread;
 	td->td_proc = &server_proc;
 	/* Create the file descriptor table. */
 	server_proc.p_ucred = proc0.p_ucred;
@@ -637,7 +647,8 @@ dispatch_kldhandler(struct thread *td, int fd, int size, int id)
 	char *file;
 	int err, fileid, *fileidp;
 	struct kldunloadf_call_msg *kucm;
-	struct kld_file_stat stat;
+	struct kld_file_stat kstat;
+	struct module_stat mstat;
 
 	file = NULL;
 	kucm = NULL;
@@ -648,8 +659,12 @@ dispatch_kldhandler(struct thread *td, int fd, int size, int id)
 			return (err);
 		break;
 	case SYS_kldunload:
+	case SYS_kldfirstmod:
 	case SYS_kldnext:
 	case SYS_kldstat:
+	case SYS_modstat:
+	case SYS_modnext:
+	case SYS_modfnext:
 		fileidp = &fileid;
 		if ((err = recv_client_msg(fd, (void **)&fileidp, size)))
 			return (err);
@@ -667,7 +682,6 @@ dispatch_kldhandler(struct thread *td, int fd, int size, int id)
 	switch (id) {
 	case SYS_kldload:
 		err = kern_kldload(td, file, &fileid);
-		td->td_retval[0] = fileid;
 		break;
 	case SYS_kldfind:
 		err = kern_kldfind(td, file);
@@ -677,12 +691,30 @@ dispatch_kldhandler(struct thread *td, int fd, int size, int id)
 		break;
 	case SYS_kldnext:
 		err = sys_kldnext(td, &fileid);
+		fileid = td->td_retval[0];
 		break;
 	case SYS_kldstat:
-		err = kern_kldstat(td, fileid, &stat);
+		err = kern_kldstat(td, fileid, &kstat);
+		size = sizeof(kstat);
 		break;
 	case SYS_kldunloadf:
 		err = kern_kldunload(td, kucm->kucm_fileid, kucm->kucm_flags);
+		break;
+	case SYS_kldfirstmod:
+		err = sys_kldfirstmod(td, &fileid);
+		fileid = td->td_retval[0];
+		break;
+	case SYS_modnext:
+		err = sys_modnext(td, &fileid);
+		fileid = td->td_retval[0];
+		break;
+	case SYS_modfnext:
+		err = sys_modfnext(td, &fileid);
+		fileid = td->td_retval[0];
+		break;
+	case SYS_modstat:
+		err = kern_modstat(fileid, &mstat);
+		size = sizeof(mstat);
 		break;
 	default:
 		break;
@@ -698,11 +730,18 @@ dispatch_kldhandler(struct thread *td, int fd, int size, int id)
 	case SYS_kldload:
 	case SYS_kldfind:
 	case SYS_kldnext:
+	case SYS_kldfirstmod:
+	case SYS_modnext:
+	case SYS_modfnext:
 		if ((err = write(fd, &fileid, sizeof(fileid))) < 0)
 			return (errno);
 		break;
 	case SYS_kldstat:
-		if ((err = write(fd, &stat, sizeof(stat))) < 0)
+		if ((err = write(fd, &kstat, sizeof(kstat))) < 0)
+			return (errno);
+		break;
+	case SYS_modstat:
+		if ((err = write(fd, &mstat, sizeof(mstat))) < 0)
 			return (errno);
 		break;
 	default:

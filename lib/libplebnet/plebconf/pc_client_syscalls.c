@@ -43,6 +43,7 @@
 #include <string.h>
 #include <sys/sysctl.h>
 #include <sys/linker.h>
+#include <sys/module.h>
 
 #include <sys/uio.h>
 
@@ -566,9 +567,6 @@ ioctl(int d, unsigned long request, ...)
 	argp = va_arg(ap, uintptr_t);
 	va_end(ap);
 
-	if (d < 3)
-		return _ioctl(d, request, argp);
-
 	err = ioctl_internal(d, request, (void *)argp);
 	if (err) {
 		errno = err;
@@ -699,6 +697,37 @@ kldnext(int fileid)
 	return (nextfileid);
 }
 
+
+int 
+kldfirstmod(int fileid)
+{
+	struct iovec iov[2];
+	struct call_msg cm;
+	struct kldid_msg kim;
+	int size, err, nextfileid;
+
+	cm.cm_size = sizeof(struct kldid_msg);
+	cm.cm_id = SYS_kldfirstmod;
+	kim.kim_fileid = fileid;
+	nextfileid = 0;
+
+	iov[0].iov_base = &cm;
+	iov[0].iov_len = sizeof(struct call_msg);
+	iov[1].iov_base = &kim;
+	iov[1].iov_len = sizeof(struct kldid_msg);
+	
+	err = writev(target_fd, iov, 2);
+	total_bytes_written += err;
+	if ((err = handle_return_msg(target_fd, &size)) != 0) {
+		errno = err;
+		return (-1);
+	}
+	if (size == sizeof(int))
+		read(target_fd, &nextfileid, sizeof(int));
+
+	return (nextfileid);
+}
+
 int 
 kldload(const char *file)
 {
@@ -707,7 +736,7 @@ kldload(const char *file)
 
 	int size, err, fileid;
 
-	cm.cm_size = strlen(file);
+	cm.cm_size = strlen(file) + 1;
 	cm.cm_id = SYS_kldload;
 
 	iov[0].iov_base = &cm;
@@ -767,7 +796,7 @@ kldfind(const char *file)
 
 	int size, err, fileid;
 
-	cm.cm_size = strlen(file);
+	cm.cm_size = strlen(file) + 1;
 	cm.cm_id = SYS_kldfind;
 
 	iov[0].iov_base = &cm;
@@ -816,4 +845,94 @@ kldunloadf(int fileid, int flags)
 	}
 
 	return (0);
+}
+
+int
+modstat(int modid, struct module_stat *stat)
+{
+	struct iovec iov[2];
+	struct call_msg cm;
+	struct kldid_msg kim;
+	int size, err, nextfileid;
+
+	cm.cm_size = sizeof(struct kldid_msg);
+	cm.cm_id = SYS_modstat;
+	kim.kim_fileid = modid;
+	nextfileid = 0;
+
+	iov[0].iov_base = &cm;
+	iov[0].iov_len = sizeof(struct call_msg);
+	iov[1].iov_base = &kim;
+	iov[1].iov_len = sizeof(struct kldid_msg);
+	
+	err = writev(target_fd, iov, 2);
+	total_bytes_written += err;
+	if ((err = handle_return_msg(target_fd, &size)) != 0) {
+		errno = err;
+		return (-1);
+	}
+	if (size == sizeof(struct module_stat))
+		read(target_fd, stat, sizeof(struct module_stat));
+
+	return (nextfileid);
+}
+
+int
+modnext(int modid)
+{
+	struct iovec iov[2];
+	struct call_msg cm;
+	struct kldid_msg kim;
+	int size, err, nextfileid;
+
+	cm.cm_size = sizeof(struct kldid_msg);
+	cm.cm_id = SYS_modnext;
+	kim.kim_fileid = modid;
+	nextfileid = 0;
+
+	iov[0].iov_base = &cm;
+	iov[0].iov_len = sizeof(struct call_msg);
+	iov[1].iov_base = &kim;
+	iov[1].iov_len = sizeof(struct kldid_msg);
+	
+	err = writev(target_fd, iov, 2);
+	total_bytes_written += err;
+	if ((err = handle_return_msg(target_fd, &size)) != 0) {
+		errno = err;
+		return (-1);
+	}
+	if (size == sizeof(int))
+		read(target_fd, &nextfileid, sizeof(int));
+
+	return (nextfileid);
+}
+
+int
+modfnext(int modid)
+{
+	struct iovec iov[2];
+	struct call_msg cm;
+	struct kldid_msg kim;
+	int size, err, nextfileid;
+
+	cm.cm_size = sizeof(struct kldid_msg);
+	cm.cm_id = SYS_modfnext;
+	kim.kim_fileid = modid;
+	nextfileid = 0;
+
+	iov[0].iov_base = &cm;
+	iov[0].iov_len = sizeof(struct call_msg);
+	iov[1].iov_base = &kim;
+	iov[1].iov_len = sizeof(struct kldid_msg);
+	
+	err = writev(target_fd, iov, 2);
+	total_bytes_written += err;
+	if ((err = handle_return_msg(target_fd, &size)) != 0) {
+		errno = err;
+		return (-1);
+	}
+	if (size == sizeof(int))
+		read(target_fd, &nextfileid, sizeof(int));
+
+	return (nextfileid);
 }

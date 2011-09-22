@@ -38,6 +38,7 @@
 #include <sys/errno.h>
 #include <sys/proc.h>
 #include <sys/syscallsubr.h>
+#include <sys/module.h>
 
 #include <unistd.h>
 #include <fcntl.h>
