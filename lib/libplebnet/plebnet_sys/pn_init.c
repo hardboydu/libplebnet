@@ -60,7 +60,6 @@ struct pcpu *pcpup;
 extern caddr_t kern_timeout_callwheel_alloc(caddr_t v);
 extern void kern_timeout_callwheel_init(void);
 extern void pn_init_thread0(void);
-extern int pn_veth_attach(void);
 extern void mutex_init(void);
 
 static int pn_init(void) __attribute__((constructor));
@@ -106,7 +105,6 @@ pn_init(void)
 	sx_init(&proctree_lock, "proctree");
 	td = curthread;
 	fdused_range(td->td_proc->p_fd, 16);
-	pn_veth_attach();
 	start_server_syscalls();
 	if (needconfig) {
 		posix_spawnattr_t pattr;

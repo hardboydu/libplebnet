@@ -24,12 +24,17 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#undef _KERNEL
-#include <errno.h>
-#define _KERNEL
 #include <sys/param.h>
 #include <sys/time.h>
 #include <sys/socket.h>
+#include <sys/module.h>
+#include <sys/kernel.h>
+
+
+#undef _KERNEL
+#include <errno.h>
+#define _KERNEL
+
 #include <net/if.h>
 #include <net/if_var.h>
 #include <net/if_types.h>
@@ -48,13 +53,12 @@
 #include <fcntl.h>
 #include <pthread.h>
 
-ssize_t     read(int d, void *buf, size_t nbytes);
-extern void perror(const char *string);
-uid_t	geteuid(void);
-char *     getenv(const char *name);
+extern ssize_t	read(int d, void *buf, size_t nbytes);
+extern void	perror(const char *string);
+extern uid_t	geteuid(void);
+extern char *	getenv(const char *name);
+extern int	close(int d);
 
-
-static int bpfbufsize = 256*1024;
 
 struct pnv_softc {
 	struct ifnet *ifp;
@@ -64,10 +68,42 @@ struct pnv_softc {
 	struct mtx lock;
 };
 
+static int veth_attach(void);
+
+static int
+veth_modevent(module_t mod, int type, void *data)
+{
+
+	switch (type) {
+	case MOD_LOAD:
+		return (veth_attach());
+		break;
+
+	case MOD_UNLOAD:
+		printf("veth module unload - not possible for this module type\n");
+		return (EINVAL);
+
+	default:
+		return (EOPNOTSUPP);
+	}
+	return (0);
+}
+
+static moduledata_t veth_mod = {
+	"if_veth",
+	veth_modevent,
+	0
+};
+
+DECLARE_MODULE(if_veth, veth_mod, SI_SUB_PROTO_IFATTACHDOMAIN, SI_ORDER_ANY);
+
+
+static int bpfbufsize = 256*1024;
+
 static int pnv_setup_interface(struct pnv_softc *sc);
 
-int
-pn_veth_attach(void)
+static int
+veth_attach(void)
 {
 	struct pnv_softc *sc;
 	struct ifreq ifr;
@@ -124,7 +160,6 @@ pn_veth_attach(void)
 	sc->fd = fd;
 	return (pnv_setup_interface(sc));
 }
-
 
 static void
 pnv_start(struct ifnet *ifp)
