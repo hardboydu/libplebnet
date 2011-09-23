@@ -90,6 +90,10 @@ struct snprintf_arg {
 	size_t	remain;
 };
 
+int     putchar(int c);
+int     puts(const char *str);
+
+
 static char *ksprintn(char *nbuf, uintmax_t num, int base, int *len, int upper);
 
 /*
@@ -112,6 +116,71 @@ ksprintn(char *nbuf, uintmax_t num, int base, int *lenp, int upper)
 	if (lenp)
 		*lenp = p - nbuf;
 	return (p);
+}
+
+static void
+putbuf(int c, struct putchar_arg *ap)
+{
+	/* Check if no console output buffer was provided. */
+	if (ap->p_bufr == NULL) {
+		/* Output direct to the console. */
+		if (ap->flags & TOCONS)
+			putchar(c);
+
+	} else {
+		/* Buffer the character: */
+		*ap->p_next++ = c;
+		ap->remain--;
+
+		/* Always leave the buffer zero terminated. */
+		*ap->p_next = '\0';
+
+		/* Check if the buffer needs to be flushed. */
+		if (ap->remain == 2 || c == '\n') {
+
+			if (ap->flags & TOCONS) {
+				puts(ap->p_bufr);
+			}
+
+			ap->p_next = ap->p_bufr;
+			ap->remain = ap->n_bufr;
+			*ap->p_next = '\0';
+		}
+
+		/*
+		 * Since we fill the buffer up one character at a time,
+		 * this should not happen.  We should always catch it when
+		 * ap->remain == 2 (if not sooner due to a newline), flush
+		 * the buffer and move on.  One way this could happen is
+		 * if someone sets PRINTF_BUFR_SIZE to 1 or something
+		 * similarly silly.
+		 */
+		KASSERT(ap->remain > 2, ("Bad buffer logic, remain = %zd",
+		    ap->remain));
+	}
+}
+
+/*
+ * Print a character on console or users terminal.  If destination is
+ * the console then the last bunch of characters are saved in msgbuf for
+ * inspection later.
+ */
+static void
+kputchar(int c, void *arg)
+{
+	struct putchar_arg *ap = (struct putchar_arg*) arg;
+	int flags = ap->flags;
+	int putbuf_done = 0;
+
+	if (flags & TOCONS) {
+		putbuf(c, ap);
+		putbuf_done = 1;
+	}
+
+	if ((flags & TOLOG) && (putbuf_done == 0)) {
+		if (c != '\0')
+			putbuf(c, ap);
+	}
 }
 
 /*
@@ -453,4 +522,53 @@ number:
 		}
 	}
 #undef PCHAR
+}
+
+int
+printf(const char *fmt, ...)
+{
+	va_list ap;
+	int retval;
+
+	va_start(ap, fmt);
+	retval = vprintf(fmt, ap);
+	va_end(ap);
+
+	return (retval);
+}
+
+int
+vprintf(const char *fmt, va_list ap)
+{
+	struct putchar_arg pca;
+	int retval;
+#ifdef PRINTF_BUFR_SIZE
+	char bufr[PRINTF_BUFR_SIZE];
+#endif
+
+	pca.tty = NULL;
+	pca.flags = TOCONS | TOLOG;
+	pca.pri = -1;
+#ifdef PRINTF_BUFR_SIZE
+	pca.p_bufr = bufr;
+	pca.p_next = pca.p_bufr;
+	pca.n_bufr = sizeof(bufr);
+	pca.remain = sizeof(bufr);
+	*pca.p_next = '\0';
+#else
+	/* Don't buffer console output. */
+	pca.p_bufr = NULL;
+#endif
+
+	retval = kvprintf(fmt, kputchar, &pca, 10, ap);
+
+#ifdef PRINTF_BUFR_SIZE
+	/* Write any buffered console/log output: */
+	if (*pca.p_bufr != '\0') {
+		cnputs(pca.p_bufr);
+		msglogstr(pca.p_bufr, pca.pri, /*filter_cr*/ 1);
+	}
+#endif
+
+	return (retval);
 }
