@@ -65,6 +65,10 @@ __FBSDID("$FreeBSD$");
 
 #include "linker_if.h"
 
+#ifdef PLEBNET
+int pn_map_object(size_t mapsize, vm_offset_t *mapbase);
+#endif
+
 typedef struct {
 	void		*addr;
 	Elf_Off		size;
@@ -666,6 +670,7 @@ link_elf_load_file(linker_class_t cls, const char *filename,
 		}
 	}
 
+#ifndef PLEBNET
 	/*
 	 * We know how much space we need for the text/data/bss/etc.
 	 * This stuff needs to be in a single chunk so that profiling etc
@@ -701,6 +706,11 @@ link_elf_load_file(linker_class_t cls, const char *filename,
 		error = ENOMEM;
 		goto out;
 	}
+#else
+	error = pn_map_object(mapsize, &mapbase);
+	if (error)
+		goto out;
+#endif
 
 	/* Inform the kld system about the situation */
 	lf->address = ef->address = (caddr_t)mapbase;
@@ -927,11 +937,13 @@ link_elf_unload_file(linker_file_t file)
 	if (ef->progtab)
 		free(ef->progtab, M_LINKER);
 
+#ifndef PLEBNET
 	if (ef->object) {
 		vm_map_remove(kernel_map, (vm_offset_t) ef->address,
 		    (vm_offset_t) ef->address +
 		    (ef->object->size << PAGE_SHIFT));
 	}
+#endif
 	if (ef->e_shdr)
 		free(ef->e_shdr, M_LINKER);
 	if (ef->ddbsymtab)

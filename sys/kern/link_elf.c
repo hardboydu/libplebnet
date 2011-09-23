@@ -71,6 +71,11 @@ __FBSDID("$FreeBSD$");
 
 #include "linker_if.h"
 
+#ifdef PLEBNET
+void *pn_get_dynamic(void);
+void *pn_get_address(void);
+#endif
+
 #define MAXSEGS 4
 
 typedef struct elf_file {
@@ -300,7 +305,7 @@ link_elf_init(void* arg)
 	linker_add_class(&link_elf_class);
 
 #ifdef PLEBNET
-	dp = NULL;
+	dp = pn_get_dynamic();
 #else
 	dp = (Elf_Dyn *)&_DYNAMIC;
 #endif
@@ -319,7 +324,11 @@ link_elf_init(void* arg)
 
 	ef = (elf_file_t) linker_kernel_file;
 	ef->preloaded = 1;
+#ifdef PLEBNET
+	ef->address = pn_get_address();
+#else
 	ef->address = 0;
+#endif
 #ifdef SPARSE_MAPPING
 	ef->object = 0;
 #endif
@@ -327,7 +336,9 @@ link_elf_init(void* arg)
 
 	if (dp != NULL)
 		parse_dynamic(ef);
+#ifndef PLEBNET
 	linker_kernel_file->address = (caddr_t) KERNBASE;
+#endif
 	linker_kernel_file->size = -(intptr_t)linker_kernel_file->address;
 
 	if (modptr != NULL) {
