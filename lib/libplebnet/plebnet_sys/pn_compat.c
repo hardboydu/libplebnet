@@ -42,6 +42,7 @@
 #include <sys/lock.h>
 #include <sys/mutex.h>
 #include <sys/sx.h>
+#include <sys/linker.h>
 #undef _KERNEL
 #include <signal.h>
 #include <unistd.h>
@@ -65,9 +66,6 @@ struct proclist allproc;
 struct sx allproc_lock;
 struct	sx allprison_lock;
 struct	prisonlist allprison;
-typedef void *linker_file_t;
-typedef Elf_Addr elf_lookup_fn(linker_file_t, Elf_Size, int);
-
 
 int async_io_version;
 
@@ -298,14 +296,113 @@ devfs_fpdrop(struct file *fp)
 {
 	;
 }
+
 /* Process one elf relocation with addend. */
 static int
 elf_reloc_internal(linker_file_t lf, Elf_Addr relocbase, const void *data,
     int type, int local, elf_lookup_fn lookup)
 {
+	Elf64_Addr *where, val;
+	Elf32_Addr *where32, val32;
+	Elf_Addr addr;
+	Elf_Addr addend;
+	Elf_Size rtype, symidx;
+	const Elf_Rel *rel;
+	const Elf_Rela *rela;
 
-	printf("can't handle relocations yet\n");
-	return (0);
+	switch (type) {
+	case ELF_RELOC_REL:
+		rel = (const Elf_Rel *)data;
+		where = (Elf_Addr *) (relocbase + rel->r_offset);
+		rtype = ELF_R_TYPE(rel->r_info);
+		symidx = ELF_R_SYM(rel->r_info);
+		/* Addend is 32 bit on 32 bit relocs */
+		switch (rtype) {
+		case R_X86_64_PC32:
+		case R_X86_64_32S:
+			addend = *(Elf32_Addr *)where;
+			break;
+		default:
+			addend = *where;
+			break;
+		}
+		break;
+	case ELF_RELOC_RELA:
+		rela = (const Elf_Rela *)data;
+		where = (Elf_Addr *) (relocbase + rela->r_offset);
+		addend = rela->r_addend;
+		rtype = ELF_R_TYPE(rela->r_info);
+		symidx = ELF_R_SYM(rela->r_info);
+		break;
+	default:
+		panic("unknown reloc type %d\n", type);
+	}
+
+	switch (rtype) {
+
+		case R_X86_64_NONE:	/* none */
+			break;
+
+		case R_X86_64_64:		/* S + A */
+			addr = lookup(lf, symidx, 1);
+			val = addr + addend;
+			if (addr == 0)
+				return -1;
+			if (*where != val)
+				*where = val;
+			break;
+
+		case R_X86_64_PC32:	/* S + A - P */
+			addr = lookup(lf, symidx, 1);
+			where32 = (Elf32_Addr *)where;
+			val32 = (Elf32_Addr)(addr + addend - (Elf_Addr)where);
+			if (addr == 0)
+				return -1;
+			if (*where32 != val32)
+				*where32 = val32;
+			break;
+
+		case R_X86_64_32S:	/* S + A sign extend */
+			addr = lookup(lf, symidx, 1);
+			val32 = (Elf32_Addr)(addr + addend);
+			where32 = (Elf32_Addr *)where;
+			if (addr == 0)
+				return -1;
+			if (*where32 != val32)
+				*where32 = val32;
+			break;
+
+		case R_X86_64_COPY:	/* none */
+			/*
+			 * There shouldn't be copy relocations in kernel
+			 * objects.
+			 */
+			printf("kldload: unexpected R_COPY relocation\n");
+			return -1;
+			break;
+
+		case R_X86_64_GLOB_DAT:	/* S */
+		case R_X86_64_JMP_SLOT:	/* XXX need addend + offset */
+			addr = lookup(lf, symidx, 1);
+			if (addr == 0)
+				return -1;
+			if (*where != addr)
+				*where = addr;
+			break;
+
+		case R_X86_64_RELATIVE:	/* B + A */
+			addr = relocbase + addend;
+			val = addr;
+			if (*where != val)
+				*where = val;
+			break;
+
+		default:
+			printf("kldload: unexpected relocation type %ld\n",
+			       rtype);
+			return -1;
+	}
+	return(0);
 }
 
 int
