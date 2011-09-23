@@ -29,7 +29,6 @@
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/kernel.h>
-#include <sys/bus.h>
 #include <sys/event.h>
 #include <sys/jail.h>
 #include <sys/limits.h>
@@ -886,9 +885,4 @@ mutex_init(void)
 	mtx_init(&Giant, "Giant", NULL, MTX_DEF | MTX_RECURSE);
 }
 
-void
-NDFREE(struct nameidata *ndp, const u_int flags)
-{
-
-}
 

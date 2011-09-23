@@ -18,6 +18,7 @@ PN_KERN_COMMON_OBJS +=		\
 	kern_sysctl.o		\
 	kern_tc.o		\
 	link_elf.o		\
+	link_elf_obj.o		\
 	md5c.o			\
 	subr_eventhandler.o	\
 	subr_kobj.o		\
@@ -122,6 +123,7 @@ PN_NETINET6_COMMON_OBJS +=	\
 PN_LIBKERN_COMMON_OBJS =	\
 	arc4random.o		\
 	bcd.o			\
+	strlen.o		\
 	strlcpy.o
 
 # v6 requires sha1
@@ -131,6 +133,7 @@ PN_OTHER_COMMON_OBJS =		\
 	in_cksum.o		\
 	uma_core.o
 
+# pn_init.o needs to be first
 PN_SYS_COMMON_OBJS = 		\
 	pn_compat.o		\
 	pn_glue.o		\
@@ -148,7 +151,8 @@ PN_SYS_COMMON_OBJS = 		\
 	pn_syscall_wrapper.o	\
 	pn_user_sysctl.o	\
 	pn_veth.o		\
-	pn_vfs_aio.o
+	pn_vfs_aio.o		\
+	pn_vfs_ops.o
 
 
 PN_MFILES = 			\
@@ -227,13 +231,13 @@ PREFIX= ${SYSDIR}
 .PATH: plebnet_sys
 
 PN_COMMON_OBJS =			\
+	${PN_SYS_COMMON_OBJS}		\
 	${PN_KERN_COMMON_OBJS}		\
 	${PN_LIBKERN_COMMON_OBJS}	\
 	${PN_NET_COMMON_OBJS}		\
 	${PN_NETINET_COMMON_OBJS}	\
 	${PN_NETINET6_COMMON_OBJS}	\
-	${PN_OTHER_COMMON_OBJS}		\
-	${PN_SYS_COMMON_OBJS}	
+	${PN_OTHER_COMMON_OBJS}
 
 PN_COMMON_SRCS= ${PN_COMMON_OBJS:C/.o$/.c/}
 

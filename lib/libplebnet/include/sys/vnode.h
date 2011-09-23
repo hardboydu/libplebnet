@@ -41,9 +41,10 @@ struct nameidata;
 struct stat;
 struct nstat;
 struct vnode {
-	enum vtype v_type;
-	struct	mount *v_mount;			/* u ptr to vfs we are in */
-	u_long	v_vflag;			/* v vnode flags */
+	enum vtype	v_type;
+	struct	mount	*v_mount;			/* u ptr to vfs we are in */
+	u_long		v_vflag;			/* v vnode flags */
+	int		v_fd;				/* file descriptor */
 };
 
 static __inline void 
@@ -137,30 +138,13 @@ VOP_GETATTR(struct vnode *vp, struct vattr *vap, struct ucred *cred)
 	return (0);
 }
 
-static __inline int	
-vn_open(struct nameidata *ndp, int *flagp, int cmode, struct file *fp)
-{
+int	vn_open(struct nameidata *ndp, int *flagp, int cmode, struct file *fp);
+int	vn_close(struct vnode *vp, int flags, struct ucred *file_cred, struct thread *td);
 
-	return (0);
-}
-
-
-static __inline int	
-vn_close(struct vnode *vp,
-	    int flags, struct ucred *file_cred, struct thread *td)
-{
-	return (0);
-}
-
-static __inline int	
-vn_rdwr(enum uio_rw rw, struct vnode *vp, void *base,
+int	vn_rdwr(enum uio_rw rw, struct vnode *vp, void *base,
 	    int len, off_t offset, enum uio_seg segflg, int ioflg,
 	    struct ucred *active_cred, struct ucred *file_cred, int *aresid,
-	    struct thread *td)
-{
-
-	return (0);
-}
-
+	    struct thread *td);
 	
+
 #endif	/* _SYS_VNODE_H_ */
