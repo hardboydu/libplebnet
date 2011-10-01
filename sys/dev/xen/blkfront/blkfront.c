@@ -77,11 +77,8 @@ static int blkfront_detach(device_t);
 static int setup_blkring(struct xb_softc *);
 static void blkif_int(void *);
 static void blkfront_initialize(struct xb_softc *);
-#if 0
-static void blkif_recover(struct xb_softc *);
-#endif
 static int blkif_completion(struct xb_command *);
-static void blkif_free(struct xb_softc *, int);
+static void blkif_free(struct xb_softc *);
 static void blkif_queue_cb(void *, bus_dma_segment_t *, int, int);
 
 MALLOC_DEFINE(M_XENBLOCKFRONT, "xbd", "Xen Block Front driver data");
@@ -452,9 +449,12 @@ blkfront_attach(device_t dev)
 	sc->vdevice = vdevice;
 	sc->connected = BLKIF_STATE_DISCONNECTED;
 
+<<<<<<< HEAD
 	/* Front end dir is a number, which is used as the id. */
 	sc->handle = strtoul(strrchr(xenbus_get_node(dev),'/')+1, NULL, 0);
 
+=======
+>>>>>>> 9ed105083a6336eb6a358a1700c2e1fedb0ff9b6
 	/* Wait for backend device to publish its protocol capabilities. */
 	xenbus_set_state(dev, XenbusStateInitialising);
 
@@ -465,6 +465,7 @@ static int
 blkfront_suspend(device_t dev)
 {
 	struct xb_softc *sc = device_get_softc(dev);
+<<<<<<< HEAD
 
 	/* Prevent new requests being issued until we fix things up. */
 	mtx_lock(&sc->xb_io_lock);
@@ -472,22 +473,55 @@ blkfront_suspend(device_t dev)
 	mtx_unlock(&sc->xb_io_lock);
 
 	return (0);
+=======
+	int retval;
+	int saved_state;
+
+	/* Prevent new requests being issued until we fix things up. */
+	mtx_lock(&sc->xb_io_lock);
+	saved_state = sc->connected;
+	sc->connected = BLKIF_STATE_SUSPENDED;
+
+	/* Wait for outstanding I/O to drain. */
+	retval = 0;
+	while (TAILQ_EMPTY(&sc->cm_busy) == 0) {
+		if (msleep(&sc->cm_busy, &sc->xb_io_lock,
+			   PRIBIO, "blkf_susp", 30 * hz) == EWOULDBLOCK) {
+			retval = EBUSY;
+			break;
+		}
+	}
+	mtx_unlock(&sc->xb_io_lock);
+
+	if (retval != 0)
+		sc->connected = saved_state;
+
+	return (retval);
+>>>>>>> 9ed105083a6336eb6a358a1700c2e1fedb0ff9b6
 }
 
 static int
 blkfront_resume(device_t dev)
 {
+<<<<<<< HEAD
 #if 0
+=======
+>>>>>>> 9ed105083a6336eb6a358a1700c2e1fedb0ff9b6
 	struct xb_softc *sc = device_get_softc(dev);
 
 	DPRINTK("blkfront_resume: %s\n", xenbus_get_node(dev));
 
+<<<<<<< HEAD
 /* XXX This can't work!!! */
 	blkif_free(sc, 1);
 	blkfront_initialize(sc);
 	if (sc->connected == BLKIF_STATE_SUSPENDED)
 		blkif_recover(sc);
 #endif
+=======
+	blkif_free(sc);
+	blkfront_initialize(sc);
+>>>>>>> 9ed105083a6336eb6a358a1700c2e1fedb0ff9b6
 	return (0);
 }
 
@@ -499,8 +533,15 @@ blkfront_initialize(struct xb_softc *sc)
 	int error;
 	int i;
 
+<<<<<<< HEAD
 	if (xenbus_get_state(sc->xb_dev) != XenbusStateInitialising)
                 return;
+=======
+	if (xenbus_get_state(sc->xb_dev) != XenbusStateInitialising) {
+		/* Initialization has already been performed. */
+		return;
+	}
+>>>>>>> 9ed105083a6336eb6a358a1700c2e1fedb0ff9b6
 
 	/*
 	 * Protocol defaults valid even if negotiation for a
@@ -593,8 +634,15 @@ blkfront_initialize(struct xb_softc *sc)
 	sc->shadow = malloc(sizeof(*sc->shadow) * sc->max_requests,
 			    M_XENBLOCKFRONT, M_NOWAIT|M_ZERO);
 	if (sc->shadow == NULL) {
+<<<<<<< HEAD
 		xenbus_dev_fatal(sc->xb_dev, error,
 				 "Cannot allocate request structures\n");
+=======
+		bus_dma_tag_destroy(sc->xb_io_dmat);
+		xenbus_dev_fatal(sc->xb_dev, error,
+				 "Cannot allocate request structures\n");
+		return;
+>>>>>>> 9ed105083a6336eb6a358a1700c2e1fedb0ff9b6
 	}
 
 	for (i = 0; i < sc->max_requests; i++) {
@@ -755,10 +803,17 @@ blkfront_backend_changed(device_t dev, XenbusState backend_state)
 		break;
 
 	case XenbusStateInitWait:
+<<<<<<< HEAD
 		blkfront_initialize(sc);
 		break;
 
 	case XenbusStateInitialised:
+=======
+	case XenbusStateInitialised:
+		blkfront_initialize(sc);
+		break;
+
+>>>>>>> 9ed105083a6336eb6a358a1700c2e1fedb0ff9b6
 	case XenbusStateConnected:
 		blkfront_initialize(sc);
 		blkfront_connect(sc);
@@ -775,7 +830,11 @@ blkfront_backend_changed(device_t dev, XenbusState backend_state)
 }
 
 /* 
+<<<<<<< HEAD
 ** Invoked when the backend is finally 'ready' (and has told produced 
+=======
+** Invoked when the backend is finally 'ready' (and has published
+>>>>>>> 9ed105083a6336eb6a358a1700c2e1fedb0ff9b6
 ** the details about the physical device - #sectors, size, etc). 
 */
 static void 
@@ -809,6 +868,7 @@ blkfront_connect(struct xb_softc *sc)
 	if (!err || feature_barrier)
 		sc->xb_flags |= XB_BARRIER;
 
+<<<<<<< HEAD
 	device_printf(dev, "%juMB <%s> at %s",
 	    (uintmax_t) sectors / (1048576 / sector_size),
 	    device_get_desc(dev),
@@ -816,6 +876,17 @@ blkfront_connect(struct xb_softc *sc)
 	bus_print_child_footer(device_get_parent(dev), dev);
 
 	xlvbd_add(sc, sectors, sc->vdevice, binfo, sector_size);
+=======
+	if (sc->xb_disk == NULL) {
+		device_printf(dev, "%juMB <%s> at %s",
+		    (uintmax_t) sectors / (1048576 / sector_size),
+		    device_get_desc(dev),
+		    xenbus_get_node(dev));
+		bus_print_child_footer(device_get_parent(dev), dev);
+
+		xlvbd_add(sc, sectors, sc->vdevice, binfo, sector_size);
+	}
+>>>>>>> 9ed105083a6336eb6a358a1700c2e1fedb0ff9b6
 
 	(void)xenbus_set_state(dev, XenbusStateConnected); 
 
@@ -825,7 +896,10 @@ blkfront_connect(struct xb_softc *sc)
 	xb_startio(sc);
 	sc->xb_flags |= XB_READY;
 	mtx_unlock(&sc->xb_io_lock);
+<<<<<<< HEAD
 	
+=======
+>>>>>>> 9ed105083a6336eb6a358a1700c2e1fedb0ff9b6
 }
 
 /**
@@ -859,7 +933,11 @@ blkfront_detach(device_t dev)
 
 	DPRINTK("blkfront_remove: %s removed\n", xenbus_get_node(dev));
 
+<<<<<<< HEAD
 	blkif_free(sc, 0);
+=======
+	blkif_free(sc);
+>>>>>>> 9ed105083a6336eb6a358a1700c2e1fedb0ff9b6
 	mtx_destroy(&sc->xb_io_lock);
 
 	return 0;
@@ -1140,6 +1218,12 @@ xb_startio(struct xb_softc *sc)
 
 	mtx_assert(&sc->xb_io_lock, MA_OWNED);
 
+<<<<<<< HEAD
+=======
+	if (sc->connected != BLKIF_STATE_CONNECTED)
+		return;
+
+>>>>>>> 9ed105083a6336eb6a358a1700c2e1fedb0ff9b6
 	while (RING_FREE_REQUESTS(&sc->ring) >= sc->max_request_blocks) {
 		if (sc->xb_flags & XB_FROZEN)
 			break;
@@ -1174,7 +1258,11 @@ blkif_int(void *xsc)
 
 	mtx_lock(&sc->xb_io_lock);
 
+<<<<<<< HEAD
 	if (unlikely(sc->connected != BLKIF_STATE_CONNECTED)) {
+=======
+	if (unlikely(sc->connected == BLKIF_STATE_DISCONNECTED)) {
+>>>>>>> 9ed105083a6336eb6a358a1700c2e1fedb0ff9b6
 		mtx_unlock(&sc->xb_io_lock);
 		return;
 	}
@@ -1232,19 +1320,33 @@ blkif_int(void *xsc)
 
 	xb_startio(sc);
 
+<<<<<<< HEAD
+=======
+	if (unlikely(sc->connected == BLKIF_STATE_SUSPENDED))
+		wakeup(&sc->cm_busy);
+
+>>>>>>> 9ed105083a6336eb6a358a1700c2e1fedb0ff9b6
 	mtx_unlock(&sc->xb_io_lock);
 }
 
 static void 
+<<<<<<< HEAD
 blkif_free(struct xb_softc *sc, int suspend)
+=======
+blkif_free(struct xb_softc *sc)
+>>>>>>> 9ed105083a6336eb6a358a1700c2e1fedb0ff9b6
 {
 	uint8_t *sring_page_ptr;
 	int i;
 	
 	/* Prevent new requests being issued until we fix things up. */
 	mtx_lock(&sc->xb_io_lock);
+<<<<<<< HEAD
 	sc->connected = suspend ? 
 		BLKIF_STATE_SUSPENDED : BLKIF_STATE_DISCONNECTED; 
+=======
+	sc->connected = BLKIF_STATE_DISCONNECTED; 
+>>>>>>> 9ed105083a6336eb6a358a1700c2e1fedb0ff9b6
 	mtx_unlock(&sc->xb_io_lock);
 
 	/* Free resources associated with old device channel. */
@@ -1276,6 +1378,15 @@ blkif_free(struct xb_softc *sc, int suspend)
 		}
 		free(sc->shadow, M_XENBLOCKFRONT);
 		sc->shadow = NULL;
+<<<<<<< HEAD
+=======
+
+		bus_dma_tag_destroy(sc->xb_io_dmat);
+		
+		xb_initq_free(sc);
+		xb_initq_ready(sc);
+		xb_initq_complete(sc);
+>>>>>>> 9ed105083a6336eb6a358a1700c2e1fedb0ff9b6
 	}
 		
 	if (sc->irq) {
@@ -1292,6 +1403,7 @@ blkif_completion(struct xb_command *s)
 	return (BLKIF_SEGS_TO_BLOCKS(s->nseg));
 }
 
+<<<<<<< HEAD
 #if 0
 static void 
 blkif_recover(struct xb_softc *sc)
@@ -1307,6 +1419,8 @@ blkif_recover(struct xb_softc *sc)
 }
 #endif
 
+=======
+>>>>>>> 9ed105083a6336eb6a358a1700c2e1fedb0ff9b6
 /* ** Driver registration ** */
 static device_method_t blkfront_methods[] = { 
 	/* Device interface */ 
